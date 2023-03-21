@@ -1,0 +1,11 @@
+'''
+def go_to(location : str)
+def find(object : str)
+def pick_up(object : str)
+def put_down(object : str)
+def find(object : str)
+def ask(person : str, question : str, options: Optional[List[str]])
+def say(message : str)
+'''
+def main():
+    # Using the functions defined above, write a script to do the following: 

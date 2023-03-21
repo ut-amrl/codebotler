@@ -1,0 +1,7 @@
+.conda
+.vscode
+minilm-finetuned-emotion
+models
+t5-small-finetuned-xsum
+wandb
+__pycache__

@@ -1,0 +1,3 @@
+for _ in range(4):
+    go_to("kitchen")
+    go_to("living room")

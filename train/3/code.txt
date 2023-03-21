@@ -1,0 +1,4 @@
+go_to("Mark's office")
+response = ask("Mark", "Are you free today at 3:00 pm?", ["Yes", "No"])
+go_to("Yash's office")
+say("Mark said: " + response)

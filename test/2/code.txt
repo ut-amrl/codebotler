@@ -1,0 +1,6 @@
+go_to("Yash's room")
+response = ask("Yash", "Are you working?", ["Yes", "No"])
+if response == "Yes":
+    put_down("cookie")
+else:
+    say("Go to work")

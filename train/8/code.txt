@@ -1,0 +1,7 @@
+go_to("living room")
+response = ask("Joe", "Where is the charger?")
+go_to(response)
+find("charger")
+pick_up("charger")
+go_to("living room")
+put_down("charger")

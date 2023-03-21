@@ -1,0 +1,6 @@
+while True:
+    response = ask("Yash", "Do you want to make lunch?", ["Yes", "No"])
+    if response == "Yes":
+        break
+say("Follow me")
+go_to("kitchen")
