@@ -1,0 +1,15 @@
+go_to("living room")
+if object_in_room("remote"):
+    pick_up("remote")
+    go_to("your desk")
+    put_down("remote")
+else:
+    go_to("your desk")
+    say("There's no remote in the living room.")
+
+response = ask("you", "Do you want a cookie?", ["Yes", "No"])
+if response == "Yes":
+    go_to("kitchen")
+    pick_up("cookie")
+    go_to("your desk")
+    put_down("cookie")

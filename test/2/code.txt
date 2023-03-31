@@ -1,6 +1,10 @@
 go_to("Yash's room")
 response = ask("Yash", "Are you working?", ["Yes", "No"])
 if response == "Yes":
+    go_to("kitchen")
+    find("cookie")
+    pick_up("cookie")
+    go_to("Yash's room")
     put_down("cookie")
 else:
-    say("Go to work")
+    say("Get back to work, Yash!")

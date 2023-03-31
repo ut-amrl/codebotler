@@ -77,7 +77,7 @@ class CodeDataset(Dataset):
 
         final_prompt = self.DSL + prompts[prompt_idx] + "\n\t" + code
         input_ids = self.tokenizer(
-            final_prompt, padding="max_length", max_length=256)["input_ids"]
+            final_prompt, padding="max_length", max_length=350)["input_ids"]
         return {"input_ids": input_ids, "labels": input_ids}
 
 
