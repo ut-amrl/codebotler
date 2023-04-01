@@ -86,6 +86,4 @@ else:
 
 With the above in mind, write a program that takes a natural language prompt as input, and outputs a python program that performs the task.
 
-Prompt: "Go to the kitchen, ask Mom if dinner is ready, and come back and tell me what she said"
-Program:
-'''python
+Prompt:
