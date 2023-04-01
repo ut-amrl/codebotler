@@ -1,5 +1,3 @@
-English to code
-
 Important files/folders:
  - `train/` : training data
  - `test/` : testing data
