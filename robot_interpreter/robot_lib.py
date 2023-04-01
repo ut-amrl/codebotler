@@ -1,7 +1,7 @@
-object_locations = {}
-question_responses = iter(['Yes'])
+object_locations = {'stapler': "Yash's office"}
+question_responses = iter([])
+all_rooms = ['Kitchen', 'Living Room', 'Game Room', "Yash's office", "Arnold's office"]
 current_location = "<starting room>"
-current_object_held = "<None>"
 
 def go_to(location):
     global current_location
@@ -22,10 +22,16 @@ def object_in_room(object):
     print(f"{object} is not in {current_location}")
     return False
 
+def is_in_room(object):
+    object_location = object_locations.get(object, None)
+    return object_location == get_current_location()
 
 def say(message):
     print(f"Robot says: \"{message}\"")
 
+def get_all_rooms():
+    global all_rooms
+    return all_rooms
 
 def ask(person, question, options=None):
     if options == None:
@@ -36,32 +42,17 @@ def ask(person, question, options=None):
     print(f"Response: {response}")
     return response
 
-
-def pick_up(object):
-    global current_object_held
-    current_object_held = object
-    print(f"Robot picks up {object}")
-
-
-def put_down(object):
-    global current_object_held
-    object_locations[object] = get_current_location()
-    current_object_held = "<None>"
-    print(f"Robot puts down {object}")
-
 def execute():
-    go_to("living room")
-    if object_in_room("remote"):
-        pick_up("remote")
-        go_to("your desk")
-        put_down("remote")
-    else:
-        go_to("your desk")
-        say("There's no remote in the living room.")
+    start_loc = get_current_location()
+    stapler_location = None
+    for room in get_all_rooms():
+        go_to(room)
+        if is_in_room("stapler"):
+            stapler_location = room
+            break
     
-    response = ask("you", "Do you want a cookie?", ["Yes", "No"])
-    if response == "Yes":
-        go_to("kitchen")
-        pick_up("cookie")
-        go_to("your desk")
-        put_down("cookie")
+    go_to(start_loc)
+    if stapler_location:
+        say("There is a stapler in the " + stapler_location)
+    else:
+        say("There are no staplers in the house.")

@@ -1,25 +1,27 @@
 Consider a robot capable of executing the following functions:
 
-# Given a location, go to that location
-def go_to(location : str)
+# Get the current location of the robot.
+def get_current_location() -> str
 
-# Returns true if the given object is in the current room and false otherwise
-def object_in_room(object : str) -> bool
+# Get a list of all rooms in the house.
+def get_all_rooms() -> List[str]
 
-# Pick up the given object
-def pick_up(object : str)
+# Check if an object is in the current room.
+def is_in_room(object : str) -> bool
 
-# Put down the given object
-def put_down(object : str)
+# Go to a specific named location, e.g. go_to("kitchen"), go_to("Arjun's
+# office"), go_to("Jill's study"). Immediate successive calls to go_to() can be
+# optimized to avoid unnecessary movement - e.g. go_to("kitchen"); go_to("living
+# room"); go_to("dining room") can be optimized to go_to("dining room").
+def go_to(location : str) -> None
 
-# Ask the given person a question, and, optionally, offer a set of specific options for the person to respond. Return the response
+# Ask a person a question, and offer a set of specific options for the person to
+# respond. Return with the response selected by the person.
 def ask(person : str, question : str, options: Optional[List[str]]) -> str
 
-# Say a given message
-def say(message : str)
-
-# Get the current location of the robot
-def get_current_location() -> str
+# Say the message out loud. Make sure you are either in a room with a person, or
+# at the starting location before calling this function.
+def say(message : str) -> None
 
 Here are some examples:
 Example 1:
@@ -30,17 +32,25 @@ response = ask("Mark", "Are you free today at 3:00 pm?", ["Yes", "No"])
 go_to("Yash's office")
 say("Mark said: " + response)
 
-Example 2:
-Prompt: Go to the living room to get the TV Remote. Then go to the kitchen to pick up an apple. Give the TV Remote to Joydeep and the apple to Yash. They are both in their respective offices.
+Prompt: "Go to the pantry, and see if any of the following are there: rice, crackers, baking powder, flour. Come back and tell me what all are missing."
 Program:
-go_to("Living room")
-pick_up("TV Remote")
-go_to("Kitchen")
-pick_up("apple")
-go_to("Joydeep's office")
-put_down("TV Remote")
-go_to("Yash's office")
-put_down("apple")
+start_loc = get_current_location()
+go_to("pantry")
+missing_items = []
+if not is_in_room("rice"):
+    missing_items.append("rice")
+if not is_in_room("crackers"):
+    missing_items.append("crackers")
+if not is_in_room("baking powder"):
+    missing_items.append("baking powder")
+if not is_in_room("flour"):
+    missing_items.append("flour")
+go_to(start_loc)
+
+if missing_items:
+    say("The following items are missing from the pantry: " + ", ".join(missing_items))
+else:
+    say("All items are present in the pantry.")
 
 Example 3:
 Prompt: Go to Mark's office. Ask him if he's free today at 3:00 pm. Come back to Yash's office and tell him what Mark said.
@@ -51,29 +61,35 @@ go_to("Yash's office")
 say("Mark said: " + response)
 
 Example 4:
-Prompt: Write a program to go to Yash's room and ask him if he's working. If yes, then get him a cookie from the kitchen. If no, tell him to work.
+Prompt: Go to Peter's office and ask him if he needs a stapler or a ruler, then check if it exists in the mail room, and come back and tell me what Peter wanted, and if it is in the mailroom.
 Program:
-go_to("Yash's room")
-response = ask("Yash", "Are you working?", ["Yes", "No"])
-if response == "Yes":
-    go_to("kitchen")
-    pick_up("cookie")
-    go_to("Yash's room")
-    put_down("cookie")
+start_loc = get_current_location()
+go_to("Peter's office")
+response = ask("Peter", "Do you need a stapler or a ruler?", ["Stapler", "Ruler"])
+go_to("mail room")
+if is_in_room(response):
+    go_to(start_loc)
+    say("Peter wanted a " + response + ", and it is in the mail room")
 else:
-    say("Get back to work, Yash!")
+    go_to(start_loc)
+    say("Peter wanted a " + response + ", but it is not in the mail room")
 
 Example 5:
-Prompt: Go to the pantry and tell me if we have sugar
+Prompt: Search all the rooms for an apple. If you find the apple, tell me where it is. Otherwise, tell me that there isn't an apple in any of the rooms.
 Program:
 starting_location = get_current_location()
-go_to("pantry")
-sugar_in_pantry = object_in_room("sugar")
+apple_location = None
+for room in get_all_rooms():
+    go_to(room)
+    if is_in_room("apple"):
+        apple_location = room
+        break
 go_to(starting_location)
-if sugar_in_pantry:
-    say("We have sugar.")
+if apple_location:
+    say("The apple is in the " + apple_location)
 else:
-    say("We don't have sugar.")
+    say("The apple isn't in any of the rooms")
+
 
 Example 6:
 Prompt: Keep asking Yash if he wants to go make lunch. When he says yes, ask him to follow you and go to the kitchen.
@@ -87,7 +103,7 @@ go_to("kitchen")
 
 Make sure all possible re-wordings of the prompts map to the same code.
 
-Given a natural language prompt, write a simple program to perform the given task.
+Given a natural language prompt, write a simple program to perform the given task using Python syntax.
 
-Prompt: Go to the living room. If there's a remote there, pick it up and place it on my desk. If there isn't a remote there, come back and tell me that there's no remote in the living room. Afterwards, ask me if I want a cookie. If I want a cookie, go to the kitchen, pick up a cookie, and come back to put it on my desk.
+Prompt: Check if there are any staplers in the house, and come back and tell me if there are any, and if so, where
 Program: 

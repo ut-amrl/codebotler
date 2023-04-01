@@ -1,15 +1,13 @@
-go_to("living room")
-if object_in_room("remote"):
-    pick_up("remote")
-    go_to("your desk")
-    put_down("remote")
-else:
-    go_to("your desk")
-    say("There's no remote in the living room.")
+start_loc = get_current_location()
+stapler_location = None
+for room in get_all_rooms():
+    go_to(room)
+    if is_in_room("stapler"):
+        stapler_location = room
+        break
 
-response = ask("you", "Do you want a cookie?", ["Yes", "No"])
-if response == "Yes":
-    go_to("kitchen")
-    pick_up("cookie")
-    go_to("your desk")
-    put_down("cookie")
+go_to(start_loc)
+if stapler_location:
+    say("There is a stapler in the " + stapler_location)
+else:
+    say("There are no staplers in the house.")

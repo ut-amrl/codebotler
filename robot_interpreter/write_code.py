@@ -6,12 +6,17 @@ with open("code.txt", 'r') as f:
 
 template += "\n" + "\n".join(["    " + i for i in code.split("\n")])
 
-object_locations = {}
-responses = ["Yes"]
+object_locations = {
+    "stapler" : "Yash's office"
+}
+
+responses = []
+all_rooms = ["Kitchen", "Living Room", "Game Room", "Yash's office", "Arnold's office"]
 
 with open("robot_lib.py", 'w') as f:
     f.write(f"object_locations = {str(object_locations)}\n")
     f.write(f"question_responses = iter({str(responses)})\n")
+    f.write(f"all_rooms = {str(all_rooms)}\n")
     f.write(template)
 
 import robot_lib
