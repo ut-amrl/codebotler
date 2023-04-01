@@ -1,6 +1,6 @@
 Important files/folders:
- - `train/` : training data <OUTDATED> 
- - `test/` : testing data <OUTDATED>
+ - `train/` : training data (OUTDATED) 
+ - `test/` : testing data (OUTDATED)
  - `DSL.txt` : the prompt, which contains the DSL and a couple of examples
  - `train.py` : finetuning the model, based off `https://github.com/loubnabnl/santacoder-finetuning` <NOT CURRENTLY USED>
  
