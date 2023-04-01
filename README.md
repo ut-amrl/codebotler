@@ -2,7 +2,8 @@ Important files/folders:
  - `train/` : training data (OUTDATED) 
  - `test/` : testing data (OUTDATED)
  - `DSL.txt` : the prompt, which contains the DSL and a couple of examples
- - `train.py` : finetuning the model, based off `https://github.com/loubnabnl/santacoder-finetuning` <NOT CURRENTLY USED>
+ - `train.py` : finetuning the model, based off `https://github.com/loubnabnl/santacoder-finetuning`
+   - This currently isn't being used, feeding prompts to chatGPT for now
  
  Files relating to code "interpreter" are in `/robot_interpreter/`
  - `code.txt` : the code to be interpreted, in format specified by `DSL.txt`
