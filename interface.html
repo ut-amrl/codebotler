@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Box with Rounded Corners</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/themes/prism.min.css">
+    <style>
+        body {
+            background-color: white;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        .caption {
+            color: #888;
+            font-size: 2.1rem;
+            margin-bottom: 3.5rem;
+        }
+
+        .textbox-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+            resize: none;
+            border: 1px solid #ccc;
+            margin-bottom: 1rem;
+        }
+
+        textarea {
+            display: block;
+            width: 100%;
+            padding: 0.5rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border: none;
+            outline: none;
+            resize: none;
+            overflow: hidden;
+        }
+
+        .code-pane {
+            width: 100%;
+            max-width: 800px;
+            padding: 1rem;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            overflow: auto;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="caption">What would you like the robot to do?</div>
+    <div class="textbox-container">
+        <textarea id="textbox" rows="1" placeholder="Example: Find which room the cat is in." oninput="autoGrow(this)" onkeydown="checkForEnter(event)"></textarea>
+    </div>
+    <div class="code-pane">
+        <pre><code id="code" class="language-python">def example_function():
+    print("Hello, World!")
+
+example_function()</code></pre>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-python.min.js"></script>
+    <script>
+        function autoGrow(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+
+        function checkForEnter(event) {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                sendTextToWebSocket(document.getElementById("textbox").value);
+            }
+        }
+
+        function sendTextToWebSocket(text) {
+            let socket = new WebSocket("ws://localhost:8190");
+
+            socket.onopen = function(event) {
+                socket.send(JSON.stringify({ "text": text }));
+            };
+
+            socket.onmessage = function(event) {
+                let response = JSON.parse(event.data);
+                let codeElement = document.getElementById("code");
+                codeElement.textContent = response.code;
+                Prism.highlightElement(codeElement);
+                socket.close();
+            };
+            socket.onerror = function(error) {
+                console.error("WebSocket Error: ", error);
+            };
+
+            socket.onclose = function(event) {
+                console.log("WebSocket connection closed: ", event);
+            };
+        }
+</script>
+</body>
+</html>
+
