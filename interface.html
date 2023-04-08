@@ -12,15 +12,17 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             min-height: 100vh;
             font-family: Arial, sans-serif;
+            position: relative;
         }
+
 
         .caption {
             color: #888;
             font-size: 2.1rem;
             margin-bottom: 3.5rem;
+            margin-top: 8rem;
         }
 
         .textbox-container {
@@ -39,11 +41,30 @@
             width: 100%;
             padding: 0.5rem;
             font-size: 1rem;
-            line-height: 1.5;
+            line-height: 1;
             border: none;
             outline: none;
             resize: none;
             overflow: hidden;
+            max-height: 3em;
+        }
+
+        .status-box {
+            width: 100%;
+            max-width: 800px;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 0px solid #ccc;
+            color: rgb(166, 166, 166);
+            font-size: 1rem;
+            line-height: 1.5;
+            position: fixed;
+            bottom: 0;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 4.5em;
+            padding-top: 0em;
+            padding-bottom: 0em;
         }
 
         .code-pane {
@@ -53,9 +74,10 @@
             background-color: #f5f5f5;
             border-radius: 8px;
             border: 1px solid #ccc;
-            overflow: auto;
+            overflow-y: auto;
             font-size: 1rem;
             line-height: 1.5;
+            max-height: 30em;
         }
 
     </style>
@@ -65,18 +87,23 @@
     <div class="textbox-container">
         <textarea id="textbox" rows="1" placeholder="Example: Find which room the cat is in." oninput="autoGrow(this)" onkeydown="checkForEnter(event)"></textarea>
     </div>
-    <div class="code-pane">
-        <pre><code id="code" class="language-python">def example_function():
-    print("Hello, World!")
 
-example_function()</code></pre>
+    <div class="code-pane">
+        <pre><code id="code" class="language-python">
+  def example_function():
+    print("Hello, World!")
+  example_function()
+        </code></pre>
     </div>
+
+    <pre class="status-box" id="status-box"></pre>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-python.min.js"></script>
     <script>
         function autoGrow(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = (textarea.scrollHeight) + 'px';
+            // textarea.style.height = 'auto';
+            // textarea.style.height = (textarea.scrollHeight - 100.5) + 'px';
         }
 
         function checkForEnter(event) {
@@ -86,27 +113,48 @@ example_function()</code></pre>
             }
         }
 
+        function setStatus(str) {
+            statusBox = document.getElementById("status-box");
+            statusBox.textContent += "\n" + str;
+            statusBox.scrollTop = statusBox.scrollHeight;
+        }
+
         function sendTextToWebSocket(text) {
-            let socket = new WebSocket("ws://localhost:8190");
+            let tStart = performance.now();
+            try {
+              let socket = new WebSocket("ws://localhost:8190");
+              setStatus("Connecting to server...");
+              socket.onopen = function(event) {
+                  setStatus("Connected to server. Generating code...");
+                  socket.send(JSON.stringify({ "text": text }));
+              };
+              socket.onmessage = function(event) {
+                  let tEnd = performance.now();
+                  setStatus("Code generated in " + (tEnd - tStart).toFixed(2) + "ms. Closing connection...");
+                  let response = JSON.parse(event.data);
+                  let codeElement = document.getElementById("code");
+                  // Strip any leading whitespace.
+                  // codeElement.textContent = response.code.replace(/^\s+/gm,
+                  // '');
+                  // If the first line is empty, remove it.
+                  if (codeElement.textContent.startsWith("\n")) {
+                      codeElement.textContent = codeElement.textContent.slice(1);
+                  }
+                  codeElement.textContent = response.code;
+                  Prism.highlightElement(codeElement);
+                  socket.close();
+              };
+              socket.onerror = function(error) {
+                  setStatus("Websocket error.");
+              };
 
-            socket.onopen = function(event) {
-                socket.send(JSON.stringify({ "text": text }));
-            };
+              socket.onclose = function(event) {
+                  setStatus("Connection closed.");
+              };
+            } catch (error) {
+              setStatus("Error connecting to server.");
+            }
 
-            socket.onmessage = function(event) {
-                let response = JSON.parse(event.data);
-                let codeElement = document.getElementById("code");
-                codeElement.textContent = response.code;
-                Prism.highlightElement(codeElement);
-                socket.close();
-            };
-            socket.onerror = function(error) {
-                console.error("WebSocket Error: ", error);
-            };
-
-            socket.onclose = function(event) {
-                console.log("WebSocket connection closed: ", event);
-            };
         }
 </script>
 </body>

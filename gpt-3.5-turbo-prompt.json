@@ -1,0 +1,18 @@
+[
+  { "role": "system", "content": "You are a robot programmer that converts natural language tasks into Python programs. You are given a natural language task, and you need to write a Python program that performs the task. You are given a set of functions that you can use to perform the task. You can use any of the built-in Python functions, but you cannot use any other functions other than the ones given to you. You can use loops and conditionals, but you need to preserve the necessary tab spaces. Do not respond with anything except for python code encapsulated in \"```python...```\"" },
+
+  { "role": "system", "content": "Here are the functions that you can use:\n```python\n# Get the current location of the robot.\ndef get_current_location() -> str\n\n# Get a list of all rooms in the house.\ndef get_all_rooms() -> List[str]\n\n# Check if an object is in the current room.\ndef is_in_room(object : str) -> bool\n\n# Go to a specific named location, e.g. go_to(\"kitchen\"), go_to(\"Arjun's\n# office\"), go_to(\"Jill's study\"). Immediate successive calls to go_to() can be\n# optimized to avoid unnecessary movement - e.g. go_to(\"kitchen\"); go_to(\"living\n# room\"); go_to(\"dining room\") can be optimized to go_to(\"dining room\").\ndef go_to(location : str) -> None\n\n# Ask a person a question, and offer a set of specific options for the person to\n# respond. Return with the response selected by the person.\ndef ask(person : str, question : str, options: Optional[List[str]]) -> str\n\n# Say the message out loud. Make sure you are either in a room with a person, or\n# at the starting location before calling this function.\ndef say(message : str) -> None\n"},
+
+  { "role": "user", "content": "Go to Arjun's office, ask him if he is ready to head out, and come back and tell me what he said"},
+
+  { "role": "assistant", "content": "\n```python\nstart_loc = get_current_location()\ngo_to(\"Arjun's office\")\nresponse = ask(\"Arjun\", \"Are you ready to go?\", [\"Yes\", \"No\"])\ngo_to(start_loc)\nsay(\"Arjun said: \" + response)\n```\n"},
+
+  { "role": "user", "content": "Go to the kitchen, ask Mom if dinner is ready, and come back and tell me what she said"},
+  { "role": "assistant", "content": "\n```python\nstart_loc = get_current_location()\ngo_to(\"kitchen\")\nresponse = ask(\"Mom\", \"Is dinner ready?\", [\"Yes\", \"No\"])\ngo_to(start_loc)\nsay(\"Mom said: \" + response)\n```\n"},
+
+  { "role": "user", "content": "Check if there are any mugs in the living room, and come back and tell me if there are any"},
+  { "role": "assistant", "content": "\n```python\nstart_loc = get_current_location()\ngo_to(\"living room\")\nmug_found = is_in_room(\"mug\")\ngo_to(start_loc)\nif mug_found:\n    say(\"There is a mug in the living room\")\nelse:\n    say(\"There is no mug in the living room\")\n```\n"},
+
+  { "role": "user", "content": "Check if there are any staplers in the house, and come back and tell me if there are any, and if so, where"},
+  { "role": "assistant", "content": "\n```python\nlist_of_rooms = get_all_rooms()\nstart_loc = get_current_location()\nstapler_found = False\nstapler_loc = None\nfor room in list_of_rooms:\n    go_to(room)\n    if is_in_room(\"stapler\"):\n        stapler_found = True\n        stapler_loc = room\n        break\ngo_to(start_loc)\nif stapler_found:\n    say(\"There is a stapler in the \" + stapler_loc)\nelse:\n    say(\"There is no stapler in the house\")\n```\n"}
+]

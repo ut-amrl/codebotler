@@ -13,8 +13,14 @@ if os.path.exists(".openai_api_key"):
 else:
   openai.api_key = os.getenv("OPENAI_API_KEY")
 
-with open("chatgpt_prompt.md", "r") as f:
+# If the API key is not set, exit.
+if openai.api_key is None:
+    print("OpenAI API key is not set.")
+    sys.exit(1)
+
+with open("gpt-3.5-turbo-prompt.json", "r") as f:
     pre_prompt = f.read()
+pre_prompt = json.loads(pre_prompt)
 
 async def handle_message(websocket, message):
     # Parse incoming message as JSON
@@ -22,27 +28,22 @@ async def handle_message(websocket, message):
     # print(f"Received: {data}")
     # Time the response.
     start_time = time.time()
-    prompt = pre_prompt + f" \"{data['text']}\"" + "\nProgram:\n"
-    openai_response = openai.Completion.create(
-      model="text-davinci-003",
-      # model="gpt-3.5-turbo",
-      # model="code-davinci-002",
-      prompt=prompt,
-      temperature=0.7,
-      max_tokens=256,
-      top_p=1,
-      frequency_penalty=0,
-      presence_penalty=0
+    prompt = pre_prompt
+    prompt.append({"role": "user", "content": data['text']})
+    openai_response = openai.ChatCompletion.create(
+      model="gpt-3.5-turbo",
+      messages = pre_prompt
     )
     end_time = time.time()
     # Print the response time with 2 decimal places.
     print(f"Response time: {round(end_time - start_time, 2)} seconds")
-    code = openai_response.choices[0].text
+    code = openai_response.choices[0].message.content
+    print(code)
     # Strip "```python" and "```" from the code
     code = code.replace("```python", "")
     code = code.replace("```", "")
     # Remove any leading or trailing end-of-line characters
-    code = code.strip()
+    # code = code.strip()
     response = {"code": f"{code}"}
 
     # Convert the response to JSON and send it back to the client

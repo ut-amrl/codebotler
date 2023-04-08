@@ -1,4 +1,4 @@
-Consider a robot capable of executing simple python programs, with the following in-built functions:
+Consider a robot capable of executing simple Python programs, with the following in-built functions:
 
 ```python
 # Get the current location of the robot.
@@ -25,10 +25,13 @@ def ask(person : str, question : str, options: Optional[List[str]]) -> str
 def say(message : str) -> None
 ```
 
-Given a natural language prompt, the task is to write a simple program that performs the task. Here are some examples:
+Given a natural language description of a task, write a simple Python program
+that performs the task using the functions above. Do not use any functions other
+than built-in Python functions and the above. Loops and conditionals must have
+the appropriate tab spaces. Here are some examples:
 
 Example 1:
-Prompt: "Go to Arjun's office, ask him if he is ready to head out, and come back and tell me what he said"
+Task: "Go to Arjun's office, ask him if he is ready to head out, and come back and tell me what he said"
 Program:
 ```python
 start_loc = get_current_location()
@@ -39,7 +42,7 @@ say("Arjun said: " + response)
 ```
 
 Example 2:
-Prompt: "Go to the kitchen, ask Mom if dinner is ready, and come back and tell me what she said"
+Task: "Go to the kitchen, ask Mom if dinner is ready, and come back and tell me what she said"
 Program:
 ```python
 start_loc = get_current_location()
@@ -50,7 +53,7 @@ say("Mom said: " + response)
 ```
 
 Example 3:
-Prompt: "Check if there are any mugs in the living room, and come back and tell me if there are any"
+Task: "Check if there are any mugs in the living room, and come back and tell me if there are any"
 Program:
 ```python
 start_loc = get_current_location()
@@ -64,7 +67,7 @@ else:
 ```
 
 Example 4:
-Prompt: "Check if there are any staplers in the house, and come back and tell me if there are any, and if so, where"
+Task: "Check if there are any staplers in the house, and come back and tell me if there are any, and if so, where"
 Program:
 ```python
 list_of_rooms = get_all_rooms()
@@ -84,6 +87,8 @@ else:
     say("There is no stapler in the house")
 ```
 
-With the above in mind, write a program that takes a natural language prompt as input, and outputs a python program that performs the task.
+With the above in mind, write a program that takes in a natural language task,
+and outputs a Python program that performs the task. Make sure to preserve
+necessary tabs in the output program.
 
-Prompt:
+Task:
