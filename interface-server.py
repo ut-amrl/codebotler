@@ -16,10 +16,8 @@ else:
 with open("chatgpt_prompt.md", "r") as f:
     pre_prompt = f.read()
 
-async def handle_message(websocket, message):
-    # Parse incoming message as JSON
-    data = json.loads(message)
-    # print(f"Received: {data}")
+async def get_code(websocket, data):
+   # print(f"Received: {data}")
     # Time the response.
     start_time = time.time()
     prompt = pre_prompt + f" \"{data['text']}\"" + "\nProgram:\n"
@@ -47,6 +45,26 @@ async def handle_message(websocket, message):
 
     # Convert the response to JSON and send it back to the client
     await websocket.send(json.dumps(response))
+
+async def eval(websocket, data):
+    print("Received eval request:")
+    print(data)
+    # Open the file named eval.json and append the data to it.
+    with open("eval.json", "a") as f:
+        f.write(json.dumps(data) + "\n")
+    await websocket.send(json.dumps({}))
+
+async def handle_message(websocket, message):
+    # Parse incoming message as JSON
+    data = json.loads(message)
+    if data['type'] == 'code':
+        print("Received code request")
+        await get_code(websocket, data)
+    elif data['type'] == 'eval':
+        await eval(websocket, data)
+    else :
+        print("Unknown message type: " + data['type'])
+
 
 async def ws_main(websocket, path):
     try:

@@ -79,13 +79,35 @@
             line-height: 1.5;
             max-height: 30em;
         }
+        .button-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+        }
+
+        .button {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            background-color: white;
+            cursor: pointer;
+            min-width: 150px;
+        }
+
+        .button:hover {
+            background-color: #f5f5f5;
+        }
 
     </style>
 </head>
 <body>
     <div class="caption">What would you like the robot to do?</div>
     <div class="textbox-container">
-        <textarea id="textbox" rows="1" placeholder="Example: Find which room the cat is in." oninput="autoGrow(this)" onkeydown="checkForEnter(event)"></textarea>
+        <textarea id="taskPrompt" rows="1" placeholder="Example: Find which room the cat is in." oninput="autoGrow(this)" onkeydown="checkForEnter(event)"></textarea>
     </div>
 
     <div class="code-pane">
@@ -94,6 +116,12 @@
     print("Hello, World!")
   example_function()
         </code></pre>
+    </div>
+    <div class="button-container">
+        <button class="button" onclick="buttonPressed(this)">Correct</button>
+        <button class="button" onclick="buttonPressed(this)">Correct, inefficient</button>
+        <button class="button" onclick="buttonPressed(this)">Incorrect</button>
+        <button class="button" onclick="buttonPressed(this)">Syntax error</button>
     </div>
 
     <pre class="status-box" id="status-box"></pre>
@@ -109,7 +137,7 @@
         function checkForEnter(event) {
             if (event.keyCode === 13) {
                 event.preventDefault();
-                sendTextToWebSocket(document.getElementById("textbox").value);
+                sendTextToWebSocket(document.getElementById("taskPrompt").value);
             }
         }
 
@@ -126,17 +154,13 @@
               setStatus("Connecting to server...");
               socket.onopen = function(event) {
                   setStatus("Connected to server. Generating code...");
-                  socket.send(JSON.stringify({ "text": text }));
+                  socket.send(JSON.stringify({ "type": "code", "text": text }));
               };
               socket.onmessage = function(event) {
                   let tEnd = performance.now();
                   setStatus("Code generated in " + (tEnd - tStart).toFixed(2) + "ms. Closing connection...");
                   let response = JSON.parse(event.data);
                   let codeElement = document.getElementById("code");
-                  // Strip any leading whitespace.
-                  // codeElement.textContent = response.code.replace(/^\s+/gm,
-                  // '');
-                  // If the first line is empty, remove it.
                   if (codeElement.textContent.startsWith("\n")) {
                       codeElement.textContent = codeElement.textContent.slice(1);
                   }
@@ -155,6 +179,36 @@
               setStatus("Error connecting to server.");
             }
 
+        }
+        function buttonPressed(button) {
+            setStatus("You pressed the " + button.textContent + " button.");
+            try {
+              let socket = new WebSocket("ws://localhost:8190");
+              setStatus("Connecting to server...");
+              socket.onopen = function(event) {
+                  setStatus("Connected to server. Sending result...");
+                  eval_data = {
+                      "type": "eval",
+                      "task": document.getElementById("taskPrompt").value,
+                      "code": document.getElementById("code").textContent,
+                      "result": button.textContent
+                  };
+                  socket.send(JSON.stringify(eval_data));
+              };
+              socket.onmessage = function(event) {
+                  setStatus("Acknowledged. Closing connection...");
+                  socket.close();
+              };
+              socket.onerror = function(error) {
+                  setStatus("Websocket error.");
+              };
+
+              socket.onclose = function(event) {
+                  setStatus("Connection closed.");
+              };
+            } catch (error) {
+              setStatus("Error connecting to server.");
+            }
         }
 </script>
 </body>
