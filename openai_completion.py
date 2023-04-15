@@ -24,7 +24,7 @@ print("Task Prompt:")
 print(task_prompt)
 
 # Load the prompt from the file "chatgpt_prompt.md"
-with open("chatgpt_prompt.md", "r") as f:
+with open("gpt_prompt.md", "r") as f:
     pre_prompt = f.read()
 
 # Append task_prompt to the pre_prompt in quotes.
@@ -37,8 +37,8 @@ prompt = pre_prompt + f" \"{task_prompt}\"" + "\nProgram:\n"
 
 print("Getting completion from OpenAI API...")
 response = openai.Completion.create(
-  # model="text-davinci-003",
-  model="gpt-3.5-turbo",
+  model="text-davinci-003",
+  # model="gpt-3.5-turbo",
   prompt=prompt,
   temperature=0.7,
   max_tokens=256,

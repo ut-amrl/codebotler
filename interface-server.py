@@ -13,7 +13,7 @@ if os.path.exists(".openai_api_key"):
 else:
   openai.api_key = os.getenv("OPENAI_API_KEY")
 
-with open("chatgpt_prompt.md", "r") as f:
+with open("gpt_prompt.md", "r") as f:
     pre_prompt = f.read()
 
 async def get_code(websocket, data):
