@@ -18,7 +18,7 @@ def go_to(location : str) -> None
 
 # Ask a person a question, and offer a set of specific options for the person to
 # respond. Return with the response selected by the person.
-def ask(person : str, question : str, options: Optional[List[str]]) -> str
+def ask(person : str, question : str, options: List[str]) -> str
 
 # Say the message out loud. Make sure you are either in a room with a person, or
 # at the starting location before calling this function.
