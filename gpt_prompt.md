@@ -67,7 +67,7 @@ else:
 ```
 
 Example 4:
-Task: "Check if there are any staplers in the house, and come back and tell me if there are any, and if so, where"
+Task: "Check if there are any staplers in any printer room, and come back and tell me if there are any, and if so, where"
 Program:
 ```python
 list_of_rooms = get_all_rooms()
@@ -75,6 +75,8 @@ start_loc = get_current_location()
 stapler_found = False
 stapler_loc = None
 for room in list_of_rooms:
+    if "printer" not in room:
+        continue
     go_to(room)
     if is_in_room("stapler"):
         stapler_found = True
@@ -85,6 +87,20 @@ if stapler_found:
     say("There is a stapler in the " + stapler_loc)
 else:
     say("There is no stapler in the house")
+```
+
+Example 5:
+Task: "Go to the kitchen and wait for someone to show up. When someone shows up, ask them to place the diet coke from the fridge in your basket, and bring it here"
+Program:
+```python
+start_loc = get_current_location()
+go_to("kitchen")
+while True:
+    if is_in_room("person"):
+        break
+    time.sleep(1)
+say("Please place the diet coke from the fridge in my basket")
+go_to(start_loc)
 ```
 
 With the above in mind, write a program that takes in a natural language task,

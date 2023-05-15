@@ -16,7 +16,7 @@ if openai.api_key is None:
     sys.exit(1)
 
 # If there are no arguments, use a default prompt
-task_prompt = "Go to Arjun's office, ask him if he is ready to meet, and come back and tell me what he said."
+task_prompt = "Check if we have any of the following items in the pantry: baking powder, flour, sugar, vanilla essence. Come back and tell me which of them we are missing."
 if len(sys.argv) > 1:
     task_prompt = sys.argv[1]
 
@@ -40,7 +40,7 @@ response = openai.Completion.create(
   model="text-davinci-003",
   # model="gpt-3.5-turbo",
   prompt=prompt,
-  temperature=0.7,
+  temperature=0.3,
   max_tokens=256,
   top_p=1,
   frequency_penalty=0,
