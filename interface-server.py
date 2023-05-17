@@ -6,6 +6,9 @@ import json
 import websockets
 import time
 import argparse
+import signal
+import rospy
+from std_msgs.msg import String
 
 # If there exists a ".openai_api_key" file, use that as the API key.
 if os.path.exists(".openai_api_key"):
@@ -19,20 +22,13 @@ with open("gpt_prompt.md", "r") as f:
 
 
 async def get_code(websocket, data):
-   # print(f"Received: {data}")
-    # Time the response.
     start_time = time.time()
     prompt = pre_prompt + f" \"{data['text']}\"" + "\nProgram:\n"
     openai_response = openai.Completion.create(
         model="text-davinci-003",
-        # model="gpt-3.5-turbo",
-        # model="code-davinci-002",
         prompt=prompt,
         temperature=0.7,
         max_tokens=256,
-        #   top_p=1, default is 1
-        #   frequency_penalty=0, default is 0
-        #   presence_penalty=0 default is 0
     )
     end_time = time.time()
     # Print the response time with 2 decimal places.
@@ -43,6 +39,7 @@ async def get_code(websocket, data):
     code = code.replace("```", "")
     # Remove any leading or trailing end-of-line characters
     code = code.strip()
+    pub.publish(code)
     response = {"code": f"{code}"}
 
     # Convert the response to JSON and send it back to the client
@@ -85,9 +82,21 @@ def main(args):
     asyncio.set_event_loop(loop)
     start_server = websockets.serve(ws_main, args.ip, args.port)
 
-    loop.run_until_complete(start_server)
-    loop.run_forever()
+    # Register a signal handler to stop the server when Ctrl-C is pressed
+    loop.add_signal_handler(signal.SIGINT, lambda: (print("INFO: Shutting down Server"), loop.stop()))
 
+    try:
+        server = loop.run_until_complete(start_server)
+        loop.run_forever()
+    except Exception as e:
+        pass
+    finally:
+        print("Closing server")
+        for task in asyncio.all_tasks(loop=loop):
+            task.cancel()
+        server.close()
+        loop.run_until_complete(server.wait_closed())
+        loop.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -99,4 +108,6 @@ if __name__ == "__main__":
     # Parse the command line arguments
     args = parser.parse_args()
 
+    rospy.init_node('python_commands_publisher')
+    pub = rospy.Publisher('/python_commands', String, queue_size=1)
     main(args)

@@ -27,8 +27,7 @@ def say(message : str) -> None
 
 Given a natural language description of a task, write a simple Python program
 that performs the task using the functions above. Do not use any functions other
-than built-in Python functions and the above. Loops and conditionals must have
-the appropriate tab spaces. Here are some examples:
+than built-in Python functions and the ones defined above under any circumstances - this is absolutely crucial. Loops and conditionals must have the appropriate tab spaces. Here are some examples:
 
 Example 1:
 Task: "Go to Arjun's office, ask him if he is ready to head out, and come back and tell me what he said"
