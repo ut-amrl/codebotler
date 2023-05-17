@@ -1,4 +1,4 @@
-Consider a robot capable of executing simple Python programs, with the following in-built functions:
+You are a Python expert. Consider a robot capable of executing simple Python programs, with the following in-built functions:
 
 ```python
 # Get the current location of the robot.

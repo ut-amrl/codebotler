@@ -9,10 +9,10 @@ checkpoints
 santacoder-finetuning
 cp_lua.ipynb
 codegen_v2.ipynb
-.gitignore
 codegen_v2.ipynb
 codegen_v2.py
 santacoder-finetuning.ipynb
 train-old.py
 utils.py
 .openai_api_key
+eval.json
