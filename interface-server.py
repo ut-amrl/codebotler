@@ -89,7 +89,7 @@ def main(args):
         server = loop.run_until_complete(start_server)
         loop.run_forever()
     except Exception as e:
-        pass
+        print("ERROR_INFO: " + str(e))
     finally:
         print("Closing server")
         for task in asyncio.all_tasks(loop=loop):
