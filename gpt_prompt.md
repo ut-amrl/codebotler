@@ -104,6 +104,6 @@ go_to(start_loc)
 
 With the above in mind, write a program that takes in a natural language task,
 and outputs a Python program that performs the task. Make sure to preserve
-necessary tabs in the output program.
+necessary tabs in the output program. Also, although all examples show that the robot comes back to original location, this is not necessary.
 
 Task:
