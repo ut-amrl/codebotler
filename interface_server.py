@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+os.system(f"cd {os.path.dirname(os.path.realpath(__file__))}")
+import roslib
+roslib.load_manifest('amrl_msgs')
+
 import os
 import openai
 import sys
@@ -9,6 +18,8 @@ import argparse
 import signal
 import rospy
 from std_msgs.msg import String
+
+
 
 # If there exists a ".openai_api_key" file, use that as the API key.
 if os.path.exists(".openai_api_key"):
