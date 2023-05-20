@@ -85,6 +85,7 @@
             display: flex;
             justify-content: space-between;
             margin: 1rem 0;
+            align-items: center;
         }
 
         .button {
@@ -102,19 +103,20 @@
             background-color: #f5f5f5;
         }
 
+        .highlight-function {
+          color: #bf6c00; /* this will make "my_func" appear in orange color */
+        }
+
     </style>
 </head>
 <body>
     <div class="caption">What would you like the robot to do?</div>
     <div class="textbox-container">
-        <textarea id="taskPrompt" rows="1" placeholder="Example: Find which room the cat is in." oninput="autoGrow(this)" onkeydown="checkForEnter(event)"></textarea>
+        <textarea id="taskPrompt" rows="1" placeholder="Example: Go to every room and say 'Hello, World!'" oninput="autoGrow(this)" onkeydown="checkForEnter(event)"></textarea>
     </div>
 
     <div class="code-pane">
         <pre><code id="code" class="language-python">
-  def example_function():
-    print("Hello, World!")
-  example_function()
         </code></pre>
     </div>
     <div class="button-container">
@@ -147,6 +149,16 @@
             statusBox.scrollTop = statusBox.scrollHeight;
         }
 
+        function doSyntaxHighlighting() {
+          let codeElement = document.getElementById("code");
+          Prism.highlightElement(codeElement);
+          // Then post-process to highlight specific function name
+          // let codeElement = document.querySelector('.code-pane pre code');
+          let codeHTML = codeElement.innerHTML;
+          codeHTML = codeHTML.replace(/\b(get_all_rooms|get_current_location|go_to|is_in_room|say|ask)\b/g, '<span class="highlight-function">$&</span>');
+          codeElement.innerHTML = codeHTML;
+        }
+
         function sendTextToWebSocket(text) {
             let tStart = performance.now();
             try {
@@ -165,8 +177,8 @@
                       codeElement.textContent = codeElement.textContent.slice(1);
                   }
                   codeElement.textContent = response.code;
-                  Prism.highlightElement(codeElement);
                   socket.close();
+                  doSyntaxHighlighting();
               };
               socket.onerror = function(error) {
                   setStatus("Websocket error.");
@@ -210,6 +222,17 @@
               setStatus("Error connecting to server.");
             }
         }
+        document.addEventListener('DOMContentLoaded', function() {
+          document.getElementById("code").textContent =
+            "list_of_rooms = get_all_rooms()\n" +
+            "start_loc = get_current_location()\n" +
+            "for room in list_of_rooms:\n" +
+            "  go_to(room)\n" +
+            "  say(\"Hello, world!\")\n" +
+            "go_to(start_loc)";
+          doSyntaxHighlighting();
+        }, false);
+
 </script>
 </body>
 </html>

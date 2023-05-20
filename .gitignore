@@ -9,6 +9,7 @@ checkpoints
 santacoder-finetuning
 cp_lua.ipynb
 codegen_v2.ipynb
+.gitignore
 codegen_v2.ipynb
 codegen_v2.py
 santacoder-finetuning.ipynb
