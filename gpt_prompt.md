@@ -96,9 +96,10 @@ start_loc = get_current_location()
 go_to("kitchen")
 while True:
     if is_in_room("person"):
-        break
+        response = ask("", "Could you please place the diet coke from the fridge in my basket?", ["Yes", "No"])
+        if response == "Yes":
+            break
     time.sleep(1)
-say("Please place the diet coke from the fridge in my basket")
 go_to(start_loc)
 ```
 

@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
-
-import os
-import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
-os.system(f"cd {os.path.dirname(os.path.realpath(__file__))}")
-import roslib
-roslib.load_manifest('amrl_msgs')
+from utilities import *
+add_pythonpath_load_amrl_msgs_cd(".", ".")
 
 import os
 import openai
@@ -18,7 +13,6 @@ import argparse
 import signal
 import rospy
 from std_msgs.msg import String
-
 
 
 # If there exists a ".openai_api_key" file, use that as the API key.
@@ -109,6 +103,7 @@ def main(args):
         loop.run_until_complete(server.wait_closed())
         loop.close()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
@@ -119,6 +114,7 @@ if __name__ == "__main__":
     # Parse the command line arguments
     args = parser.parse_args()
 
+    print("start chat interface")
     rospy.init_node('python_commands_publisher')
     pub = rospy.Publisher('/python_commands', String, queue_size=1)
     main(args)
