@@ -1,5 +1,0 @@
-go_to("kitchen")
-find("apple")
-pick_up("apple")
-go_to("living room")
-put_down("apple")

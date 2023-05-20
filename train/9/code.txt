@@ -1,9 +1,0 @@
-go_to("Rhea's room")
-response = ask("Rhea", "Is it your birthday?", ["Yes", "No"])
-if response == "Yes":
-    say("Happy Birthday!")
-    go_to("kitchen")
-    find("cake")
-    pick_up("cake")
-    go_to("Rhea's room")
-    put_down("cake")

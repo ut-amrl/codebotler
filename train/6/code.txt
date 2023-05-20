@@ -1,7 +1,0 @@
-go_to("Dr. Huang's office")
-response = ask("Dr. Huang", "Is the assignment due today?", ["Yes", "No"])
-go_to("Yash's office")
-if response == "Yes":
-    say("Work faster")
-else:
-    say("You can relax")

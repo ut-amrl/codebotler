@@ -1,6 +1,0 @@
-response = ask("Yash", "What did you eat for dinner?")
-go_to("kitchen")
-find(response)
-pick_up(response)
-go_to("Yash's room")
-put_down(response)
