@@ -112,9 +112,9 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, help='Port number', default=8190)
 
     # Parse the command line arguments
-    args = parser.parse_args()
+    args = parser.parse_args(rospy.myargv()[1:])
 
     print("start chat interface")
     rospy.init_node('python_commands_publisher')
-    pub = rospy.Publisher('/python_commands', String, queue_size=1)
+    pub = rospy.Publisher('/chat_commands', String, queue_size=1)
     main(args)
