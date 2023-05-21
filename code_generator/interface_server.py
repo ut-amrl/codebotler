@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
-from utilities import *
-add_pythonpath_load_amrl_msgs_cd_rel(".", ".")
+
+robot_interface_available = False
+try:
+    from utilities import *
+    add_pythonpath_load_amrl_msgs_cd_rel(".", ".")
+    import rospy
+    from std_msgs.msg import String
+    robot_interface_available = True
+except:
+    print("Could not import rospy. Robot interface is not available.")
+    pass
 
 import os
 import openai
@@ -11,8 +20,6 @@ import websockets
 import time
 import argparse
 import signal
-import rospy
-from std_msgs.msg import String
 
 
 # If there exists a ".openai_api_key" file, use that as the API key.
@@ -28,12 +35,18 @@ with open("gpt_prompt.md", "r") as f:
 
 async def get_code(websocket, data):
     start_time = time.time()
-    prompt = pre_prompt + f" \"{data['text']}\"" + "\nProgram:\n"
+    prompt = pre_prompt + f" \"{data['text']}\"" + "\nProgram:\n```python\n"
     openai_response = openai.Completion.create(
         model="text-davinci-003",
+        # model="gpt-3.5-turbo",
+        # model="code-davinci-002",
         prompt=prompt,
         temperature=0.7,
-        max_tokens=256,
+        max_tokens=512,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop="```"
     )
     end_time = time.time()
     # Print the response time with 2 decimal places.
@@ -44,7 +57,8 @@ async def get_code(websocket, data):
     code = code.replace("```", "")
     # Remove any leading or trailing end-of-line characters
     code = code.strip()
-    pub.publish(code)
+    if robot_interface_available:
+        pub.publish(code)
     response = {"code": f"{code}"}
 
     # Convert the response to JSON and send it back to the client
@@ -112,9 +126,12 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, help='Port number', default=8190)
 
     # Parse the command line arguments
-    args = parser.parse_args(rospy.myargv()[1:])
+    if robot_interface_available:
+        args = parser.parse_args(rospy.myargv()[1:])
+    else:
+        args = parser.parse_args(sys.argv[1:])
 
-    print("start chat interface")
-    rospy.init_node('python_commands_publisher')
-    pub = rospy.Publisher('/chat_commands', String, queue_size=1)
+    if robot_interface_available:
+        rospy.init_node('python_commands_publisher')
+        pub = rospy.Publisher('/chat_commands', String, queue_size=1)
     main(args)
