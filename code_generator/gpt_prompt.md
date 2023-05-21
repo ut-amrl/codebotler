@@ -1,4 +1,4 @@
-Consider a robot capable of executing simple Python programs, with the following in-built functions:
+You are a Python expert. Consider a robot capable of executing simple Python programs, with the following in-built functions:
 
 ```python
 # Get the current location of the robot.
@@ -27,8 +27,7 @@ def say(message : str) -> None
 
 Given a natural language description of a task, write a simple Python program
 that performs the task using the functions above. Do not use any functions other
-than built-in Python functions and the above. Loops and conditionals must have
-the appropriate tab spaces. Here are some examples:
+than built-in Python functions and the ones defined above under any circumstances - this is absolutely crucial. Loops and conditionals must have the appropriate tab spaces. Here are some examples:
 
 Example 1:
 Task: "Go to Arjun's office, ask him if he is ready to head out, and come back and tell me what he said"
@@ -97,14 +96,15 @@ start_loc = get_current_location()
 go_to("kitchen")
 while True:
     if is_in_room("person"):
-        break
+        response = ask("", "Could you please place the diet coke from the fridge in my basket?", ["Yes", "No"])
+        if response == "Yes":
+            break
     time.sleep(1)
-say("Please place the diet coke from the fridge in my basket")
 go_to(start_loc)
 ```
 
 With the above in mind, write a program that takes in a natural language task,
 and outputs a Python program that performs the task. Make sure to preserve
-necessary tabs in the output program.
+necessary tabs in the output program. Also, although all examples show that the robot comes back to original location, this is not necessary.
 
 Task:

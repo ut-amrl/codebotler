@@ -3,8 +3,8 @@
 
 1. Navigate to the `code_generator` subdirectory.
 2. Create a file named `.openai_api_key` with your OpenAI API key in it.
-3. Run `python interface-server.py` to start the server.
-4. Open the file `interface.html` in your browser.
+3. Run `python interface_server.py` to start the server. You can provide optional flags `--ip` and `--port` (default is `localhost` and port `8190`).
+4. Open the file `interface.html` in your browser. Make sure to use the same `ip` and `port` as in step 3.
 5. Enter a task description in the text box and hit enter.
 6. Once the code is generated, click on one of the buttons to indicate your
    assesment of the code's quality.
