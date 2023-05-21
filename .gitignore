@@ -16,4 +16,3 @@ santacoder-finetuning.ipynb
 train-old.py
 utils.py
 .openai_api_key
-eval.json

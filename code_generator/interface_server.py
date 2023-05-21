@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from utilities import *
-add_pythonpath_load_amrl_msgs_cd(".", ".")
+add_pythonpath_load_amrl_msgs_cd_rel(".", ".")
 
 import os
 import openai

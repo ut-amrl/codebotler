@@ -39,6 +39,7 @@
         textarea {
             display: block;
             width: 100%;
+            height: 16px;
             padding: 0.5rem;
             font-size: 1rem;
             line-height: 1;
@@ -46,7 +47,7 @@
             outline: none;
             resize: none;
             overflow: hidden;
-            max-height: 3em;
+            /* max-height: 3em; */
         }
 
         .status-box {
@@ -58,8 +59,8 @@
             color: rgb(166, 166, 166);
             font-size: 1rem;
             line-height: 1.5;
-            position: fixed;
-            bottom: 0;
+            position: relative;
+            top: 30px;
             white-space: pre-wrap;
             overflow-y: auto;
             max-height: 4.5em;
@@ -132,12 +133,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-python.min.js"></script>
     <script>
         function autoGrow(textarea) {
-            // textarea.style.height = 'auto';
-            // textarea.style.height = (textarea.scrollHeight - 100.5) + 'px';
+          textarea.style.height = 'auto';
+          const prevScrollHeight = textarea.scrollHeight;
+          textarea.style.height = (prevScrollHeight - 16) + 'px';
         }
 
         function checkForEnter(event) {
-            if (event.keyCode === 13) {
+            if (event.keyCode === 13 && !event.shiftKey) {
                 event.preventDefault();
                 sendTextToWebSocket(document.getElementById("taskPrompt").value);
             }
