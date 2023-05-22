@@ -6,107 +6,163 @@
     <title>Robot Commands</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/themes/prism.min.css">
     <style>
-        body {
-            background-color: white;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            font-family: Arial, sans-serif;
-            position: relative;
-        }
+      body {
+          background-color: white;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          min-height: 100vh;
+          font-family: Arial, sans-serif;
+          position: relative;
+      }
 
 
-        .caption {
-            color: #888;
-            font-size: 2.1rem;
-            margin-bottom: 3.5rem;
-            margin-top: 8rem;
-        }
+      .caption {
+          color: #888;
+          font-size: 2.1rem;
+          margin-bottom: 3.5rem;
+          margin-top: 8rem;
+      }
 
-        .textbox-container {
-            width: 100%;
-            max-width: 800px;
-            padding: 1rem;
-            border-radius: 8px;
-            overflow: hidden;
-            resize: none;
-            border: 1px solid #ccc;
-            margin-bottom: 1rem;
-        }
+      .textbox-container {
+          width: 100%;
+          max-width: 800px;
+          padding: 1rem;
+          border-radius: 8px;
+          overflow: hidden;
+          resize: none;
+          border: 1px solid #ccc;
+          margin-bottom: 1rem;
+      }
 
-        textarea {
-            display: block;
-            width: 100%;
-            height: 16px;
-            padding: 0.5rem;
-            font-size: 1rem;
-            line-height: 1;
-            border: none;
-            outline: none;
-            resize: none;
-            overflow: hidden;
-            /* max-height: 3em; */
-        }
+      textarea {
+          display: block;
+          width: 100%;
+          height: 16px;
+          padding: 0.5rem;
+          font-size: 1rem;
+          line-height: 1;
+          border: none;
+          outline: none;
+          resize: none;
+          overflow: hidden;
+          /* max-height: 3em; */
+      }
 
-        .status-box {
-            width: 100%;
-            max-width: 800px;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 0px solid #ccc;
-            color: rgb(166, 166, 166);
-            font-size: 1rem;
-            line-height: 1.5;
-            position: relative;
-            top: 30px;
-            white-space: pre-wrap;
-            overflow-y: auto;
-            max-height: 4.5em;
-            padding-top: 0em;
-            padding-bottom: 0em;
-        }
+      .status-box {
+          width: 100%;
+          max-width: 800px;
+          padding: 1rem;
+          border-radius: 8px;
+          border: 0px solid #ccc;
+          color: rgb(166, 166, 166);
+          font-size: 1rem;
+          line-height: 1.5;
+          position: relative;
+          top: 30px;
+          white-space: pre-wrap;
+          overflow-y: auto;
+          max-height: 4.5em;
+          padding-top: 0em;
+          padding-bottom: 0em;
+      }
 
-        .code-pane {
-            width: 100%;
-            max-width: 800px;
-            padding: 1rem;
-            background-color: #f5f5f5;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            overflow-y: auto;
-            font-size: 1rem;
-            line-height: 1.5;
-            max-height: 30em;
-        }
-        .button-container {
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            justify-content: space-between;
-            margin: 1rem 0;
-            align-items: center;
-        }
+      .code-pane {
+          width: 100%;
+          max-width: 800px;
+          padding: 1rem;
+          background-color: #f5f5f5;
+          border-radius: 8px;
+          border: 1px solid #ccc;
+          overflow-y: auto;
+          font-size: 1rem;
+          line-height: 1.5;
+          max-height: 30em;
+      }
 
-        .button {
-            padding: 0.5rem 1rem;
-            font-size: 1rem;
-            line-height: 1.5;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            background-color: white;
-            cursor: pointer;
-            min-width: 150px;
-        }
+      .button-container-execute {
+          width: 50%;
+          max-width: 800px;
+          display: flex;
+          justify-content: space-between;
+          margin: 1rem 0;
+          align-items: center;
+      }
 
-        .button:hover {
-            background-color: #f5f5f5;
-        }
+      .button-container {
+          width: 100%;
+          max-width: 800px;
+          display: flex;
+          justify-content: space-between;
+          margin: 1rem 0 0;
+          align-items: center;
+      }
+      .details-container {
+          width: 834px;
+          /* max-width: 834px; */
+          /* display: flex; */
+          /* justify-content: space-between; */
+          margin: 0 0 1rem;
+          align-items: center;
+          border-radius: 8px;
+          border: 1px solid #ccc;
+          padding: 1rem 0 1rem 0;
+      }
 
-        .highlight-function {
-          color: #bf6c00; /* this will make "my_func" appear in orange color */
-        }
+      .button {
+          padding: 0.5rem 1rem;
+          font-size: 1rem;
+          line-height: 1.5;
+          border-radius: 8px;
+          border: 1px solid #ccc;
+          background-color: white;
+          cursor: pointer;
+          min-width: 150px;
+      }
+
+      .button:hover {
+          background-color: #f5f5f5;
+      }
+
+      .highlight-function {
+        color: #bf6c00; /* this will make "my_func" appear in orange color */
+      }
+      /* Style the container label */
+      details {
+        /* background-color: #f9f9f9; */
+        color: #898989;
+        display: inline-block;
+        /* margin-right: 0.5em; */
+        padding: 0 0.5em 0 0.5em;
+        vertical-align: middle;
+        width: 785px;
+      }
+      /* Hide the default "+" button */
+      details summary::-webkit-details-marker {
+        display: none;
+      }
+
+      /* Style the "+" and "-" buttons */
+      details summary::before {
+        content: "+";
+        display: inline-block;
+        width: 1em;
+        margin-right: 0.5em;
+        text-align: center;
+        cursor: pointer;
+      }
+
+      details[open] summary::before {
+        content: "-";
+      }
+
+      /* Keep the summary text in the same place */
+      details summary {
+        display: inline-block;
+        margin-right: 0.5em;
+        vertical-align: middle;
+      }
 
     </style>
 </head>
@@ -120,11 +176,21 @@
         <pre><code id="code" class="language-python">
         </code></pre>
     </div>
-    <div class="button-container">
-        <button class="button" onclick="buttonPressed(this)">Correct</button>
-        <button class="button" onclick="buttonPressed(this)">Correct, inefficient</button>
-        <button class="button" onclick="buttonPressed(this)">Incorrect</button>
-        <button class="button" onclick="buttonPressed(this)">Syntax error</button>
+    <div class="button-container-execute">
+      <button class="button" onclick="generateCode()">Generate Code</button>
+      <button class="button" onclick="executeCode()">Execute!</button>
+    </div>
+    <div class="details-container">
+      <details>
+          <summary>Generated Code Feedback</summary>
+          <!-- <br /> -->
+        <div class="button-container">
+          <button class="button" onclick="buttonPressed(this)">Correct</button>
+          <button class="button" onclick="buttonPressed(this)">Correct, inefficient</button>
+          <button class="button" onclick="buttonPressed(this)">Incorrect</button>
+          <button class="button" onclick="buttonPressed(this)">Syntax error</button>
+        </div>
+      </details>
     </div>
 
     <pre class="status-box" id="status-box"></pre>
@@ -139,10 +205,46 @@
         }
 
         function checkForEnter(event) {
-            if (event.keyCode === 13 && !event.shiftKey) {
-                event.preventDefault();
-                sendTextToWebSocket(document.getElementById("taskPrompt").value);
-            }
+          if (event.keyCode === 13 && !event.shiftKey) {
+            event.preventDefault();
+            taskDescription = document.getElementById("taskPrompt").value;
+            generateCodeRequest(taskDescription, true);
+          }
+        }
+
+        function generateCode() {
+          taskDescription = document.getElementById("taskPrompt").value;
+          generateCodeRequest(taskDescription, false);
+        }
+
+        function executeCode() {
+          setStatus("Executing previous program.");
+          try {
+            let socket = new WebSocket("ws://localhost:8190");
+            setStatus("Connecting to server...");
+            socket.onopen = function(event) {
+                setStatus("Connected to server. Sending result...");
+                eval_data = {
+                    "type": "execute",
+                    "task": document.getElementById("taskPrompt").value,
+                    "code": document.getElementById("code").textContent
+                };
+                socket.send(JSON.stringify(eval_data));
+            };
+            socket.onmessage = function(event) {
+                setStatus("Acknowledged. Closing connection...");
+                socket.close();
+            };
+            socket.onerror = function(error) {
+                setStatus("Websocket error.");
+            };
+
+            socket.onclose = function(event) {
+                setStatus("Connection closed.");
+            };
+          } catch (error) {
+            setStatus("Error connecting to server.");
+          }
         }
 
         function setStatus(str) {
@@ -161,14 +263,16 @@
           codeElement.innerHTML = codeHTML;
         }
 
-        function sendTextToWebSocket(text) {
+        function generateCodeRequest(text, execute) {
             let tStart = performance.now();
             try {
               let socket = new WebSocket("ws://localhost:8190");
               setStatus("Connecting to server...");
               socket.onopen = function(event) {
                   setStatus("Connected to server. Generating code...");
-                  socket.send(JSON.stringify({ "type": "code", "text": text }));
+                  socket.send(JSON.stringify(
+                    { "type": "code", "text": text, "execute": execute }
+                  ));
               };
               socket.onmessage = function(event) {
                   let tEnd = performance.now();

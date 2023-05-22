@@ -37,6 +37,7 @@ with open("gpt_prompt.md", "r") as f:
 async def get_code(websocket, data):
     global robot_interface_available
     global eval_model
+    print(f"Received code request; execute: {data['execute']}")
     start_time = time.time()
     prompt = pre_prompt + f" \"{data['text']}\"" + "\nProgram:\n```python\n"
     if eval_model == "davinci":
@@ -75,7 +76,7 @@ async def get_code(websocket, data):
     code = code.replace("```", "")
     # Remove any leading or trailing end-of-line characters
     code = code.strip()
-    if robot_interface_available:
+    if robot_interface_available and data['execute'] == True:
         pub.publish(code)
     response = {"code": f"{code}"}
 
@@ -91,26 +92,33 @@ async def eval(websocket, data):
         f.write(json.dumps(data) + "\n")
     await websocket.send(json.dumps({}))
 
+async def execute(websocket, data):
+    print("Received execute request.")
+    # print(data['code'])
+    if robot_interface_available:
+        pub.publish(data['code'])
+    await websocket.send(json.dumps({}))
 
 async def handle_message(websocket, message):
     # Parse incoming message as JSON
     data = json.loads(message)
     if data['type'] == 'code':  # basically the html client sends the input prompt to the server with the type "code", i.e., when you press enter
-        print("Received code request")
         await get_code(websocket, data)  # processes the prompt using model and sends back the code to client
     elif data['type'] == 'eval':  # when html client sends the task to be stored, i.e., when a eval button is pressed
         await eval(websocket, data)
+    elif data['type'] == 'execute':  # execute pre-generated program
+        await execute(websocket, data)
     else:
         print("Unknown message type: " + data['type'])
 
 
 async def ws_main(websocket, path):
-    print("INFO: A client connected")
+    print(f"Client connected.")
     try:
         async for message in websocket:
             await handle_message(websocket, message)
     except websockets.exceptions.ConnectionClosed:
-        print("INFO: A client disconnected")
+        print("Client disconnected.")
 
 
 def main(args):
