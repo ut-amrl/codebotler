@@ -4,7 +4,8 @@ robot_interface_available = False
 eval_model = None
 try:
     from utilities import *
-    add_pythonpath_load_amrl_msgs_cd_rel(".", ".")
+    add_pythonpath(".")
+    cd_rel(".")
     import rospy
     from std_msgs.msg import String
     robot_interface_available = True
