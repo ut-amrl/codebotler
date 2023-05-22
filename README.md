@@ -3,8 +3,17 @@
 
 1. Navigate to the `code_generator` subdirectory.
 2. Create a file named `.openai_api_key` with your OpenAI API key in it.
-3. Run `python interface_server.py` to start the server. You can provide optional flags `--ip` and `--port` (default is `localhost` and port `8190`).
-4. Open the file `interface.html` in your browser. Make sure to use the same `ip` and `port` as in step 3.
+3. To start the server, run the following:
+```
+python interface_server.py
+```
+It has the following optional flags:
+   - `--ip`: The IP address to host the server to (default is `localhost`).
+   - `--port`: The port to host the server to (default is `8190`).
+   - `--model`: It is either text-davinci-003 (default) or starcoder:
+      - to specify the text-davinci-003 model, use `--model davinci`
+      - to specify the starcoder model, use `--model starcoder_sip_sport` where `sip` and `sport` are the IP address and port of the starcoder server.
+4. Modify `interface.html` (if need be) to make sure to use the same `ip` and `port` as in step 3. Open the file `interface.html` in your browser.
 5. Enter a task description in the text box and hit enter.
 6. Once the code is generated, click on one of the buttons to indicate your
    assesment of the code's quality.

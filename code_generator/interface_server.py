@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 robot_interface_available = False
+eval_model = None
 try:
     from utilities import *
     add_pythonpath_load_amrl_msgs_cd_rel(".", ".")
@@ -20,7 +21,7 @@ import websockets
 import time
 import argparse
 import signal
-
+import starcoder
 
 # If there exists a ".openai_api_key" file, use that as the API key.
 if os.path.exists(".openai_api_key"):
@@ -34,24 +35,41 @@ with open("gpt_prompt.md", "r") as f:
 
 
 async def get_code(websocket, data):
+    global robot_interface_available
+    global eval_model
     start_time = time.time()
     prompt = pre_prompt + f" \"{data['text']}\"" + "\nProgram:\n```python\n"
-    openai_response = openai.Completion.create(
-        model="text-davinci-003",
-        # model="gpt-3.5-turbo",
-        # model="code-davinci-002",
-        prompt=prompt,
-        temperature=0.7,
-        max_tokens=512,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop="```"
-    )
+    if eval_model == "davinci":
+        openai_response = openai.Completion.create(
+            model="text-davinci-003",
+            # model="gpt-3.5-turbo",
+            # model="code-davinci-002",
+            prompt=prompt,
+            temperature=0.7,
+            max_tokens=512,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0,
+            stop="```"
+        )
+        code = openai_response.choices[0].text
+    elif "starcoder" in eval_model:
+        words = eval_model.split("_")
+        code = starcoder.get_code_string(
+            ip=words[1],
+            port=words[2],
+            prompt=prompt,
+            temperature=0.1,
+            max_tokens=512,
+            top_p=0.7,
+            repetition_penalty=None,
+            stop="```"
+        )
+    else:
+        raise ValueError("Unknown model: " + eval_model)
     end_time = time.time()
     # Print the response time with 2 decimal places.
     print(f"Response time: {round(end_time - start_time, 2)} seconds")
-    code = openai_response.choices[0].text
     # Strip "```python" and "```" from the code
     code = code.replace("```python", "")
     code = code.replace("```", "")
@@ -96,10 +114,12 @@ async def ws_main(websocket, path):
 
 
 def main(args):
+    global eval_model
     # Create an asyncio event loop
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     start_server = websockets.serve(ws_main, args.ip, args.port)
+    eval_model = args.model
 
     # Register a signal handler to stop the server when Ctrl-C is pressed
     loop.add_signal_handler(signal.SIGINT, lambda: (print("INFO: Shutting down Server"), loop.stop()))
@@ -124,6 +144,7 @@ if __name__ == "__main__":
     # Add the desired command line arguments
     parser.add_argument('--ip', type=str, help='IP address', default="localhost")
     parser.add_argument('--port', type=int, help='Port number', default=8190)
+    parser.add_argument('--model', type=str, help='Model name: davinci/starcoder_sip_sport', default='davinci')
 
     # Parse the command line arguments
     if robot_interface_available:
