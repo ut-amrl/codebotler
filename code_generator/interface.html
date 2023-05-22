@@ -198,6 +198,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-python.min.js"></script>
     <script>
+        const SERVER_URL = 'ws://localhost:8190';
         function autoGrow(textarea) {
           textarea.style.height = 'auto';
           const prevScrollHeight = textarea.scrollHeight;
@@ -220,7 +221,7 @@
         function executeCode() {
           setStatus("Executing previous program.");
           try {
-            let socket = new WebSocket("ws://localhost:8190");
+            let socket = new WebSocket(SERVER_URL);
             setStatus("Connecting to server...");
             socket.onopen = function(event) {
                 setStatus("Connected to server. Sending result...");
@@ -266,7 +267,7 @@
         function generateCodeRequest(text, execute) {
             let tStart = performance.now();
             try {
-              let socket = new WebSocket("ws://localhost:8190");
+              let socket = new WebSocket(SERVER_URL);
               setStatus("Connecting to server...");
               socket.onopen = function(event) {
                   setStatus("Connected to server. Generating code...");
@@ -301,7 +302,7 @@
         function buttonPressed(button) {
             setStatus("You pressed the " + button.textContent + " button.");
             try {
-              let socket = new WebSocket("ws://localhost:8190");
+              let socket = new WebSocket(SERVER_URL);
               setStatus("Connecting to server...");
               socket.onopen = function(event) {
                   setStatus("Connected to server. Sending result...");

@@ -13,7 +13,7 @@ It has the following optional flags:
    - `--model`: It is either text-davinci-003 (default) or starcoder:
       - to specify the text-davinci-003 model, use `--model davinci`
       - to specify the starcoder model, use `--model starcoder_sip_sport` where `sip` and `sport` are the IP address and port of the starcoder server.
-4. Modify `interface.html` (if need be) to make sure to use the same `ip` and `port` as in step 3. Open the file `interface.html` in your browser.
+4. Modify the `SERVER_URL` variable in `interface.html` (if need be) to make sure it has the same `ip` and `port` as in step 3. Open the file `interface.html` in your browser.
 5. Enter a task description in the text box and hit enter.
 6. Once the code is generated, click on one of the buttons to indicate your
    assesment of the code's quality.
