@@ -150,6 +150,7 @@ def read_completions_if_exists(completions_path: Path, interactions: pd.DataFram
             item = json.loads(line)
             prompt = item["prompt"]
             problem = item["problem"]
+            constraint = item["constraint"]
             # Check if the prompt/problem is not in the interactions data frame
             if not ((interactions["prompt"] == prompt) & (interactions["problem"] == problem)).any():
                 continue
@@ -158,11 +159,13 @@ def read_completions_if_exists(completions_path: Path, interactions: pd.DataFram
             key = (prompt, problem)
             if key in completions:
                 completions[key]["completions"].append(completion)
+                assert(completions[key]["constraint"] == constraint)
             else:
                 completions[key] = {
                     "prompt": prompt,
                     "completions": [ completion ],
-                    "problem": problem
+                    "problem": problem,
+                    "constraint": constraint
                 }
     print(f"Found {num_completions} existing completions.")
     return completions
@@ -173,13 +176,15 @@ def build_worklist(prompts: pd.DataFrame, completions: dict, num_completions: in
     for _, row in prompts.iterrows():
         prompt = row["prompt"]
         problem = row["problem"]
+        constraint = row["constraint"]
         key = (prompt, problem)
         interaction_keys.add(key)
         if key not in completions:
             completions[key] = {
                 "prompt": prompt,
                 "completions": [],
-                "problem": problem
+                "problem": problem,
+                "constraint": constraint
             }
         else:
             pass
@@ -219,7 +224,8 @@ def generate_completions(
             f.write(json.dumps({
                     "prompt": key[0],
                     "problem": key[1],
-                    "completion": completion
+                    "completion": completion,
+                    "constraint": completions[key]["constraint"]
                 }) + "\n")
 
 def main():
