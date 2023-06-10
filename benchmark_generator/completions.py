@@ -51,31 +51,55 @@ def stop_at_stop_token(decoded_string, stop_tokens):
 
 class OpenAIModel:
 
-    def __init__(self, engine, api_base, api_version, api_key):
-        self.engine = engine
-        openai.api_type = "azure"
-        openai.api_base = api_base
-        openai.api_version = api_version
+    def __init__(self, args, api_key):
+        self.engine = None
+        self.model = None
+        if args.openai_azure:
+          openai.api_type = "azure"
+        # Throw an error if the user has specified both an engine and a model.
+        if args.openai_engine and args.openai_model:
+            raise ValueError("Please specify either an OpenAI engine or a model, but not both.")
+        if args.openai_engine:
+          print("Using OpenAI engine: " + args.openai_engine)
+          self.engine = args.openai_engine
+        elif args.openai_model:
+          print("Using OpenAI model: " + args.openai_model)
+          self.model = args.openai_model
+        if args.openai_api_base:
+          openai.api_base = args.openai_api_base
+        if args.openai_api_version:
+          openai.api_version = args.openai_api_version
         openai.api_key = api_key
 
     def generate(self, prompts: list):
         for prompt in prompts:
             while True:
                 try:
-                    results = openai.Completion.create(
-                        engine=self.engine,
-                        prompt=prompt.rstrip(),
-                        temperature=TEMPERATURE,
-                        max_tokens=MAX_TOKENS,
-                        top_p=TOP_P,
-                        n=1,
-                        stop=DEFAULT_STOP_SEQUENCES,
-                    )
+                    if self.engine is not None:
+                      results = openai.Completion.create(
+                          engine=self.engine,
+                          prompt=prompt.rstrip(),
+                          temperature=TEMPERATURE,
+                          max_tokens=MAX_TOKENS,
+                          top_p=TOP_P,
+                          n=1,
+                          stop=DEFAULT_STOP_SEQUENCES,
+                      )
+                    else:
+                      results = openai.Completion.create(
+                          model=self.model,
+                          prompt=prompt.rstrip(),
+                          temperature=TEMPERATURE,
+                          max_tokens=MAX_TOKENS,
+                          top_p=TOP_P,
+                          n=1,
+                          stop=DEFAULT_STOP_SEQUENCES,
+                      )
                     time.sleep(0.01)
                     break
                 except openai.error.RateLimitError:
                     print("Rate limited...")
-                    time.sleep(5)        
+                    time.sleep(5)
             completion = results["choices"][0]["text"]
             yield completion
 
@@ -120,7 +144,7 @@ class AutoModel:
         encoded_prompts = self.tokenizer([p.rstrip() for p in prompts], padding=True, return_attention_mask=True, return_tensors='pt').to(0)
         max_input_tokens = encoded_prompts["input_ids"].shape[1]
         outputs = self.model.generate(
-            **encoded_prompts, 
+            **encoded_prompts,
             do_sample=True,
             top_p=TOP_P,
             temperature=TEMPERATURE,
@@ -128,7 +152,7 @@ class AutoModel:
         decoded_outputs = self.tokenizer.batch_decode(outputs[:, max_input_tokens:], skip_special_tokens=True, clean_up_tokenization_spaces=False)
         return [ stop_at_stop_token(s, DEFAULT_STOP_SEQUENCES) for s in  decoded_outputs ]
 
-    
+
     def generate(self, prompts: list):
         for i in range(0, len(prompts), self.batch_size):
             batch = prompts[i:i+self.batch_size]
@@ -153,7 +177,7 @@ def read_completions_if_exists(completions_path: Path, interactions: pd.DataFram
             # Check if the prompt/problem is not in the interactions data frame
             if not ((interactions["prompt"] == prompt) & (interactions["problem"] == problem)).any():
                 continue
-            
+
             completion = item["completion"]
             key = (prompt, problem)
             if key in completions:
@@ -200,7 +224,7 @@ def generate_completions(
     problems_path: Path,
     completions_path: Path,
     num_completions: int):
-    
+
     problems = pd.read_csv(problems_path)
 
     # prefix the prompt with the prompt prefix in every row of problems
@@ -236,9 +260,11 @@ def main():
     parser.add_argument("--url", type=str)
 
     # For an OpenAI model
-    parser.add_argument("--engine", type=str)
-    parser.add_argument("--api-version", type=str)
-    parser.add_argument("--api-base", type=str)
+    parser.add_argument("--openai-engine", type=str)
+    parser.add_argument("--openai-model", type=str)
+    parser.add_argument("--openai-api-version", type=str)
+    parser.add_argument("--openai-api-base", type=str)
+    parser.add_argument("--openai-azure", action="store_true", default=False)
 
     # For a local model
     parser.add_argument("--model-path", type=str)
@@ -247,7 +273,7 @@ def main():
     if args.model_type == "hf-textgen":
         model = TextGenerationModel(args.url, args.max_workers)
     elif args.model_type == "openai":
-        model = OpenAIModel(args.engine, args.api_base, args.api_version, os.getenv("OPENAI_API_KEY"))
+        model = OpenAIModel(args, os.getenv("OPENAI_API_KEY"))
     elif args.model_type == "automodel":
         model = AutoModel(args.max_workers, args.model_path)
 
@@ -257,6 +283,6 @@ def main():
         args.problems,
         args.completions,
         args.num_completions)
-    
+
 if __name__ == "__main__":
     main()
