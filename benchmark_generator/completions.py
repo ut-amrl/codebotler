@@ -3,14 +3,13 @@ This is an adaptation of the following program:
 
 https://github.com/Wellesley-EASEL-lab/StudentEval/blob/main/completions.py
 
-
-python3 completions.py \
+Example usage for local OpenAI completions:
+OPENAI_API_KEY="YOUR_OPENAI_KEY" \
+  python completions.py  \
     --model-type openai \
     --completions completions_gpt35turbo-0301.jsonl \
-    --engine gpt-35-turbo-0301 \
-    --api-base https://charlie-east.openai.azure.com/ \
-    --api-version 2022-12-01 \
-    --max-workers 20 \
+    --openai-model text-davinci-003 \
+    --max-workers 20
 """
 
 
