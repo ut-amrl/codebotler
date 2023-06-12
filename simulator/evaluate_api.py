@@ -27,7 +27,7 @@ def run_simulation(example: dict, timeout:int, robot_asp_logic:str):
     
     simulator.add_constraints(constraints)
     
-    generated_code = code_replace(example["prompt"], "simulator").split("\n")
+    generated_code = code_replace(example["completion"], "simulator").split("\n")
     
     for cmd in generated_code:
         # HACKY
@@ -39,7 +39,7 @@ def run_simulation(example: dict, timeout:int, robot_asp_logic:str):
     
   
 TIMEOUT = 10
-ROBOT_ASP_LOGIC = "simulator/robot.lp"  
+ROBOT_ASP_LOGIC = "robot.lp"  
 
 def main(completions_file: str):
     completions = []
