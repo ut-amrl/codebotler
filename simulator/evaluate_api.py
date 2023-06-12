@@ -56,7 +56,7 @@ def main(completions_file: str):
         example_completion["is_sat"] = (is_sat == "SAT")
         evaluated_completions.append(example_completion)
         
-    with open(f"evaluated_{completions_file.split(os.path.sep)[-1]}", "a") as f:
+    with open(args.eval_file, "a") as f:
         for comp in evaluated_completions:
             # json.dump(comp, f, indent=4)
             json.dump(comp, f)
@@ -66,5 +66,6 @@ def main(completions_file: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('completions_file', type=str)
+    parser.add_argument('--eval_file', type=str, default="simulator/evaluations.jsonl")
     args = parser.parse_args()
     main(args.completions_file)
