@@ -27,13 +27,13 @@ def run_simulation(example: dict, timeout:int, robot_asp_logic:str):
     
     simulator.add_constraints(constraints)
     
-    generated_code = code_replace(example["completion"], "simulator").split("\n")
+    generated_code = code_replace(example["completion"], "simulator")
     
-    for cmd in generated_code:
-        # HACKY
-        if len(cmd) > 1:
-            exec(cmd)
-        
+    try:
+        exec(generated_code)
+    except Exception as e:
+        print("generated code failed: ", e)    
+        return "", ""
     (model, is_sat) = simulator.ground_and_solve()
     return (model, str(is_sat))
     
@@ -42,6 +42,7 @@ TIMEOUT = 10
 ROBOT_ASP_LOGIC = "robot.lp"  
 
 def main(completions_file: str):
+
     completions = []
     with open(Path(completions_file), 'r') as f:
         for line in f:
@@ -54,6 +55,7 @@ def main(completions_file: str):
                                          robot_asp_logic=ROBOT_ASP_LOGIC)
         example_completion["model"] = model
         example_completion["is_sat"] = (is_sat == "SAT")
+        print("example {}: sat is {}".format(i, example_completion["is_sat"]))
         evaluated_completions.append(example_completion)
         
     with open(args.eval_file, "a") as f:

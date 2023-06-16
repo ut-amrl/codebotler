@@ -71,7 +71,7 @@ class Context:
                 
             return (model, hnd.get())
             
-    def get_current_loc(self) -> str:
+    def get_current_location(self) -> str:
         # get robot location at max time (from is_in_room)
         return self.curr_robot_loc
 
@@ -82,6 +82,7 @@ class Context:
     
     
     def is_in_room(self, obj : str) -> bool:
+        obj = obj.lower()
         # check if is in the room at curr time step
         curr_loc = self.get_current_location()
         for atom in self.init_state:
@@ -98,13 +99,14 @@ class Context:
         self.ctl.add(f'say("{message}", {self.curr_tp}).')
         
     def go_to(self, location : str) -> None:
+        location = location.lower()
         # issue goto
-        self.all_rooms.append(location)
         self.ctl.add(f'go_to("{location}", {self.curr_tp}).')
         self.inc_curr_tp() 
         self.curr_robot_loc = location
 
     def ask(self, person : str, question : str, options: List[str]) -> str:
+        person = person.lower()
         # issue ask and r() options, get reply at T+1
         opt = random.sample(options, k=1)[0]
         
