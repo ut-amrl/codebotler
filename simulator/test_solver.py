@@ -46,7 +46,7 @@ def test_sat_1():
     
     
     (model, is_success) = c.ground_and_solve()
-    print(model[0], is_success)
+    print(model, is_success)
     assert(is_success == "SAT"), (model, is_success)
     
 
