@@ -33,4 +33,4 @@ replied(A, R, T) :- asked(A, Q, T),
                     reply(A, R, T).
 
 % sanity check: no two places at once
-% :- at("robot", A, T), at("robot", B, T), B!=A.
+:- at("robot", A, T), at("robot", B, T), B!=A.
