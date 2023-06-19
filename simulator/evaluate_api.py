@@ -11,29 +11,29 @@ before TIMEOUT for accurate results.
 """
 
 def code_replace(program, sim_name):
-    program = program.replace("get_current_loc(", f"{sim_name}.get_current_loc(")
-    program = program.replace("get_all_rooms(", f"{sim_name}.get_all_rooms(")
-    program = program.replace("is_in_room(", f"{sim_name}.is_in_room(")
-    program = program.replace("say(", f"{sim_name}.say(")
-    program = program.replace("go_to(", f"{sim_name}.go_to(")
-    program = program.replace("ask(", f"{sim_name}.ask(")
+    program = program.replace("get_current_loc(", f"{sim_name}.get_robot_location(")
+    program = program.replace("get_all_rooms(", f"{sim_name}.get_simulation_rooms(")
+    program = program.replace("is_in_room(", f"{sim_name}.is_in_robot_location(")
+    program = program.replace("say(", f"{sim_name}.robot_say(")
+    program = program.replace("go_to(", f"{sim_name}.robot_go_to(")
+    program = program.replace("ask(", f"{sim_name}.robot_ask(")
     return program
 
 
 def run_simulation(example: dict, timeout:int, robot_asp_logic:str):
     
-    simulator = Context(timeout=timeout, robot_cmds_file=robot_asp_logic)
+    simulator = Context(timeout=timeout, asp_rules_file=robot_asp_logic)
     constraints = example["constraint"]
     
     simulator.add_constraints(constraints)
     
-    generated_code = code_replace(example["completion"], "simulator").split("\n")
+    generated_code = code_replace(example["completion"], "simulator")
     
-    for cmd in generated_code:
-        # HACKY
-        if len(cmd) > 1:
-            exec(cmd)
-        
+    try:
+        exec(generated_code)
+    except Exception as e:
+        print("generated code failed: ", e)    
+        return "", ""
     (model, is_sat) = simulator.ground_and_solve()
     return (model, str(is_sat))
     
@@ -42,6 +42,7 @@ TIMEOUT = 10
 ROBOT_ASP_LOGIC = "robot.lp"  
 
 def main(completions_file: str):
+
     completions = []
     with open(Path(completions_file), 'r') as f:
         for line in f:
@@ -54,9 +55,10 @@ def main(completions_file: str):
                                          robot_asp_logic=ROBOT_ASP_LOGIC)
         example_completion["model"] = model
         example_completion["is_sat"] = (is_sat == "SAT")
+        print("example {}: sat is {}".format(i, example_completion["is_sat"]))
         evaluated_completions.append(example_completion)
         
-    with open(args.eval_file, "a") as f:
+    with open(args.eval_file, "a+") as f:
         for comp in evaluated_completions:
             # json.dump(comp, f, indent=4)
             json.dump(comp, f)
@@ -66,6 +68,6 @@ def main(completions_file: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('completions_file', type=str)
-    parser.add_argument('--eval_file', type=str, default="simulator/evaluations.jsonl")
+    parser.add_argument('--eval_file', type=str, default="evaluations.jsonl")
     args = parser.parse_args()
     main(args.completions_file)

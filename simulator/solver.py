@@ -4,88 +4,122 @@ from clingo.symbol import Function, String, Number
 from typing import List 
 import clingo
 import random 
+import re
+
+def ordered_model_to_str(model:str) -> str:
+    """
+    Print model ordered by timesteps
+    HACKY
+    """
+    modelstr = ""
+    temporal_atoms = []
+    other_atoms = []
+    
+    
+    for atom in model.split(')')[:-1]:#hacky
+        if atom[-1].isdigit(): 
+            temporal_atoms.append(atom.strip()+")")
+        else:
+            other_atoms.append(atom.strip()+")")
+    
+    ordered_model = sorted(temporal_atoms, key=lambda x:int(re.findall(r'\d+',x)[-1]))
+    modelstr += (f"Answer:\n"+"\n".join(ordered_model + other_atoms) + "\n")
+    return modelstr
 
 class Context:
 
-    def __init__(self, robot_cmds_file, init_state = [], timeout=10):
+    def __init__(self, asp_rules_file="robot.lp", timeout=10, debug=True, debug_file="debug.lp"):
+        self.debug = debug
+        self.program_file = debug_file
+        # clear contents
+        open(self.program_file, 'w').close()
+        
         self.ctl = Control()
         self.timeout=timeout
-        self.ctl.load(robot_cmds_file)
-        self.ctl.add(f"#const timeout = {timeout}.")
+        # self.prg = Program()
+        # self.ctl.register_observer(ProgramObserver(self.prg))
+        self.ctl.load(asp_rules_file)
+        self.add(f"#const timeout = {timeout}.")
 
-        self.curr_tp = 0
-        self.curr_robot_loc = "start_loc"
-        self.all_rooms = []
-        self.curr_reply = ""
-        self.add_init_state(init_state)
+        self.current_t = 0
+        self.robot_location = "start_loc"
+        self.all_simulation_rooms = []
         
+    def add(self, atom, part = "base"):
+        if self.debug and part == "base":
+            with open(self.program_file, "a+") as f:
+                f.write(atom +"\n")
+    
+        self.ctl.add(part, [], atom)   
         
-    def add_constraints(self, constraints:str):
+    def add_constraints(self, constraints:List[str]):
         """
         Constraints are divided into: init states
         and integrity constraints
         """
-        init_state = []
+        world_states = []
         
-        for constraint in constraints.split("."):
+        for constraint in constraints:
             constraint.strip() 
             ## HACKY
             if len(constraint) < 2:
                 continue
-            constraint += "."
             
             if ":-" in constraint:
-                self.ctl.add(constraint)
+                self.add(constraint)
             else:
-                init_state.append(constraint)
+                world_states.append(constraint)
                 
-        self.add_init_state(init_state)
-                
+        self.add_world_states(world_states)
+          
+       
         
-    def add_init_state(self, init_state=[]):
+    def add_world_states(self, init_state=[]):
         self.init_state = init_state
+        all_simulation_rooms = []
         for atom in init_state:
-            self.ctl.add(atom)
-            if "is_in_room" in atom:
-                room = atom.split('"')[3]
-                if room != "start_loc":
-                    self.all_rooms.append(room)
+            self.add(atom)
+            if "at" in atom or "go_to" in atom:
+                room = atom.split('"')[-2]
+                all_simulation_rooms.append(room)
         
-    def inc_curr_tp(self):
-        self.curr_tp += 1
+        all_simulation_rooms = list(set(self.all_simulation_rooms + all_simulation_rooms))
+        for room in all_simulation_rooms:
+            self.add(f'room("{room}").')
+        self.all_simulation_rooms = all_simulation_rooms        
+        
+        
 
 
     def ground_and_solve(self):
         self.ctl.ground()
         self.ctl.solve()
         # self.ctl.solve(on_model=lambda m: print("\nAnswer: {}".format(m)))
-        return self.debug_model()
-
-        
-    def debug_model(self):
-        model = []
+        model = ""
         with self.ctl.solve(yield_=True) as hnd:
             for i,m in enumerate(hnd):
                 # print(m)
-                model.append(str(m))
+                model = ordered_model_to_str(str(m))
                 
-            return (model, hnd.get())
+            # TODO assume one model
+            return (model, str(hnd.get()))
             
-    def get_current_loc(self) -> str:
+    def get_robot_location(self) -> str:
         # get robot location at max time (from is_in_room)
-        return self.curr_robot_loc
+        return self.robot_location
 
     
-    def get_all_rooms(self) -> List[str]:
+    def get_simulation_rooms(self) -> List[str]:
         # get all "is in room" and "goto" values 
-        return self.all_rooms
+        return self.all_simulation_rooms
     
     
-    def is_in_room(self, obj : str) -> bool:
+    def is_in_robot_location(self, obj : str) -> bool:
+        # obj = obj.lower()
         # check if is in the room at curr time step
-        curr_loc = self.get_current_location()
+        curr_loc = self.get_robot_location()
         for atom in self.init_state:
-            if f'is_in_room("{obj}", "{curr_loc}",' in atom:
+            if f'at("{obj}", "{curr_loc}",' in atom:
                 return True
         return False
 
@@ -93,25 +127,28 @@ class Context:
     ## actions: ground after each action
     
     ## get most curr response
-    def say(self, message : str) -> None:
-        # get most current reply
-        self.ctl.add(f'say("{message}", {self.curr_tp}).')
+    def robot_say(self, message : str) -> None:
         
-    def go_to(self, location : str) -> None:
+        self.add(f't_say("{message}", {self.current_t}).')
+        
+    def robot_go_to(self, location : str) -> None:
+        # location = location.lower()
         # issue goto
-        self.all_rooms.append(location)
-        self.ctl.add(f'go_to("{location}", {self.curr_tp}).')
-        self.inc_curr_tp() 
-        self.curr_robot_loc = location
+        if location not in self.all_simulation_rooms:
+            self.all_simulation_rooms.append(location)
+            self.add(f'room("{location}").')
+        self.add(f't_go_to("{location}", {self.current_t}).')
+        self.current_t += 1 
+        self.robot_location = location
 
-    def ask(self, person : str, question : str, options: List[str]) -> str:
-        # issue ask and r() options, get reply at T+1
-        opt = random.sample(options, k=1)[0]
+    def robot_ask(self, person : str, question : str, options: List[str]) -> str:
+        # person = person.lower()
         
-        self.curr_reply = opt
-        self.ctl.add(f"r({opt}).")
-        self.ctl.add(f'ask("{person}", "{question}", {self.curr_tp}).')
-        return self.curr_reply
+        option = random.sample(options, k=1)[0]
+        
+        self.add(f't_ask("{person}", "{question}", {self.current_t}).')
+        self.add(f'reply("{person}", "{option}", {self.current_t+1}).')
+        return option
 """
 Note:
 - once grounded, you can't change that chunk of code

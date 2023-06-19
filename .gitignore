@@ -16,3 +16,4 @@ santacoder-finetuning.ipynb
 train-old.py
 utils.py
 .openai_api_key
+code_generator/get_completions.py

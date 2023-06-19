@@ -1,54 +1,36 @@
-
-% ASP lightweight simulator for evaluating robot command traces
-% INPUT: NL command and generated code
-% eg.
-%   "Go to Arjun's office, ask him if he is ready to head out, and come back and tell me what he said"
-%    ```
-%     start_loc = get_current_loc()
-%     go_to("Arjun's office")
-%     response = ask("Arjun", "ready to head out?", ["yes", "no", "maybe"])
-%     go_to(start_loc)
-%     say("Arjun said: " + response)
-%   ```
-% OUTPUT: whether generated code matches NL command
-% METHOD: run a simulation of the code, check if it meets the NL command specifications
-
-
 % Transition rules
 
+% robot goto
+at("robot", B, T+1) :- t_go_to(B, T), 
+                at("robot", A, T), 
+                room(B), % destination is not a person
+                T < timeout.
 
-% goto person = goto room where person is in
-is_in_room("robot", B, T+1) :- is_in_room(Person, B, T), 
-        not is_in_room(_, Person, 0), % person not a room
-        is_in_room("robot", C, T), 
-        go_to(Person, T), 
-        T < timeout.
+% robot goto person 
+at("robot", B, T+1) :- t_go_to(P, T), 
+                at(P, B, T), % destination is a person
+                at("robot", A, T), 
+                P != "robot", 
+                T < timeout.
 
-% goto changes loc of robot at next timestep
-is_in_room("robot", B, T+1) :- go_to(B, T), 
-                            not is_in_room(B, _, _), % is a room not person
-                            is_in_room("robot", C, T), 
-                            T < timeout.
+% robot inertia
+at("robot", R, T+1) :- at("robot", R, T), T<timeout, 
+                % not t_go_to(  X, T), room(X).
+                    0{t_go_to(X, T): room(X)}0. % inertia unless goto
 
-% robot stays in same loc unless goto issued
-is_in_room("robot", R, T+1) :- is_in_room("robot", R, T), 
-                                not go_to(_, T), % goto R is no-op
-                                T < timeout. 
+% non robot inertia
+at(A, R, T+1) :- at(A, R, T), A!="robot", T < timeout.
 
-% other agents stay in same loc (no control over other agents for now)
-is_in_room(A, R, T+1) :- is_in_room(A, R, T), 
-                        T < timeout, 
-                        A!="robot".
+% ask
+asked(A, Q, T+1) :- at(A, R, T), 
+                at("robot", R, T),
+                A != "robot",
+                t_ask(A, Q, T),
+                T < timeout.
 
-% if agents are in the same room, ask question
-asked(Agent, Question, Time) :- is_in_room(Agent, Room, Time), 
-                            is_in_room("robot", Room, Time),
-                            ask(Agent, Question, Time), 
-                            Agent != "robot".
+% after question asked, there is a response
+replied(A, R, T) :- asked(A, Q, T),
+                    reply(A, R, T).
 
-
-% if agent asked question, get response
-replied(Agent, Answer, Time) :- asked(Agent, Question, Time),
-                                r(Answer).
-
-
+% sanity check: no two places at once
+:- at("robot", A, T), at("robot", B, T), B!=A.
