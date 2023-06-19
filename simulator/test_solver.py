@@ -46,7 +46,7 @@ def test_sat_1():
     
     
     (model, is_success) = c.ground_and_solve()
-    print(model, is_success)
+    # print(model, is_success)
     assert(is_success == "SAT"), (model, is_success)
     
 
@@ -80,7 +80,7 @@ def test_sat_2():
         c.robot_say("There is no mug in the living room")
         
     (model, is_success) = c.ground_and_solve()
-    print(model, is_success)
+    # print(model, is_success)
     assert(is_success == "SAT"), (model, is_success)
     
 def test_sat_3():
@@ -131,7 +131,7 @@ def test_sat_3():
         c.robot_say("There is no stapler in the house")
         
     (model, is_success) = c.ground_and_solve()
-    print(model, is_success)
+    # print(model, is_success)
     assert(is_success == "SAT"), (model, is_success)
     
 def test_sat_4():
@@ -164,7 +164,7 @@ def test_sat_4():
     c.robot_go_to(start_loc)
         
     (model, is_success) = c.ground_and_solve()
-    print(model, is_success)
+    # print(model, is_success)
     assert(is_success ==  "SAT"), (model, is_success)
     
     
@@ -225,10 +225,134 @@ def test_sat_5():
               at("Yash", "Yash's room", T),
               at("robot", "Yash's room", T).''', "condition."])
     (model, is_success) = c.ground_and_solve()
-    print(model, is_success)
+    # print(model, is_success)
     assert(is_success ==  "SAT"), (model, is_success)
-   
+
+def test_sat_6():
+    """ ProgPrompt-like test: "I want pizza, cake, and party hats for an upcoming party, but I'm not sure if I have them. Tell me what items I have and what I'm missing. The chef knows about what food items we have, and you can check the garage for everything else."
+
+    start_loc = get_current_location()
+
+    # Check the kitchen for food items
+    go_to("kitchen")
+    response_pizza = ask("chef", "Do we have pizza?", ["Yes", "No"])
+    response_cake = ask("chef", "Do we have cake?", ["Yes", "No"])
+
+    # Check the garage for other items
+    go_to("garage")
+    have_party_hats = is_in_room("Party Hats")
+
+    # Go back to the start location
+    go_to(start_loc)
+
+    # Print out what we have and what we don't
+    if have_party_hats and response_pizza == "Yes" and response_cake == "Yes":
+        say("We have everything we need for the party!")
+    else:
+        if response_pizza == "No":
+            say("We don't have pizza.")
+        if response_cake == "No":
+            say("We don't have cake.")
+        if not have_party_hats:
+            say("We don't have party hats.")
+    """
+
+    constraints = ['at("robot", "start_loc", 0).',
+                   'at("chef", "kitchen", 0).']
+    c = Context(timeout=4)
+    c.all_simulation_rooms.append("pantry")
+    c.add_constraints(constraints)
+
+    start_loc = c.get_robot_location()
+    c.robot_go_to("kitchen")
+    response_pizza = c.robot_ask("chef", "Do we have pizza?", ["Yes", "No"])
+    response_cake = c.robot_ask("chef", "Do we have cake?", ["Yes", "No"])
+    print("Pizza:", response_pizza, "Cake:", response_cake)
+    c.robot_go_to("garage")
+    have_party_hats = c.is_in_robot_location("party hats")
+    c.robot_go_to(start_loc)
+
+    said = []
+    if have_party_hats and response_pizza == "Yes" and response_cake == "Yes":
+        ans_str = "We have everything we need for the party!"
+        said.append(ans_str)
+        c.robot_say(ans_str)
+    else:
+        if response_pizza == "No":
+            ans_str = "We don't have pizza."
+            said.append(ans_str)
+            c.robot_say(ans_str)
+        if response_cake == "No":
+            ans_str = "We don't have cake."
+            said.append(ans_str)
+            c.robot_say(ans_str)
+        if not have_party_hats:
+            ans_str = "We don't have party hats."
+            said.append(ans_str)
+            c.robot_say(ans_str)
     
+    c.add_constraints([
+        ':- not at("robot", "start_loc", timeout).'
+        ':- not replied("chef", _, _).',
+    ])
+    c.add_constraints([
+        f':- not t_say("{ans_str}", _).' for ans_str in said
+    ])
+
+    (model, is_success) = c.ground_and_solve()
+    # print(model, is_success)
+    assert(is_success ==  "SAT"), (model, is_success)
+
+def test_sat_7():
+    ''' Example from paper: Language Models as Zero Shot Planners
+    You some paper I want to throw away. Search every room in my house for a trash can. If there's also a person there, ask them to throw the paper away.
+
+    list_of_rooms = get_all_rooms()
+    start_loc = get_current_location()
+
+    for room in list_of_rooms:
+        go_to(room)
+        if is_in_room("trash can"):
+            if is_in_room("person"):
+                response = ask("", "Can you throw away this paper?", ["Yes", "No"])
+                if response == "Yes":
+                    break
+            else:
+                break
+    go_to(start_loc)
+    '''
+    constraints = ['at("robot", "start_loc", 0).',
+                   'at("person", "kitchen", 0).',
+                   'at("trash can", "kitchen", 0).']
+    c = Context(timeout=4)
+    c.add_constraints(constraints)
+    c.all_simulation_rooms.append("living room")
+    c.all_simulation_rooms.append("Yash's Room")
+    c.all_simulation_rooms.append("office")
+
+    list_of_rooms = c.all_simulation_rooms
+    start_loc = c.get_robot_location()
+
+    for room in list_of_rooms:
+        c.robot_go_to(room)
+        if c.is_in_robot_location("trash can"):
+            if c.is_in_robot_location("person"):
+                response = c.robot_ask("person", "Can you throw away this paper?", ["Yes"])
+                if response == "Yes":
+                    break
+            else:
+                break
+    c.robot_go_to(start_loc)
+
+    c.add_constraints([
+        ':- not at("robot", "start_loc", timeout).',
+        ':- not at("robot", "kitchen", _).'
+        ':- not replied("person", _, _).',
+    ])
+    (model, is_success) = c.ground_and_solve()
+    # print(model, is_success)
+    assert(is_success ==  "SAT"), (model, is_success)
+
 def test_unsat_1():
     """
     If I have a kitchen, tell Yash to make food. Otherwise, remind Yash that J2 closes at 9:00 pm.
@@ -259,7 +383,7 @@ def test_unsat_1():
     c.robot_go_to(start_loc)
         
     (model, is_success) = c.ground_and_solve()
-    print(model, is_success)
+    # print(model, is_success)
     assert(is_success ==  "UNSAT"), (model, is_success)
     
       
@@ -304,7 +428,7 @@ def test_unsat_2():
         
         
     (model, is_success) = c.ground_and_solve()
-    print(model, is_success)
+    # print(model, is_success)
     assert(is_success == "UNSAT"), (model, is_success)
     
 def test_unsat_3():
@@ -322,6 +446,8 @@ def main():
     test_sat_3()
     test_sat_4()
     test_sat_5()
+    test_sat_6()
+    test_sat_7()
     test_unsat_1()
     test_unsat_2()
     # test_unsat_3()
