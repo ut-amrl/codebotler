@@ -25,9 +25,6 @@ def ask(person : str, question : str, options: List[str]) -> str
 def say(message : str) -> None
 ```
 
-Given a natural language description of a task, write a simple Python program
-that performs the task using the functions above. Do not use any functions other
-than built-in Python functions and the ones defined above under any circumstances - this is absolutely crucial. Loops and conditionals must have the appropriate tab spaces. Here are some examples:
 
 Example 6:
 Task: "Go to the kitchen and wait for someone to show up. When someone shows up, ask them to place the diet coke from the fridge in your basket, and bring it here":
@@ -100,11 +97,5 @@ response = ask("Mom", "Is dinner ready?", ["Yes", "No"])
 go_to(start_loc)
 say("Mom said: " + response)
 ```
-
-
-
-
-With the above in mind, write a program that takes in a natural language task,
-and outputs a Python program that performs the task. Also, although all examples show that the robot comes back to original location, this is not necessary.
 
 Task:
