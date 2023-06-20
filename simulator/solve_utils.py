@@ -58,5 +58,5 @@ def on_model(m):
     print(model_to_str(str(m)))
 
 def main(prg):
-    prg.ground([("base", [])], context=Temporal())
+    prg.ground([("base", [])], context=SolveUtils())
     prg.solve(on_model=on_model)
