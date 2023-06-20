@@ -1,38 +1,40 @@
 """
-This is an adaptation of the following program:
-
-https://github.com/Wellesley-EASEL-lab/StudentEval/blob/main/completions.py
-
-Example usage for local OpenAI completions:
-OPENAI_API_KEY="YOUR_OPENAI_KEY" \
-  python completions.py  \
-    --model-type openai \
-    --completions completions_gpt35turbo-0301.jsonl \
-    --openai-model text-davinci-003 \
-    --max-workers 20
+See completions.ipynb for an example of how to use this script.
 """
-
-
+# Authors: Carolyn Jane Anderson, Joydeep Biswas, Arjun Guha, and Francesca Luchetti
+#
+# Copyright 2023 Northeastern University, Roblox, University of Texas at Austin, and
+# Wellesley College.
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE
 import pandas as pd
 from pathlib import Path
 import json
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 from text_generation import Client
-import openai
+from typing import List, Union
 import time
 import os
-import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-DEFAULT_STOP_SEQUENCES = [ "\ndef", "\nclass", "\nif", "\nprint"  ]
-
-# The settings below are what we used for the Charlie paper.
-TEMPERATURE = 0.2
-TOP_P = 0.95
-MAX_TOKENS = 256
-
-# This is from MultiPL-E, written by Carolyn and Arjun.
 def stop_at_stop_token(decoded_string, stop_tokens):
     """
     Produces the prefix of decoded_string that ends at the first occurrence of
@@ -48,63 +50,147 @@ def stop_at_stop_token(decoded_string, stop_tokens):
             min_stop_index = stop_index
     return decoded_string[:min_stop_index]
 
-class OpenAIModel:
+class PaLMModel:
+    def __init__(self, model: str, api_key: str):
+        import google.generativeai as palm
+        self.palm = palm
+        palm.configure(api_key=api_key)
+        self.model = model
+    
+    def generate(
+        self,
+        prompts: list,
+        stop_sequences: List[str],
+        temperature: float,
+        top_p: float,
+        max_tokens: int):
+        for prompt in prompts:
+            completion = self.palm.generate_text(
+                model=self.model,
+                prompt=prompt,
+                temperature=temperature,
+                stop_sequences=stop_sequences,
+                top_p=top_p,
+                max_output_tokens=max_tokens,
+            )
+            yield completion.result
+    
+    def generate_one(
+        self,
+        prompt: str,
+        stop_sequences: List[str],
+        temperature: float,
+        top_p: float,
+        max_tokens: int):
+        return self.palm.generate_text(
+            model=self.model,
+            prompt=prompt,
+            temperature=temperature,
+            stop_sequences=stop_sequences,
+            top_p=top_p,
+            max_output_tokens=max_tokens,
+        ).result
 
-    def __init__(self, args, api_key):
+class OpenAIModel:
+    def __init__(
+            self, 
+            use_azure: bool = False,
+            engine: str | None = None,
+            model: str | None = None,
+            api_base: str | None = None,
+            api_version: str | None = None,
+            api_key: str = ""):
+        import openai as openai
+        self.openai = openai
         self.engine = None
         self.model = None
-        if args.openai_azure:
-          openai.api_type = "azure"
+        if use_azure:
+            self.openai.api_type = "azure"
         # Throw an error if the user has specified both an engine and a model.
-        if args.openai_engine and args.openai_model:
-            raise ValueError("Please specify either an OpenAI engine or a model, but not both.")
-        if args.openai_engine:
-          print("Using OpenAI engine: " + args.openai_engine)
-          self.engine = args.openai_engine
-        elif args.openai_model:
-          print("Using OpenAI model: " + args.openai_model)
-          self.model = args.openai_model
-        if args.openai_api_base:
-          openai.api_base = args.openai_api_base
-        if args.openai_api_version:
-          openai.api_version = args.openai_api_version
-        openai.api_key = api_key
+        if engine is not None and model is not None:
+            raise ValueError(
+                "Please specify either an OpenAI engine or a model, but not both."
+            )
+        if engine is not None:
+            print("Using OpenAI engine: " + engine)
+            self.engine = engine
+        elif model is not None:
+            print("Using OpenAI model: " + model)
+            self.model = model
+        if api_base is not None:
+            self.openai.api_base = api_base
+        if api_version is not None:
+            self.openai.api_version = api_version
+        self.openai.api_key = api_key
 
-    def generate(self, prompts: list):
+    def generate(
+        self,
+        prompts: list,
+        stop_sequences: List[str],
+        temperature: float,
+        top_p: float,
+        max_tokens: int):
         for prompt in prompts:
             while True:
                 try:
                     if self.engine is not None:
-                      results = openai.Completion.create(
-                          engine=self.engine,
-                          prompt=prompt.rstrip(),
-                          temperature=TEMPERATURE,
-                          max_tokens=MAX_TOKENS,
-                          top_p=TOP_P,
-                          n=1,
-                          stop=DEFAULT_STOP_SEQUENCES,
-                      )
+                        results = self.openai.Completion.create(
+                            engine=self.engine,
+                            prompt=prompt.rstrip(),
+                            temperature=temperature,
+                            max_tokens=max_tokens,
+                            top_p=top_p,
+                            n=1,
+                            stop=stop_sequences,
+                        )
                     else:
-                      results = openai.Completion.create(
-                          model=self.model,
-                          prompt=prompt.rstrip(),
-                          temperature=TEMPERATURE,
-                          max_tokens=MAX_TOKENS,
-                          top_p=TOP_P,
-                          n=1,
-                          stop=DEFAULT_STOP_SEQUENCES,
-                      )
+                        results = self.openai.Completion.create(
+                            model=self.model,
+                            prompt=prompt.rstrip(),
+                            temperature=temperature,
+                            max_tokens=max_tokens,
+                            top_p=top_p,
+                            n=1,
+                            stop=stop_sequences,
+                        )
                     time.sleep(0.01)
                     break
-                except openai.error.RateLimitError:
+                except self.openai.error.RateLimitError:
                     print("Rate limited...")
                     time.sleep(5)
             completion = results["choices"][0]["text"]
             yield completion
 
+    def generate_one(
+        self,
+        prompt: str,
+        stop_sequences: List[str],
+        temperature: float,
+        top_p: float,
+        max_tokens: int):
+        if self.engine is not None:
+            return self.openai.Completion.create(
+                engine=self.engine,
+                prompt=prompt.rstrip(),
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                n=1,
+                stop=stop_sequences
+            )["choices"][0]["text"]
+        else:
+            return self.openai.Completion.create(
+                model=self.model,
+                prompt=prompt.rstrip(),
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                n=1,
+                stop=stop_sequences
+            )["choices"][0]["text"]
+
 
 class TextGenerationModel:
-
     def __init__(self, url, max_workers):
         self.client = Client(url, timeout=60)
         self.max_workers = max_workers
@@ -112,182 +198,288 @@ class TextGenerationModel:
     def generate_one(
         self,
         prompt: str,
-        max_new_tokens=MAX_TOKENS,
-        stop_sequences=DEFAULT_STOP_SEQUENCES):
+        stop_sequences: List[str],
+        temperature: float,
+        top_p: float,
+        max_tokens: int,
+    ):
         text = ""
-        for response in self.client.generate_stream(prompt,
-            max_new_tokens=max_new_tokens,
-            temperature=TEMPERATURE,
-            top_p=TOP_P,
-            stop_sequences=stop_sequences):
+        for response in self.client.generate_stream(
+            prompt,
+            do_sample=True,
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            stop_sequences=stop_sequences,
+        ):
             if not response.token.special:
                 text += response.token.text
         return stop_at_stop_token(text, stop_sequences)
 
-    def generate(self, prompts: list):
+    def generate(
+        self,
+        prompts: list,
+        stop_sequences: List[str],
+        temperature: float,
+        top_p: float,
+        max_tokens: int,
+    ):
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            for completion in executor.map(lambda key: self.generate_one(key.rstrip()), prompts):
+            for completion in executor.map(
+                lambda key: self.generate_one(
+                    key.rstrip(), stop_sequences, temperature, top_p, max_tokens
+                ),
+                prompts,
+            ):
                 yield completion
 
-class AutoModel:
 
+class AutoModel:
     def __init__(self, batch_size, path):
+        import torch
+
         self.batch_size = batch_size
-        self.model = AutoModelForCausalLM.from_pretrained(path, trust_remote_code=True, torch_dtype=torch.bfloat16).cuda()
-        self.tokenizer = AutoTokenizer.from_pretrained(path, trust_remote_code=True, padding_side="left")
+        self.model = AutoModelForCausalLM.from_pretrained(
+            path, trust_remote_code=True, torch_dtype=torch.bfloat16
+        ).cuda()
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            path, trust_remote_code=True, padding_side="left"
+        )
         if ("starchat" in path) or ("starcoder" in path) or ("santacoder" in path):
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
-
-    def generate_batch(self, prompts):
-        encoded_prompts = self.tokenizer([p.rstrip() for p in prompts], padding=True, return_attention_mask=True, return_tensors='pt').to(0)
+    def generate_batch(
+        self,
+        prompts,
+        stop_sequences: List[str],
+        temperature: float,
+        top_p: float,
+        max_tokens: int,
+    ):
+        encoded_prompts = self.tokenizer(
+            [p.rstrip() for p in prompts],
+            padding=True,
+            return_attention_mask=True,
+            return_tensors="pt",
+        ).to(0)
         max_input_tokens = encoded_prompts["input_ids"].shape[1]
         outputs = self.model.generate(
             **encoded_prompts,
             do_sample=True,
-            top_p=TOP_P,
-            temperature=TEMPERATURE,
-            max_length = MAX_TOKENS + max_input_tokens)
-        decoded_outputs = self.tokenizer.batch_decode(outputs[:, max_input_tokens:], skip_special_tokens=True, clean_up_tokenization_spaces=False)
-        return [ stop_at_stop_token(s, DEFAULT_STOP_SEQUENCES) for s in  decoded_outputs ]
+            top_p=top_p,
+            temperature=temperature,
+            max_length=max_tokens + max_input_tokens,
+        )
+        decoded_outputs = self.tokenizer.batch_decode(
+            outputs[:, max_input_tokens:],
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=False,
+        )
+        return [stop_at_stop_token(s, stop_sequences) for s in decoded_outputs]
 
-
-    def generate(self, prompts: list):
+    def generate(
+        self,
+        prompts: list,
+        stop_sequences: List[str],
+        temperature: float,
+        top_p: float,
+        max_tokens: int,
+    ):
         for i in range(0, len(prompts), self.batch_size):
-            batch = prompts[i:i+self.batch_size]
-            for completion in self.generate_batch(batch):
+            batch = prompts[i : i + self.batch_size]
+            for completion in self.generate_batch(
+                batch, stop_sequences, temperature, top_p, max_tokens
+            ):
                 yield completion
 
-# completions_path is a .jsonl file with rows:
-#     { "prompt": string, "completion": string, "problem": string }
-# Read it into a dictionary keyed by (prompt, problem)
-def read_completions_if_exists(completions_path: Path, interactions: pd.DataFrame):
+
+def read_df(p: Path):
+    if p.suffix == ".jsonl":
+        return pd.read_json(p, lines=True)
+    elif p.suffix == ".csv":
+        return pd.read_csv(p)
+    elif str(p) == "/dev/null":
+        return pd.DataFrame()
+    else:
+        raise Exception(f"Unrecognized file extension: {p.suffix}")
+
+def empty_completions(problems: pd.DataFrame):
+    new_columns = problems.columns.tolist() + ["completion", "completion_settings"]
+    return pd.DataFrame(columns=new_columns)
+
+def read_completions_if_exists(completions_path: Path, problems: pd.DataFrame):
     if not completions_path.exists():
-        return { }
+        return empty_completions(problems)
 
-    completions = { }
-    num_completions = 0
-    with open(completions_path, "r") as f:
-        for line in f:
-            num_completions += 1
-            item = json.loads(line)
-            prompt = item["prompt"]
-            problem = item["problem"]
-            constraint = item["constraint"]
-            # Check if the prompt/problem is not in the interactions data frame
-            if not ((interactions["prompt"] == prompt) & (interactions["problem"] == problem)).any():
-                continue
+    completions = read_df(completions_path)
+    if len(completions) == 0:
+        return empty_completions(problems)
 
-            completion = item["completion"]
-            key = (prompt, problem)
-            if key in completions:
-                completions[key]["completions"].append(completion)
-                assert(completions[key]["constraint"] == constraint)
-            else:
-                completions[key] = {
-                    "prompt": prompt,
-                    "completions": [ completion ],
-                    "problem": problem,
-                    "constraint": constraint
-                }
-    print(f"Found {num_completions} existing completions.")
+    # Only select those rows of completions where the "prompt" is in "problems"
+    completions = completions[completions["prompt"].isin(problems["prompt"])]
+    print(f"Found {len(completions)} existing completions.")
     return completions
 
-def build_worklist(prompts: pd.DataFrame, completions: dict, num_completions: int):
-    worklist = [ ]
-    interaction_keys = set()
+
+def build_worklist(
+    prompts: pd.DataFrame, 
+    prompt_prefix: str, 
+    completions: pd.DataFrame, 
+    num_completions: int):
+    """
+    Builds a worklist of prompts that need completions, using existing completions to avoid
+    duplicating work from previous runs.
+    """
+    worklist = []
     for _, row in prompts.iterrows():
         prompt = row["prompt"]
-        problem = row["problem"]
-        constraint = row["constraint"]
-        key = (prompt, problem)
-        interaction_keys.add(key)
-        if key not in completions:
-            completions[key] = {
-                "prompt": prompt,
-                "completions": [],
-                "problem": problem,
-                "constraint": constraint
-            }
-        else:
-            pass
-
-        num_existing = len(completions[key]["completions"])
-        remaining = num_completions - num_existing
-        if remaining < 1:
-            continue
-        worklist.extend([key] * remaining)
-    completion_keys = set(completions.keys())
-    print(f"Found {len(interaction_keys)} interaction keys and {len(completion_keys)} completion keys.")
-    print(f"Built worklist of {len(worklist)} prompts.")
+        # Select all rows of completions where "prompt" is the same as the current prompt
+        completions_for_prompt = completions[(completions["prompt"] == prompt) & (completions["completion_settings"] == prompt_prefix)]
+        for _ in range(num_completions - len(completions_for_prompt)):
+            worklist.append(row.to_dict())
     return worklist
 
-def generate_completions(
+
+def completions(
     model,
+    stop_sequences: List[str],
+    temperature: float,
+    top_p: float,
+    max_tokens: int,
     prompt_prefix: str,
-    problems_path: Path,
-    completions_path: Path,
+    problems: pd.DataFrame,
+    completions_path: Union[Path, str],
     num_completions: int):
-
-    problems = pd.read_csv(problems_path)
-
-    # prefix the prompt with the prompt prefix in every row of problems
-    problems["prompt"] = prompt_prefix + problems["prompt"]
-    print(f"Found {len(problems)} problems.")
+    if isinstance(completions_path, str):
+        completions_path = Path(completions_path)
 
     completions = read_completions_if_exists(completions_path, problems)
-
-    worklist = build_worklist(problems, completions, num_completions)
+    worklist = build_worklist(problems, prompt_prefix, completions, num_completions)
+    prompts = [prompt_prefix + item["prompt"] for item in worklist]
 
     # Build the worklist of prompts to run and write existing prompts to the output file
     with completions_path.open("a") as f:
+        for index, completion in tqdm(
+            enumerate(
+                model.generate(prompts, stop_sequences, temperature, top_p, max_tokens)
+            ),
+            total=len(prompts),
+            desc="Completions"
+        ):
+            item = worklist[index]
+            item["completion_settings"] = {
+                "temperature": temperature,
+                "top_p": top_p,
+                "max_tokens": max_tokens,
+                "prompt_prefix": prompt_prefix,
+                "stop_sequences": stop_sequences,
+            }
+            item["completion"] = completion
+            f.write(json.dumps(item))
+            f.write("\n")
 
-        for index, completion in tqdm(enumerate(model.generate([key[0] for key in worklist])), total=len(worklist)):
-            key = worklist[index]
-            f.write(json.dumps({
-                    "prompt": key[0],
-                    "problem": key[1],
-                    "completion": completion,
-                    "constraint": completions[key]["constraint"]
-                }) + "\n")
+    return pd.DataFrame(worklist)
+
 
 def main():
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--problems", type=Path, default=Path("problems.csv"))
+    parser.add_argument("--prompts", type=Path, required=True)
     parser.add_argument("--completions", type=Path, required=True)
-    parser.add_argument("--model-type", choices=["hf-textgen", "openai", "automodel"])
-    parser.add_argument("--prompt-prefix", type=Path, default=Path("../code_generator/gpt_prompt.md"))
+    parser.add_argument("--model-type", choices=["hf-textgen", "openai", "palm", "automodel"])
+    parser.add_argument("--prompt-prefix", type=Path)
     parser.add_argument("--num-completions", type=int, default=20)
-    parser.add_argument("--max-workers", type=int, required=True)
+    parser.add_argument("--max-tokens", type=int, default=256)
+    parser.add_argument("--top-p", type=float, default=0.95)
+    parser.add_argument("--temperature", type=float, default=0.2)
 
-    # For a HuggingFace model
+    # For an automodel
+    parser.add_argument("--batch-size", type=int)
+    # For an hf-textgen model
+    parser.add_argument("--max-workers", type=int)
+    # For an hf-textgen model
     parser.add_argument("--url", type=str)
-
-    # For an OpenAI model
+    # For an openai model
     parser.add_argument("--openai-engine", type=str)
+    # For an openai model
     parser.add_argument("--openai-model", type=str)
+    # For an openai model
     parser.add_argument("--openai-api-version", type=str)
+    # For an openai model
     parser.add_argument("--openai-api-base", type=str)
+    # For an openai model
     parser.add_argument("--openai-azure", action="store_true", default=False)
-
-    # For a local model
+    # For an automodel
     parser.add_argument("--model-path", type=str)
+    # For a palm model
+    parser.add_argument("--palm-model", type=str)
     args = parser.parse_args()
+
+    # Check that flags are set correctly for each model type
+    if args.model_type == "hf-textgen":
+        assert args.batch_size is None
+        assert args.max_workers is not None
+        assert args.url is not None
+        assert args.openai_engine is None
+        assert args.openai_model is None
+        assert args.openai_api_version is None
+        assert args.openai_api_base is None
+        assert not args.openai_azure
+        assert args.model_path is None
+    elif args.model_type == "openai":
+        assert args.batch_size is None
+        assert args.max_workers is None
+        assert args.url is None
+        assert args.openai_engine is not None or args.openai_model is not None
+        assert args.model_path is None
+    elif args.model_type == "palm":
+        assert args.batch_size is None
+        assert args.max_workers is None
+        assert args.url is None
+        assert args.palm_model is not None
+        assert args.openai_model is None
+        assert args.openai_api_version is None
+        assert args.openai_api_base is None
+        assert args.model_path is None
+    elif args.model_type == "automodel":
+        assert args.batch_size is not None
+        assert args.max_workers is None
+        assert args.url is None
+        assert args.openai_engine is None
+        assert args.openai_model is None
+        assert args.openai_api_version is None
+        assert args.openai_api_base is None
+        assert not args.openai_azure
+        assert args.model_path is not None
 
     if args.model_type == "hf-textgen":
         model = TextGenerationModel(args.url, args.max_workers)
     elif args.model_type == "openai":
-        model = OpenAIModel(args, os.getenv("OPENAI_API_KEY"))
+        model = OpenAIModel(args.openai_azure, 
+                            args.openai_engine, 
+                            args.openai_model, 
+                            args.openai_api_base, 
+                            args.openai_api_version, 
+                            os.getenv("OPENAI_API_KEY"))
+    elif args.model_type == "palm":
+        model = PaLMModel(args.palm_model, os.getenv("PALM_API_KEY"))
     elif args.model_type == "automodel":
-        model = AutoModel(args.max_workers, args.model_path)
+        model = AutoModel(args.batch_size, args.model_path)
 
-    generate_completions(
+    stop_sequences = ["\nprint", "\ndef", "\nclass", "\nif"]
+    completions(
         model,
-        args.prompt_prefix.read_text(),
-        args.problems,
+        stop_sequences,
+        args.temperature,
+        args.top_p,
+        args.max_tokens,
+        args.prompt_prefix.read_text() if args.prompt_prefix is not None else "",
+        read_df(args.prompts),
         args.completions,
-        args.num_completions)
+        args.num_completions,
+    )
+
 
 if __name__ == "__main__":
     main()
