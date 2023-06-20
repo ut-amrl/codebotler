@@ -17,3 +17,6 @@ train-old.py
 utils.py
 .openai_api_key
 code_generator/get_completions.py
+*/.__pycache__
+*/.pytest_cache
+simulator/debug

@@ -20,9 +20,10 @@ def code_replace(program, sim_name):
     return program
 
 
-def run_simulation(example: dict, timeout:int, robot_asp_logic:str):
+def run_simulation(example: dict, timeout:int, robot_asp_logic:str, debug_file:str):
     
-    simulator = Context(timeout=timeout, asp_rules_file=robot_asp_logic)
+    simulator = Context(timeout=timeout, asp_rules_file=robot_asp_logic, 
+                        debug_file=debug_file)
     constraints = example["constraint"]
     
     simulator.add_constraints(constraints)
@@ -35,24 +36,24 @@ def run_simulation(example: dict, timeout:int, robot_asp_logic:str):
         print("generated code failed: ", e)    
         return "", ""
     (model, is_sat) = simulator.ground_and_solve()
-    return (model, str(is_sat))
+    print(model, is_sat)
+    return (model, is_sat)
     
-  
-TIMEOUT = 10
-ROBOT_ASP_LOGIC = "robot.lp"  
+    
 
-def main(completions_file: str):
+def main(args):
 
     completions = []
-    with open(Path(completions_file), 'r') as f:
+    with open(Path(args.completions_file), 'r') as f:
         for line in f:
             completions.append(json.loads(line))
     
     evaluated_completions = []
     for i, example_completion in enumerate(completions):
         (model, is_sat) = run_simulation(example_completion, 
-                                         timeout=TIMEOUT,
-                                         robot_asp_logic=ROBOT_ASP_LOGIC)
+                                         timeout=args.asp_timeout,
+                                         robot_asp_logic=args.asp_file,
+                                         debug_file=f"debug/debug_ex{i}.lp")
         example_completion["model"] = model
         example_completion["is_sat"] = (is_sat == "SAT")
         print("example {}: sat is {}".format(i, example_completion["is_sat"]))
@@ -69,5 +70,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('completions_file', type=str)
     parser.add_argument('--eval_file', type=str, default="evaluations.jsonl")
+    parser.add_argument('--asp-timeout', type=int, default=10)
+    parser.add_argument('--asp-file', type=str, default="robot.lp")
+    
+    os.makedirs("debug", exist_ok=True)
     args = parser.parse_args()
-    main(args.completions_file)
+    main(args)
