@@ -15,10 +15,7 @@ CodeBotler consists of two key components:
   models (LLMs) for service mobile robot task code generation.
 
 ## Requirements
-
-TODO: Requirements for CodeBotler-Deploy and CodeBotler-Benchmark. Separate out
-the robot deployment requirements.
-
+All dependencies can be installed using:
 ```shell
 pip install -r requirements.txt
 ```
@@ -26,9 +23,9 @@ pip install -r requirements.txt
 ## CodeBotler-Deploy Quick-Start Guide
 
 To run the web interface for CodeBotler-Deploy using the default options (using OpenAI's
-`text-daVinci-003`), run:
+`text-daVinci-003` model), run:
 ```shell
-python3 codebotler_deploy.py
+OPENAI_API_KEY=YOURKEY python3 codebotler_deploy.py
 ```
 This will start the server on `localhost:8080`. You can then open the interface
 by navigating to http://localhost:8080/ in your browser.  
