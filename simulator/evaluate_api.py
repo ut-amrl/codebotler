@@ -4,10 +4,17 @@ import argparse
 from solver import Context
 import os
 from pathlib import Path
+import collections
+from clingo import Control
+from solve_utils import model_to_str
+import subprocess
 """
 Timeout is max number of time steps after which solver is killed. 
 All prompted tasks should be designed to be completed
 before TIMEOUT for accurate results.
+
+Note: the order of rooms is NON DETERMINISTIC. Beware of tests
+that can be good/bad depending on the order of rooms.
 """
 
 def code_replace(program, sim_name):
@@ -36,7 +43,7 @@ def run_simulation(example: dict, timeout:int, robot_asp_logic:str, debug_file:s
         print("generated code failed: ", e)    
         return "", ""
     (model, is_sat) = simulator.ground_and_solve()
-    print(model, is_sat)
+    # print(model, is_sat)
     return (model, is_sat)
     
     
@@ -46,7 +53,8 @@ def main(args):
     completions = []
     with open(Path(args.completions_file), 'r') as f:
         for line in f:
-            completions.append(json.loads(line))
+            orddict = json.JSONDecoder(object_pairs_hook=collections.OrderedDict).decode(line)
+            completions.append(orddict)
     
     evaluated_completions = []
     for i, example_completion in enumerate(completions):
@@ -57,8 +65,29 @@ def main(args):
         example_completion["model"] = model
         example_completion["is_sat"] = (is_sat == "SAT")
         print("example {}: sat is {}".format(i, example_completion["is_sat"]))
+        
+        # sanity check
+        # run clingo robot.lp debug/debug_ex{i}.lp
+        out = subprocess.run(["clingo", "-f", "robot.lp", "-f", f"debug/debug_ex{i}.lp",  "/dev/null"], capture_output=True)
+        assert(("UNSAT" not in out.stdout.decode("utf-8").strip()) == example_completion["is_sat"]), str(out)+"\nis_sat:"+ example_completion["is_sat"]
+        
+        # to prevent future headaches:
+        try:
+            example_completion["description"]
+        except KeyError:
+            raise ValueError("Wrong format for completion file, description only used for dev")
+         
+        # reorder so is_sat shown first
+        # orders = ("is_sat", )
+        orders = ("is_sat", "description", "constraint", "completion", "model")
+        for key in orders:
+            v = example_completion[key]
+            del example_completion[key]
+            example_completion[key] = v
+    
         evaluated_completions.append(example_completion)
         
+    
     with open(args.eval_file, "a+") as f:
         for comp in evaluated_completions:
             # json.dump(comp, f, indent=4)

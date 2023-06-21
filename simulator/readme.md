@@ -18,7 +18,7 @@ Easiest way is through conda:
 - `solve_utils.py` contains a class of helper python functions that can be called in ASP to check things like `contains(asp_atom, pattern)`. These functions are called in ASP by prepending `@`, eg. `@contains(Atom, Pattern)`.
 - we are currently in process of testing if simulator behaves as expected with good/bad handwritten generations. `code_examples` contains per-task json files with the good/bad examples. A script in `code_examples/read_and_dump` reads examples in the format of `staplerSupply.json`, adds the task-specific constraints (stored in a dict) and dumps the result into `code_examples/constrained_examples.jsonl`. The script `code_examples/evaluate_api.py` then runs the simulator on `constrained_examples.jsonl` and outputs `evaluations.jsonl` with the results. It also saves all the generated runs in `debug/debug_ex{i}.lp` so the ASP commands can be inspected further for correctness.
 
-Currently the simulator sets additional examples in `staplerSupply` as `is_sat=true` when they should be `is_sat=false`. This is an issue with how we are writing the good/bad examples and not a simulator issue. Also we need a better way of checking `say()` statements.
+Note: the order of rooms is *NON DETERMINISTIC*. Beware of tests that can be good/bad depending on the order of rooms.
 
 
 ## Todo

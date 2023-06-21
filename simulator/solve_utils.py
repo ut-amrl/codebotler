@@ -26,14 +26,26 @@ class SolveUtils:
         else:
             return Number(0)
 
+        
     def contains_all(self, atom, *patterns):
+        """
+        Supports patterns in format ["p0", "p1/p2/p3"] where
+        atom must contain p0 AND any of p1, p2, p3
+        """
         atom = str(atom)[1:-1]
         patterns = [str(p)[1:-1] for p in patterns] #remove quotes
-        if all([p in atom for p in patterns]):
+        if all([check_in(p,atom) for p in patterns]):
             return Number(1)
         else:
             return Number(0)
 
+def check_in(pattern, atom):
+        if "/" in pattern:
+            patterns = pattern.split("/")
+            return any([p in atom for p in patterns])
+        else:
+            return pattern in atom
+        
 def model_to_str(model:str) -> str:
     """
     Print model ordered by timesteps

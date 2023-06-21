@@ -18,10 +18,14 @@ task_to_constraints = {
 # - Only say things about stapler and room (contains stapler, room, and no)
 # - Say must be correct (contain)
 
+# - hallucinate rooms (we wnt this)
+# who cares: 13, 12, 8
+
     "StaplerSupply" : [
         'at("robot", "start_loc", 0).',
         'at("stapler", "printer room 1", 0).',
         'room("printer room 2").',
+        'room("living room").',
         # ':- not t_go_to("printer room 1", 0).',
         # ':- not t_go_to("printer room 2", 1).',
         # ':- t_go_to("conference room", _).',
@@ -29,29 +33,20 @@ task_to_constraints = {
         # ':- not t_say(_, 3).', # printer room 1
         # ':- not at("robot","start_loc", timeout).'
         
-        # Assert there are no go_tos to rooms without "printer"
+        # Assert goes to all printer rooms at some point
+        ':- not t_go_to("printer room 1", _).',
+        ':- not t_go_to("printer room 2", _).',
+        # Assert there are no go_tos to rooms without "printer" (or start_loc)
         ':- t_go_to(X, T), @contains_any(X, "printer", "start_loc") = 0.',
         #Check: only check stapler in room
         ':- check_at(X, _, _), X!="stapler".',
-        #Check: only say things about stapler and room
-        ':- t_say(X, _), @contains(X, "stapler") = 0.',
+        #Check: says something along lines of "no stapler in printer room 2" 
+        ':- t_say(X, _), @contains_all(X, "stapler", "printer room 2", "not/no/n\'t") = 0.',
         # come back
         ':- not at("robot", "start_loc", timeout).'
 
     ]
 }
-
-class Temporal:
-    
-    def is_after(self, x0, x1, x2):
-        timesteps = [x0.arguments[-1].number, 
-                     x1.arguments[-1].number, 
-                     x2.arguments[-1].number]
-        ordered = sorted(timesteps)
-        if ordered == timesteps:
-            return Number(0) #true
-        else:
-            return Number(1)  #false
 
 # finally [X] (x is last action, any order)
 
