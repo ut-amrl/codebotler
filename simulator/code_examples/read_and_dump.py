@@ -44,6 +44,8 @@ task_to_constraints = {
         ':- check_at(X, _, _), X!="stapler".',
         #Check: says something along lines of "no stapler in printer room 2" 
         ':- t_say(X, _), @contains_all(X, "stapler", "printer room 2", "not/no/n\'t") = 0.',
+        #Check: says something along lines of "no stapler in printer room 3" 
+        ':- t_say(X, _), @contains_all(X, "stapler", "printer room 3", "not/no/n\'t") = 0.',
         # come back
         ':- not at("robot", "start_loc", timeout).'
 
