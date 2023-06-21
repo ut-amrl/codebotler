@@ -1,5 +1,67 @@
+# CodeBotler Overview
 
-## Running the Code Generator Web interface:
+CodeBotler is a system that converts natural language task descriptions into
+task-specific programs that can be executed by general-purpose service mobile
+robots. It leverages a domain-specific language (DSL) for service mobile tasks
+embedded in Python, and few-shot demonstrations with a pre-trained large language
+models (LLM) to generate programs. CodeBotler is designed to be deployed on any
+general-purpose service mobile robot using [ROS Actions](https://wiki.ros.org/actionlib) to execute the DSL functions.
+It includes a benchmark for evaluating LLMs for code generation for service
+mobile robot tasks. The benchmark consists of temporal specifications for a set
+of tasks, and a set of natural language prompts for the tasks. Program
+correctness is evaluated by executing the generated programs in a simulated
+environment, and checking if the traces are consistent with the temporal specifications.
+
+CodeBotler consists of two key components:
+* CodeBotler-Deploy: A web interface and server for deploying CodeBotler on a
+  general purpose service mobile robot. You can use this to try out the code
+  generation capabilities of CodeBotler either as a standalone system without a
+  robot, or actually deploy it on a real robot.
+* CodeBotler-Benchmark: The code generation benchmark for evaluating large language
+  models (LLMs) for service mobile robot task code generation.
+
+## Requirements
+
+TODO: Requirements for CodeBotler-Deploy and CodeBotler-Benchmark. Separate out
+the robot deployment requirements.
+
+```shell
+pip install -r requirements.txt
+```
+
+## CodeBotler-Deploy Quick-Start Guide
+
+To run the web interface for CodeBotler-Deploy using OpenAI's `text-daVinci-003`
+model:
+```shell
+python3 codebotler_deploy.py
+```
+
+## CodeBotler-Benchmark Quick-Start Guide
+
+The instructions below demonstrate how to run the benchmark using the open-source [StarCoder](https://huggingface.co/bigcode/starcoder) model.
+
+1. Run code generation for the benchmark tasks using the following command:
+  ```shell
+  python3 codebotler_benchmark.py --generate --model-type automodel --model-path "bigcode/starcoder" --prompt-prefix benchmark/docstring_prompt_prefix.py --output starcoder_completions.json
+  ```
+  This will generate the programs for the benchmark tasks and save them in
+  an output file named `starcoder_completions.json`. It assumes default values
+  for temperature (0.2), top-p (0.9), and num-completions (20), to generate 20
+  programs for each task --- this will suffice for pass@1 evaluation. 
+
+2. Evaluate the generated programs using the following command:
+  ```shell
+  python3 codebotler_benchmark.py --evaluate --input starcoder_completions.json --output starcoder_eval.json
+  ```
+  This will evaluate the generated programs using the benchmark test, and save
+  all the results in an output file named `starcoder_eval.json`. It will also
+  print out the pass@1 accuracy for the benchmark.
+
+Detailed instructions for running the benchmark are included in
+[benchmark/README.md](benchmark/README.md).
+
+## Deprecated Instructions (Merge and delete)
 
 1. Navigate to the `code_generator` subdirectory.
 2. Create a file named `.openai_api_key` with your OpenAI API key in it.
