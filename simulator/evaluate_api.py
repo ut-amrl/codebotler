@@ -36,6 +36,7 @@ def run_simulation(example: dict, timeout:int, robot_asp_logic:str, debug_file:s
     simulator.add_constraints(constraints)
     
     generated_code = code_replace(example["completion"], "simulator")
+    print(generated_code)
     
     try:
         exec(generated_code)
@@ -61,14 +62,14 @@ def main(args):
         (model, is_sat) = run_simulation(example_completion, 
                                          timeout=args.asp_timeout,
                                          robot_asp_logic=args.asp_file,
-                                         debug_file=f"debug/debug_ex{i}.lp")
+                                         debug_file=f"debug/debug_ex{i+1}.lp")
         example_completion["model"] = model
         example_completion["is_sat"] = (is_sat == "SAT")
         print("example {}: sat is {}".format(i, example_completion["is_sat"]))
         
         # sanity check
-        # run clingo robot.lp debug/debug_ex{i}.lp
-        out = subprocess.run(["clingo", "-f", "robot.lp", "-f", f"debug/debug_ex{i}.lp",  "/dev/null"], capture_output=True)
+        # run clingo robot.lp debug/debug_ex{i+1}.lp
+        out = subprocess.run(["clingo", "-f", "robot.lp", "-f", f"debug/debug_ex{i+1}.lp",  "/dev/null"], capture_output=True)
         assert(("UNSAT" not in out.stdout.decode("utf-8").strip()) == example_completion["is_sat"]), str(out)+"\nis_sat:"+ example_completion["is_sat"]
         
         # to prevent future headaches:

@@ -25,6 +25,7 @@ task_to_constraints = {
         'at("robot", "start_loc", 0).',
         'at("stapler", "printer room 1", 0).',
         'room("printer room 2").',
+        'room("printer room 3").',
         'room("living room").',
         # ':- not t_go_to("printer room 1", 0).',
         # ':- not t_go_to("printer room 2", 1).',
@@ -36,6 +37,7 @@ task_to_constraints = {
         # Assert goes to all printer rooms at some point
         ':- not t_go_to("printer room 1", _).',
         ':- not t_go_to("printer room 2", _).',
+        ':- not t_go_to("printer room 3", _).',
         # Assert there are no go_tos to rooms without "printer" (or start_loc)
         ':- t_go_to(X, T), @contains_any(X, "printer", "start_loc") = 0.',
         #Check: only check stapler in room
