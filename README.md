@@ -25,11 +25,16 @@ pip install -r requirements.txt
 
 ## CodeBotler-Deploy Quick-Start Guide
 
-To run the web interface for CodeBotler-Deploy using OpenAI's `text-daVinci-003`
+To run the web interface for CodeBotler-Deploy using the default model (OpenAI's
+`text-daVinci-003`), and with the default interface, run:
 model:
 ```shell
 python3 codebotler_deploy.py
 ```
+This will start the server on `localhost:8190`. You can then open the interface
+by navigating to http://localhost:8190/ in your browser.  
+
+
 Instructions for deploying on real robots are included in [robot_interface/README.md]
 
 ## CodeBotler-Benchmark Quick-Start Guide
