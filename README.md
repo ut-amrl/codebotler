@@ -31,9 +31,20 @@ model:
 ```shell
 python3 codebotler_deploy.py
 ```
-This will start the server on `localhost:8190`. You can then open the interface
-by navigating to http://localhost:8190/ in your browser.  
+This will start the server on `localhost:8080`. You can then open the interface
+by navigating to http://localhost:8080/ in your browser.  
 
+List of arguments:
+* `--ip`: The IP address to host the server on (default is `localhost`).
+* `--port`: The port to host the server on (default is `8080`).
+* `--ws-port`: The port to host the websocket server on (default is `8190`).
+* `--model-type`: The type of model to use. It is either `openai` for [OpenAI](https://platform.openai.com) (default),
+  `palm` for [PaLM](https://developers.generativeai.google/)), or `automodel`
+  for
+  [AutoModel](https://huggingface.co/transformers/model_doc/auto.html#automodel).
+* `--model-name`: The name of the model to use. Recommended options are
+  `text-daVinci-003` for OpenAI (default), `models/text-bison-001` for PaLM, and
+  `bigcode/starcoder` for AutoModel.
 
 Instructions for deploying on real robots are included in [robot_interface/README.md]
 
