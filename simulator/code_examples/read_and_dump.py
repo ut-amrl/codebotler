@@ -48,7 +48,11 @@ task_to_constraints = {
         ':- t_say(X, _), @contains_all(X, "stapler", "printer room 3", "not/no/n\'t") = 0.',
         # come back
         ':- not at("robot", "start_loc", timeout).'
-
+        # trivial reqs
+        ':- not t_go_to(_,_).',
+        ':- not t_say(_,_).',
+        ':- not check_at(_,_,_).',
+        
     ]
 }
 
