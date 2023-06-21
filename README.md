@@ -25,9 +25,8 @@ pip install -r requirements.txt
 
 ## CodeBotler-Deploy Quick-Start Guide
 
-To run the web interface for CodeBotler-Deploy using the default model (OpenAI's
-`text-daVinci-003`), and with the default interface, run:
-model:
+To run the web interface for CodeBotler-Deploy using the default options (using OpenAI's
+`text-daVinci-003`), run:
 ```shell
 python3 codebotler_deploy.py
 ```
