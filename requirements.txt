@@ -1,0 +1,5 @@
+pandas
+text_generation
+transformers
+google-generativeai
+openai

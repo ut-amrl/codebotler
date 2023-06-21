@@ -272,7 +272,7 @@
               socket.onopen = function(event) {
                   setStatus("Connected to server. Generating code...");
                   socket.send(JSON.stringify(
-                    { "type": "code", "text": text, "execute": execute }
+                    { "type": "code", "prompt": text, "execute": execute }
                   ));
               };
               socket.onmessage = function(event) {
