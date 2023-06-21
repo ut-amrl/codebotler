@@ -97,7 +97,7 @@ class Context:
         all_simulation_rooms = list(set(self.all_simulation_rooms + all_simulation_rooms))
         for room in all_simulation_rooms:
             self.add(f'room("{room}").')
-        self.all_simulation_rooms = all_simulation_rooms        
+        self.all_simulation_rooms = sorted(all_simulation_rooms)        
         
         
 
@@ -151,6 +151,7 @@ class Context:
         # TODO: this is a problem when people = people location
         if location not in self.all_simulation_rooms:
             self.all_simulation_rooms.append(location)
+            self.all_simulation_rooms = sorted(self.all_simulation_rooms)
             self.add(f'room("{location}").')
         self.add(f't_go_to("{location}", {self.current_t}).')
         self.current_t += 1 
