@@ -15,10 +15,18 @@ CodeBotler consists of two key components:
   models (LLMs) for service mobile robot task code generation.
 
 ## Requirements
-All dependencies can be installed using:
+All Python dependencies can be installed using:
 ```shell
 pip install -r requirements.txt
 ```
+
+**Language model options**
+* To use an OpenAI model, you will need an [OpenAI key](https://platform.openai.com/account/api-keys), either saved in a file named `.openai_api_key`, or in the `OPENAI_API_KEY` environment variable.
+* To use a PaLM model, you will need a [Google Generative API key](https://developers.generativeai.google/tutorials/setup), either saved in a file named `.palm_api_key`, or in the `PALM_API_KEY` environment variable.
+* You can use any pretrained model compatible with the [HuggingFace AutoModel](https://huggingface.co/transformers/v3.5.1/model_doc/auto.html#automodelforcausallm) interface, including open-source models from the [HuggingFace repository](https://huggingface.co/models) such as [Starcoder](https://huggingface.co/bigcode/starcoder). Note that some models, including Starcoder, require you to agree to the HuggingFace terms of use, and you must be logged in using `huggingface-cli login`.
+
+**Robot Interface**
+TBD
 
 ## CodeBotler-Deploy Quick-Start Guide
 
