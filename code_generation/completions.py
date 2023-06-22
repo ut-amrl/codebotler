@@ -56,7 +56,7 @@ class PaLMModel:
         self.palm = palm
         palm.configure(api_key=api_key)
         self.model = model
-    
+
     def generate(
         self,
         prompts: list,
@@ -74,7 +74,7 @@ class PaLMModel:
                 max_output_tokens=max_tokens,
             )
             yield completion.result
-    
+
     def generate_one(
         self,
         prompt: str,
@@ -93,7 +93,7 @@ class PaLMModel:
 
 class OpenAIModel:
     def __init__(
-            self, 
+            self,
             use_azure: bool = False,
             engine: str | None = None,
             model: str | None = None,
@@ -292,6 +292,34 @@ class AutoModel:
             ):
                 yield completion
 
+    def generate_one(
+        self,
+        prompt,
+        stop_sequences: List[str],
+        temperature: float,
+        top_p: float,
+        max_tokens: int):
+        encoded_prompt = self.tokenizer.encode(
+            prompt.rstrip(),
+            padding=True,
+            return_attention_mask=True,
+            return_tensors="pt",
+        ).to(0)
+        max_input_tokens = encoded_prompt.shape[1]
+        output = self.model.generate(
+            encoded_prompt,
+            do_sample=True,
+            top_p=top_p,
+            temperature=temperature,
+            max_length=max_tokens + max_input_tokens
+        )
+        decoded_output = self.tokenizer.decode(
+            output[0],
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=False
+        )
+        return stop_at_stop_token(decoded_output, stop_sequences)
+
 
 def read_df(p: Path):
     if p.suffix == ".jsonl":
@@ -322,9 +350,9 @@ def read_completions_if_exists(completions_path: Path, problems: pd.DataFrame):
 
 
 def build_worklist(
-    prompts: pd.DataFrame, 
-    prompt_prefix: str, 
-    completions: pd.DataFrame, 
+    prompts: pd.DataFrame,
+    prompt_prefix: str,
+    completions: pd.DataFrame,
     num_completions: int):
     """
     Builds a worklist of prompts that need completions, using existing completions to avoid
@@ -456,11 +484,11 @@ def main():
     if args.model_type == "hf-textgen":
         model = TextGenerationModel(args.url, args.max_workers)
     elif args.model_type == "openai":
-        model = OpenAIModel(args.openai_azure, 
-                            args.openai_engine, 
-                            args.openai_model, 
-                            args.openai_api_base, 
-                            args.openai_api_version, 
+        model = OpenAIModel(args.openai_azure,
+                            args.openai_engine,
+                            args.openai_model,
+                            args.openai_api_base,
+                            args.openai_api_version,
                             os.getenv("OPENAI_API_KEY"))
     elif args.model_type == "palm":
         model = PaLMModel(args.palm_model, os.getenv("PALM_API_KEY"))
