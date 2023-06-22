@@ -40,30 +40,36 @@ class Context:
     
         self.ctl.add(part, [], atom)   
         
-    # def add_constraints(self, constraints:str):
-    #     """
-    #     Constraints are divided into: init states
-    #     and integrity constraints
-    #     """
-    #     world_states = []
-    #     for constraint in constraints.split(".\n"):
-    #         constraint = constraint.strip()
+    def add_constraints(self, constraints):
+        if isinstance(constraints, str):
+            self.add_str_constraints(constraints)
+        elif isinstance(constraints, list):
+            self.add_list_constraints(constraints)
             
-    #         ## HACKY for empty str
-    #         if len(constraint) < 2:
-    #             continue
+    def add_str_constraints(self, constraints:str):
+        """
+        Constraints are divided into: init states
+        and integrity constraints
+        """
+        world_states = []
+        for constraint in constraints.split(".\n"):
+            constraint = constraint.strip()
             
-    #         if not constraint.endswith("."):
-    #             constraint += "."
+            ## HACKY for empty str
+            if len(constraint) < 2:
+                continue
+            
+            if not constraint.endswith("."):
+                constraint += "."
                 
-    #         if ":-" in constraint:
-    #             self.add(constraint)
-    #         else:
-    #             world_states.append(constraint)
+            if ":-" in constraint:
+                self.add(constraint)
+            else:
+                world_states.append(constraint)
                 
-    #     self.add_world_states(world_states)
+        self.add_world_states(world_states)
     
-    def add_constraints(self, constraints:List[str]):
+    def add_list_constraints(self, constraints:List[str]):
         """
         Constraints are divided into: init states
         and integrity constraints
@@ -86,17 +92,22 @@ class Context:
        
         
     def add_world_states(self, init_state=[]):
-        self.init_state = init_state
+        normalized_init_state = []
         all_simulation_rooms = []
         for atom in init_state:
+            # atom = atom.lower().replace("'", "")
             self.add(atom)
+            normalized_init_state.append(atom)
             if "at" in atom or "go_to" in atom or "room" in atom:
                 room = atom.split('"')[-2]
+                # room = room.lower().replace("'", "")
                 all_simulation_rooms.append(room)
         
         all_simulation_rooms = list(set(self.all_simulation_rooms + all_simulation_rooms))
         for room in all_simulation_rooms:
             self.add(f'room("{room}").')
+            
+        self.init_state = normalized_init_state
         self.all_simulation_rooms = sorted(all_simulation_rooms)        
         
         
@@ -129,12 +140,16 @@ class Context:
         # obj = obj.lower()
         # check if is in the room at curr time step
         curr_loc = self.get_robot_location()
+        # record that a check was made
+        self.add(f'check_at("{obj}", "{curr_loc}", {self.current_t}).')
+        
+        # curr_loc = curr_loc.lower().replace("'", "")
+        # obj = obj.lower().replace("'", "")
         for atom in self.init_state:
             if f'at("{obj}", "{curr_loc}",' in atom:
                 return True
             
-        # record that a check was made
-        self.add(f'check_at("{obj}", "{curr_loc}", {self.current_t}).')
+        
         return False
 
         
@@ -142,13 +157,14 @@ class Context:
     
     ## get most curr response
     def robot_say(self, message : str) -> None:
-        
+        # message = message.lower().replace("'", "")
         self.add(f't_say("{message}", {self.current_t}).')
         
     def robot_go_to(self, location : str) -> None:
         # location = location.lower()
         # issue goto
         # TODO: this is a problem when people = people location
+        # location = location.lower().replace("'", "")
         if location not in self.all_simulation_rooms:
             self.all_simulation_rooms.append(location)
             self.all_simulation_rooms = sorted(self.all_simulation_rooms)
@@ -158,12 +174,17 @@ class Context:
         self.robot_location = location
 
     def robot_ask(self, person : str, question : str, options: List[str]) -> str:
-        # person = person.lower()
-        
+        for option in options:
+            self.add(f'option("{option}").')
+            
         option = random.sample(options, k=1)[0]
         
+        # option = option.lower().replace("'", "")
+        # person = person.lower().replace("'", "")
+        # question = question.lower().replace("'", "")
         self.add(f't_ask("{person}", "{question}", {self.current_t}).')
         self.add(f'reply("{person}", "{option}", {self.current_t+1}).')
+        self.current_t += 2
         return option
 """
 Note:
