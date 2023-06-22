@@ -88,19 +88,30 @@ state = State(
 )
 
 trace : list[TraceElement] = []
+asp_trace : list[str] = []
+trace_t = 0
 
 # Get the current location of the robot.
 def get_current_location() -> str :
+  global trace_t
+  asp_trace.append(f"t_get_current_location({trace_t}).")
+  trace_t += 1
   trace.append(TraceElement("get_current_location", []))
   return state.robot_location
 
 # Get a list of all rooms in the house.
 def get_all_rooms() -> list[str] :
+  global trace_t
+  asp_trace.append(f"t_get_all_rooms({trace_t}).")
+  trace_t += 1
   trace.append(TraceElement("get_all_rooms", []))
   return state.locations
 
 # Check if an object is in the current room.
 def is_in_room(object : str) -> bool :
+  global trace_t
+  asp_trace.append(f"t_is_in_room(\"{object}\",{trace_t}).")
+  trace_t += 1
   trace.append(TraceElement("is_in_room", [object]))
   for o in state.objects:
     if o.location == state.robot_location and o.label == object:
@@ -110,6 +121,9 @@ def is_in_room(object : str) -> bool :
 # Go to a specific named location, e.g. go_to("kitchen"), go_to("Arjun's
 # office"), go_to("Jill's study").
 def go_to(location : str) -> None :
+  global trace_t
+  asp_trace.append(f"t_go_to(\"{location}\",{trace_t}).")
+  trace_t += 1
   global state
   trace.append(TraceElement("go_to", [location]))
   assert location in state.locations
@@ -119,6 +133,12 @@ def go_to(location : str) -> None :
 # Ask a person a question, and offer a set of specific options for the person to
 # respond. Return with the response selected by the person.
 def ask(person : str, question : str, options: list[str]) -> str :
+  global trace_t
+  options_str = ""
+  for o in options:
+    options_str += f"[{o}],"
+  asp_trace.append(f"t_ask(\"{person}\", \"{question}\", \"{options_str}\", {trace_t}).")
+  trace_t += 1
   trace.append(TraceElement("ask", [person, question, options]))
   for p in state.interactive_agents:
     # if p.location == state.robot_location and p.name == person:
@@ -140,6 +160,9 @@ def ask(person : str, question : str, options: list[str]) -> str :
 # Say the message out loud. Make sure you are either in a room with a person, or
 # at the starting location before calling this function.
 def say(message : str) -> None :
+  global trace_t
+  asp_trace.append(f"t_say(\"{message}\",{trace_t}).")
+  trace_t += 1
   trace.append(TraceElement("say", [message]))
   pass
 
@@ -147,18 +170,48 @@ def run_program(program : str, state : State) -> list[TraceElement] :
   exec(program)
   return trace
 
-program = "my_rooms = get_all_rooms()\n" + \
-          "for r in my_rooms:\n" + \
-          "  go_to(r)\n" + \
-          "  say(f\"I am in {r}\")\n"
+def state_to_asp(state: State) -> str:
+  asp = ""
+  for l in state.locations:
+    asp += f"is_location(\"{l}\").\n"
 
-program = "list_of_rooms = get_all_rooms()\nstart_loc = get_current_location()\ncandies = [\"Chocolate\", \"Gummies\", \"Licorice\"]\ncandies_count = {candy : 0 for candy in candies}\nfor room in list_of_rooms:\n    if \"office\" not in room:\n        continue\n    go_to(room)\n    if is_in_room(\"person\"):\n        response = ask(\"Person\", \"Which kind of candy would you like?\", candies)\n        candies_count[response] += 1\ngo_to(start_loc)\nfor candy, count in candies_count.items():\n    say(\"We need to buy \" + str(count) + \" \" + candy)"
+  for o in state.objects:
+    asp += f"is_object(\"{o.label}\", \"{o.location}\").\n"
+
+  for p in state.interactive_agents:
+    answers = ""
+    for a in p.answers:
+      answers += f"[{a}],"
+    asp += f"is_interactive_agent(\"{p.name}\", \"{p.location}\", \"{answers}\").\n"
+  return asp
+
+
+program = """
+list_of_rooms = get_all_rooms()
+start_loc = get_current_location()
+candies = [\"Chocolate\", \"Gummies\", \"Licorice\"]
+candies_count = {candy : 0 for candy in candies}
+for room in list_of_rooms:
+  if \"office\" not in room:
+    continue
+  go_to(room)
+  if is_in_room(\"person\"):
+    response = ask(\"Person\", \"Which kind of candy would you like?\", candies)
+    candies_count[response] += 1
+go_to(start_loc)
+for candy, count in candies_count.items():
+  say(\"We need to buy \" + str(count) + \" \" + candy)
+"""
+
 # program = "say(\"Hello, world!\")"
 # program = "r = 10\n"
 print("=======================\nProgram:\n=======================")
 print(program)
 print("=======================\nState:\n=======================")
 print(state)
-print("=======================\nTrace:\n=======================")
+print("=======================\nASP Trace:\n=======================")
+asp_state = state_to_asp(state)
 t = run_program(program, state)
-print(*t, sep="\n")
+# print(*t, sep="\n")
+print(asp_state)
+print(*asp_trace, sep="\n")
