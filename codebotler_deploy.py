@@ -56,7 +56,7 @@ def load_model(args):
     assert len(palm_api_key) > 0, "PaLM API key not found. Either create a '.palm_api_key' file or set the PALM_API_KEY environment variable."
     model = PaLMModel(model=args.model_name, api_key = palm_api_key)
   elif args.model_type == "automodel":
-    model = AutoModel(model=args.model_name)
+    model = AutoModel(batch_size=1, path=args.model_name)
   else:
     raise ValueError(f"Unknown model type: {args.model_type}")
 
