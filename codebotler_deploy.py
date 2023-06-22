@@ -64,8 +64,9 @@ def generate_code(prompt):
   global model
   start_time = time.time()
   prompt = prompt_prefix + prompt + prompt_suffix
+  stop_sequences = ["#"]
   code = model.generate_one(prompt=prompt,
-                            stop_sequences=["```"],
+                            stop_sequences=stop_sequences,
                             temperature=0.9,
                             top_p=1,
                             max_tokens=512)

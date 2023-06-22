@@ -11,8 +11,8 @@ say(message)
 Robot tasks are defined in named functions, with docstrings describing the task.
 """
 
+# Get the current location of the robot.
 def get_current_location() -> str:
-    """Get the current location of the robot."""
     ...
 
 # Get a list of all rooms in the house.
@@ -100,4 +100,4 @@ def task_program():
         time.sleep(1)
     go_to(start_loc)
 
-# 
+#  

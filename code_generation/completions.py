@@ -305,16 +305,16 @@ class AutoModel:
             return_attention_mask=True,
             return_tensors="pt",
         ).to(0)
-        max_input_tokens = encoded_prompt.shape[1]
+        num_input_tokens = encoded_prompt.shape[1]
         output = self.model.generate(
             encoded_prompt,
             do_sample=True,
             top_p=top_p,
             temperature=temperature,
-            max_length=max_tokens + max_input_tokens
+            max_length=max_tokens + num_input_tokens
         )
         decoded_output = self.tokenizer.decode(
-            output[0],
+            output[0, num_input_tokens:],
             skip_special_tokens=True,
             clean_up_tokenization_spaces=False
         )
