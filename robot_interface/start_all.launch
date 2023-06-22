@@ -3,7 +3,7 @@
     <include file="$(find ut_jackal)/launch/autonomy.launch" />
 
     <node name="interface_server"
-        pkg="nl_to_robot_code_deploy"
+        pkg="robot_commands"
         type="interface_server.py"
         cwd="node"
         args="--ip 10.0.0.123 --port 8190"
@@ -12,7 +12,7 @@
         output="screen"/>
 
     <node name="gui"
-        pkg="nl_to_robot_code_deploy"
+        pkg="robot_commands"
         type="gui.py"
         cwd="node"
         respawn="true"
@@ -20,8 +20,16 @@
         output="screen"/>
 
     <node name="interface"
-        pkg="nl_to_robot_code_deploy"
+        pkg="robot_commands"
         type="interface.py"
+        cwd="node"
+        respawn="true"
+        respawn_delay="2"
+        output="screen"/>
+
+    <node name="robot_low_level_actions"
+        pkg="robot_commands"
+        type="actions.py"
         cwd="node"
         respawn="true"
         respawn_delay="2"

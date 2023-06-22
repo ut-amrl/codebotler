@@ -22,35 +22,6 @@ import actionlib
 from robot_actions_pkg.msg import GoToAction, GoToGoal, GetCurrentLocationAction, GetCurrentLocationGoal, IsInRoomAction, IsInRoomGoal, SayAction, SayGoal, GetAllRoomsAction, GetAllRoomsGoal, AskAction, AskGoal
 
 
-# This is the client-side script. STATIC, common for everyone.
-"""
-GoToAction:
-    goal: string
-    result:
-    feedback:
-GetCurrentLocationAction:
-    goal:
-    result: string
-    feedback:
-IsInRoomAction:
-    goal: string
-    result: bool
-    feedback:
-SayAction:
-    goal: string
-    result:
-    feedback:
-GetAllRoomsAction:
-    goal:
-    result: string[]
-    feedback:
-AskAction:
-    goal: string, string, string[]
-    result: string
-    feedback:
-"""
-
-
 class RobotInterface:
     def __init__(self):
         self.last_say_bool = None
@@ -83,13 +54,19 @@ class RobotInterface:
         g.location = location
         self.go_to_client.send_goal(g)
         self.go_to_client.wait_for_result()
-        assert self.go_to_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Go to {location} failed!"
+        if self.go_to_client.get_state() == actionlib.GoalStatus.PREEMPTED:
+            print("Go to preempted!")
+        else:
+            assert self.go_to_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Go to {location} failed!"
 
     def get_current_location(self) -> str:
         g = GetCurrentLocationGoal()
         self.get_current_location_client.send_goal(g)
         self.get_current_location_client.wait_for_result()
-        assert self.get_current_location_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Get current location failed!"
+        if self.get_current_location_client.get_state() == actionlib.GoalStatus.PREEMPTED:
+            print("Get current location preempted!")
+        else:
+            assert self.get_current_location_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Get current location failed!"
         return self.get_current_location_client.get_result().result
 
     def is_in_room(self, object) -> bool:
@@ -97,7 +74,10 @@ class RobotInterface:
         g.object = object
         self.is_in_room_client.send_goal(g)
         self.is_in_room_client.wait_for_result()
-        assert self.is_in_room_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Is in room {object} failed!"
+        if self.is_in_room_client.get_state() == actionlib.GoalStatus.PREEMPTED:
+            print("Is in room preempted!")
+        else:
+            assert self.is_in_room_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Is in room {object} failed!"
         return self.is_in_room_client.get_result().result
 
     def say(self, message) -> None:
@@ -105,13 +85,19 @@ class RobotInterface:
         g.message = message
         self.say_client.send_goal(g)
         self.say_client.wait_for_result()
-        assert self.say_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Say '{message}' failed!"
+        if self.say_client.get_state() == actionlib.GoalStatus.PREEMPTED:
+            print("Say preempted!")
+        else:
+            assert self.say_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Say '{message}' failed!"
 
     def get_all_rooms(self) -> List[str]:
         g = GetAllRoomsGoal()
         self.get_all_rooms_client.send_goal(g)
         self.get_all_rooms_client.wait_for_result()
-        assert self.get_all_rooms_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Get all rooms failed!"
+        if self.get_all_rooms_client.get_state() == actionlib.GoalStatus.PREEMPTED:
+            print("Get all rooms preempted!")
+        else:
+            assert self.get_all_rooms_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Get all rooms failed!"
         return self.get_all_rooms_client.get_result().result
 
     def ask(self, person, question, options=None) -> str:
@@ -121,7 +107,10 @@ class RobotInterface:
         g.options = options
         self.ask_client.send_goal(g)
         self.ask_client.wait_for_result()
-        assert self.ask_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Ask {person} '{question}' with options '{options}' failed!"
+        if self.ask_client.get_state() == actionlib.GoalStatus.PREEMPTED:
+            print("Ask preempted!")
+        else:
+            assert self.ask_client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"Ask {person} '{question}' with options '{options}' failed!"
         return self.ask_client.get_result().result
 
     def execute(self):

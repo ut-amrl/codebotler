@@ -25,4 +25,6 @@ if [[ $ROS_PACKAGE_PATH != *"$graph_nav_path"* ]]; then
     export ROS_PACKAGE_PATH=$graph_nav_path:$ROS_PACKAGE_PATH
 fi
 
+source devel/setup.bash
+
 roslaunch robot_commands start_all.launch

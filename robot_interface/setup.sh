@@ -7,6 +7,8 @@ echo $ut_jackal_path
 graph_nav_path=$(realpath third_party/ut_jackal/graph_navigation)
 echo $graph_nav_path
 
+catkin_make
+
 cd third_party/GroundingDINO
 pip install -q -e .
 
@@ -46,5 +48,7 @@ cd ../../
 
 # Give execute permissions to all scripts
 find . -maxdepth 1 \( -name "*.py" -o -name "*.sh" \) -exec chmod +x {} \;
-cd ../code_generator
+cd src/
+find . -maxdepth 1 \( -name "*.py" -o -name "*.sh" \) -exec chmod +x {} \;
+cd ../../code_generation
 find . -maxdepth 1 \( -name "*.py" -o -name "*.sh" \) -exec chmod +x {} \;
