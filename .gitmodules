@@ -1,6 +1,6 @@
-[submodule "robot_tool/third_party/ut_jackal"]
-	path = robot_tool/third_party/ut_jackal
-	url = git@github.com:ut-amrl/ut_jackal.git
-[submodule "robot_tool/third_party/GroundingDINO"]
-	path = robot_tool/third_party/GroundingDINO
+[submodule "robot_interface/third_party/GroundingDINO"]
+	path = robot_interface/third_party/GroundingDINO
 	url = git@github.com:IDEA-Research/GroundingDINO.git
+[submodule "robot_interface/third_party/ut_jackal"]
+	path = robot_interface/third_party/ut_jackal
+	url = git@github.com:ut-amrl/ut_jackal.git
