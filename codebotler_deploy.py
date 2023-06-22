@@ -137,8 +137,8 @@ def main():
   parser.add_argument('--ws-port', type=int, help='Websocket server port number', default=8190)
   parser.add_argument("--model-type", choices=["openai", "palm", "automodel"], default="openai")
   parser.add_argument('--model-name', type=str, help='Model name', default='text-davinci-003')
-  parser.add_argument('--prompt-prefix', type=Path, help='Prompt prefix', default='code_generation/gpt_prompt.md')
-  parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix', default='code_generation/gpt_prompt_suffix.md')
+  parser.add_argument('--prompt-prefix', type=Path, help='Prompt prefix', default='code_generation/prompt_prefix.py')
+  parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix', default='code_generation/prompt_suffix.py')
   parser.add_argument('--interface-page', type=Path, help='Interface page', default='code_generation/interface.html')
 
   args = parser.parse_args()
