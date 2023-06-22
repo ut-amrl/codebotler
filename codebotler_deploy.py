@@ -6,13 +6,15 @@ import asyncio
 import websockets
 import json
 import signal
+import sys
 import time
 from code_generation.completions import AutoModel, PaLMModel, OpenAIModel
 
 httpd = None
 server_thread = None
 model = None
-prompt_prefix = None
+prompt_prefix = ""
+prompt_suffix = ""
 
 def serve_interface_html(args):
   global httpd
@@ -26,10 +28,10 @@ def serve_interface_html(args):
       self.end_headers()
       with open(html_file, 'r') as file:
         html = file.read()
-        html = html.replace("ws://localhost:8190", 
+        html = html.replace("ws://localhost:8190",
                             f"ws://{args.ip}:{args.ws_port}")
       self.wfile.write(bytes(html, 'utf8'))
-  print(f"Starting server at http://{args.ip}:{args.port}") 
+  print(f"Starting server at http://{args.ip}:{args.port}")
   with ThreadedHTTPServer((args.ip, args.port), HTMLFileHandler) as httpd:
     httpd.serve_forever()
 
@@ -61,7 +63,7 @@ def load_model(args):
 def generate_code(prompt):
   global model
   start_time = time.time()
-  prompt = prompt_prefix + f" \"{prompt}\"" + "\nProgram:\n```python\n"
+  prompt = prompt_prefix + prompt + prompt_suffix
   code = model.generate_one(prompt=prompt,
                             stop_sequences=["```"],
                             temperature=0.9,
@@ -78,7 +80,6 @@ async def handle_message(websocket, message):
   data = json.loads(message)
   if data['type'] == 'code':
     print("Received code request")
-    print(data)
     code = generate_code(data['prompt'])
     response = {"code": f"{code}"}
     await websocket.send(json.dumps(response))
@@ -107,7 +108,7 @@ def start_completion_callback(args):
 
   # Register a signal handler to stop the server when Ctrl-C is pressed
   loop.add_signal_handler(
-      signal.SIGINT, 
+      signal.SIGINT,
       lambda: (print("INFO: Shutting down Server"), loop.stop()))
 
   try:
@@ -126,6 +127,7 @@ def start_completion_callback(args):
 def main():
   global server_thread
   global prompt_prefix
+  global prompt_suffix
   import argparse
   from pathlib import Path
   parser = argparse.ArgumentParser()
@@ -136,12 +138,15 @@ def main():
   parser.add_argument("--model-type", choices=["openai", "palm", "automodel"], default="openai")
   parser.add_argument('--model-name', type=str, help='Model name', default='text-davinci-003')
   parser.add_argument('--prompt-prefix', type=Path, help='Prompt prefix', default='code_generation/gpt_prompt.md')
+  parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix', default='code_generation/gpt_prompt_suffix.md')
   parser.add_argument('--interface-page', type=Path, help='Interface page', default='code_generation/interface.html')
 
   args = parser.parse_args()
 
   with open(args.prompt_prefix, 'r') as f:
     prompt_prefix = f.read()
+  with open(args.prompt_suffix, 'r') as f:
+    prompt_suffix = f.read()
   load_model(args)
   server_thread = threading.Thread(target=serve_interface_html, args=[args])
   server_thread.start()
