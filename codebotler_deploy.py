@@ -6,7 +6,6 @@ import asyncio
 import websockets
 import json
 import signal
-import sys
 import time
 from code_generation.completions import AutoModel, PaLMModel, OpenAIModel
 
@@ -64,7 +63,7 @@ def generate_code(prompt):
   global model
   start_time = time.time()
   prompt = prompt_prefix + prompt + prompt_suffix
-  stop_sequences = ["#"]
+  stop_sequences = ["#", "\ndef ", "\nclass", "print(", "import "]
   code = model.generate_one(prompt=prompt,
                             stop_sequences=stop_sequences,
                             temperature=0.9,
@@ -142,10 +141,8 @@ def main():
 
   args = parser.parse_args()
 
-  with open(args.prompt_prefix, 'r') as f:
-    prompt_prefix = f.read()
-  with open(args.prompt_suffix, 'r') as f:
-    prompt_suffix = f.read()
+  prompt_prefix = args.prompt_prefix.read_text()
+  prompt_suffix = args.prompt_suffix.read_text()
   load_model(args)
   server_thread = threading.Thread(target=serve_interface_html, args=[args])
   server_thread.start()
