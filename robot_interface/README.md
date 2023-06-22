@@ -1,0 +1,8 @@
+## TODOs
+- make the entire pipeline robust to three cases:
+    - all available
+    - robot unavailable
+    - robot and ros both unavailable
+- clean the imports
+- test on robot
+- type readme

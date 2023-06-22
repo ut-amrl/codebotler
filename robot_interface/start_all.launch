@@ -1,0 +1,37 @@
+<launch>
+    <!-- Jackal autonomy stack -->
+    <include file="$(find ut_jackal)/launch/autonomy.launch" />
+
+    <node name="interface_server"
+        pkg="robot_commands"
+        type="interface_server.py"
+        cwd="node"
+        args="--ip 10.0.0.123 --port 8190"
+        respawn="true"
+        respawn_delay="2"
+        output="screen"/>
+
+    <node name="gui"
+        pkg="robot_commands"
+        type="gui.py"
+        cwd="node"
+        respawn="true"
+        respawn_delay="2"
+        output="screen"/>
+
+    <node name="interface"
+        pkg="robot_commands"
+        type="interface.py"
+        cwd="node"
+        respawn="true"
+        respawn_delay="2"
+        output="screen"/>
+
+    <node name="robot_low_level_actions"
+        pkg="robot_commands"
+        type="actions.py"
+        cwd="node"
+        respawn="true"
+        respawn_delay="2"
+        output="screen"/>
+</launch>

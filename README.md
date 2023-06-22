@@ -15,21 +15,41 @@ CodeBotler consists of two key components:
   models (LLMs) for service mobile robot task code generation.
 
 ## Requirements
-
-TODO: Requirements for CodeBotler-Deploy and CodeBotler-Benchmark. Separate out
-the robot deployment requirements.
-
+All Python dependencies can be installed using:
 ```shell
 pip install -r requirements.txt
 ```
 
+**Language model options**
+* To use an OpenAI model, you will need an [OpenAI key](https://platform.openai.com/account/api-keys), either saved in a file named `.openai_api_key`, or in the `OPENAI_API_KEY` environment variable.
+* To use a PaLM model, you will need a [Google Generative API key](https://developers.generativeai.google/tutorials/setup), either saved in a file named `.palm_api_key`, or in the `PALM_API_KEY` environment variable.
+* You can use any pretrained model compatible with the [HuggingFace AutoModel](https://huggingface.co/transformers/v3.5.1/model_doc/auto.html#automodelforcausallm) interface, including open-source models from the [HuggingFace repository](https://huggingface.co/models) such as [Starcoder](https://huggingface.co/bigcode/starcoder). Note that some models, including Starcoder, require you to agree to the HuggingFace terms of use, and you must be logged in using `huggingface-cli login`.
+
+**Robot Interface**
+TBD
+
 ## CodeBotler-Deploy Quick-Start Guide
 
-To run the web interface for CodeBotler-Deploy using OpenAI's `text-daVinci-003`
-model:
+To run the web interface for CodeBotler-Deploy using the default options (using OpenAI's
+`text-daVinci-003` model), run:
 ```shell
-python3 codebotler_deploy.py
+OPENAI_API_KEY=YOURKEY python3 codebotler_deploy.py
 ```
+This will start the server on `localhost:8080`. You can then open the interface
+by navigating to http://localhost:8080/ in your browser.  
+
+List of arguments:
+* `--ip`: The IP address to host the server on (default is `localhost`).
+* `--port`: The port to host the server on (default is `8080`).
+* `--ws-port`: The port to host the websocket server on (default is `8190`).
+* `--model-type`: The type of model to use. It is either `openai` for [OpenAI](https://platform.openai.com) (default),
+  `palm` for [PaLM](https://developers.generativeai.google/)), or `automodel`
+  for
+  [AutoModel](https://huggingface.co/transformers/model_doc/auto.html#automodel).
+* `--model-name`: The name of the model to use. Recommended options are
+  `text-daVinci-003` for OpenAI (default), `models/text-bison-001` for PaLM, and
+  `bigcode/starcoder` for AutoModel.
+
 Instructions for deploying on real robots are included in [robot_interface/README.md]
 
 ## CodeBotler-Benchmark Quick-Start Guide
@@ -54,30 +74,3 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
 
 Detailed instructions for running the benchmark are included in
 [benchmark/README.md](benchmark/README.md).
-
-## Deprecated Instructions (Merge and delete)
-
-1. Navigate to the `code_generator` subdirectory.
-2. Create a file named `.openai_api_key` with your OpenAI API key in it.
-3. To start the server, run the following:
-```
-python interface_server.py
-```
-It has the following optional flags:
-   - `--ip`: The IP address to host the server to (default is `localhost`).
-   - `--port`: The port to host the server to (default is `8190`).
-   - `--model`: It is either text-davinci-003 (default) or starcoder:
-      - to specify the text-davinci-003 model, use `--model davinci`
-      - to specify the starcoder model, use `--model starcoder_sip_sport` where `sip` and `sport` are the IP address and port of the starcoder server.
-4. Modify the `SERVER_URL` variable in `interface.html` (if need be) to make sure it has the same `ip` and `port` as in step 3. Open the file `interface.html` in your browser.
-5. Enter a task description in the text box and hit enter.
-6. Once the code is generated, click on one of the buttons to indicate your
-   assesment of the code's quality.
-6. Repeat steps 4 and 5 for as many tasks as you want.
-7. The evaluations will be saved in `eval.json`.
-
-Example result in `eval.json`:
-```json
-{"type": "eval", "task": "Which room is the dog in?", "code": "list_of_rooms = get_all_rooms()\nstart_loc = get_current_location()\ndog_found = False\ndog_loc = None\nfor room in list_of_rooms:\n    go_to(room)\n    if is_in_room(\"dog\"):\n        dog_found = True\n        dog_loc = room\n        break\ngo_to(start_loc)\nif dog_found:\n    say(\"The dog is in the \" + dog_loc)\nelse:\n    say(\"The dog is not in any room\")", "result": "Correct"}
-{"type": "eval", "task": "Find a conference room with a projector.", "code": "list_of_rooms = get_all_rooms()\nstart_loc = get_current_location()\nconf_room_found = False\nconf_room_loc = None\nfor room in list_of_rooms:\n    go_to(room)\n    if is_in_room(\"projector\"):\n        conf_room_found = True\n        conf_room_loc = room\n        break\ngo_to(start_loc)\nif conf_room_found:\n    say(\"There is a conference room with a projector in the \" + conf_room_loc)\nelse:\n    say(\"There is no conference room with a projector in the house\")", "result": "Correct"}
-```
