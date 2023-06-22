@@ -1,0 +1,6 @@
+string person
+string question
+string[] options
+---
+string result
+---

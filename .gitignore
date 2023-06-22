@@ -1,3 +1,4 @@
 .openai_api_key
 .palm_api_key
 __pycache__
+**/.vscode
