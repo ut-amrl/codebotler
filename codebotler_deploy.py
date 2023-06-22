@@ -72,9 +72,7 @@ def generate_code(prompt):
                             max_tokens=512)
   end_time = time.time()
   print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
-  code = code.replace("```python", "")
-  code = code.replace("```", "")
-  code = code.strip()
+  code = "def task_program():" + code
   return code
 
 async def handle_message(websocket, message):
