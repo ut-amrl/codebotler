@@ -3,3 +3,5 @@
     - robot unavailable
     - robot and ros both unavailable
 - clean your imports
+- test on robot
+- type readme

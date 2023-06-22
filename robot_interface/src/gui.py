@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../code_generator"))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../code_generation"))
 
 from utilities import *
 cd_rel(".")
@@ -37,7 +37,7 @@ def listen_for_yes_or_no():
 
 class MyGUI:
     def __init__(self, master):
-        with open('data.yaml', 'r') as f:
+        with open('../data.yaml', 'r') as f:
             self.DATA = yaml.safe_load(f)
         self.master = master
         master.title("My GUI")
@@ -75,7 +75,7 @@ class MyGUI:
 
     def message_cb(self, msg):
         print("message:", msg.data)
-        self.update_label(msg.data)        
+        self.update_label(msg.data)
         self.label.config(text="Jackal :)", font=("Helvetica", 120))
         self.label.pack(anchor=tk.CENTER, expand=True)
 

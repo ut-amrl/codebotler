@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../code_generator"))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../code_generation"))
 
 from utilities import *
 add_pythonpath_load_amrl_msgs_cd_rel(".", ".")
@@ -26,14 +26,14 @@ import shutil
 
 class RobotActions:
     def __init__(self):
-        with open('data.yaml', 'r') as f:
+        with open('../data.yaml', 'r') as f:
             self.DATA = yaml.safe_load(f)
 
         self.last_say_bool = None
         self.available_dsl_fns = ["go_to", "get_current_location", "is_in_room", "say", "get_all_rooms", "ask"]
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "third_party/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py")
-        weights_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "third_party/GroundingDINO", "weights", "groundingdino_swint_ogc.pth")
+        config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../third_party/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py")
+        weights_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../third_party/GroundingDINO", "weights", "groundingdino_swint_ogc.pth")
         self.object_detector_model = GroundingDINO(box_threshold=self.DATA['DINO']['box_threshold'], text_threshold=self.DATA['DINO']['text_threshold'], device=self.device, config_path=config_path, weights_path=weights_path)
         self.latest_image_data = None
         self.current_code_string = None
@@ -77,9 +77,9 @@ class RobotActions:
         if type(self.cur_coords[0]) != type(None):
             curr_loc = np.array(self.cur_coords)[:2]
             goal_loc = np.array([self.DATA['LOCATIONS'][self.DATA['MAP']][location][0], self.DATA['LOCATIONS'][self.DATA['MAP']][location][1]])
-            if np.linalg.norm(curr_loc-goal_loc) < self.DATA['DIST_THRESHOLD']:
+            if np.linalg.norm(curr_loc - goal_loc) < self.DATA['DIST_THRESHOLD']:
                 return
-            
+
         goal_msg.pose.x = self.DATA['LOCATIONS'][self.DATA['MAP']][location][0]
         goal_msg.pose.y = self.DATA['LOCATIONS'][self.DATA['MAP']][location][1]
         goal_msg.pose.theta = self.DATA['LOCATIONS'][self.DATA['MAP']][location][2]
@@ -130,7 +130,7 @@ class RobotActions:
         self.robot_say_pub.publish(msg)
         print(f"Robot says: \"{message}\"")
         word_len = len(message.split(" "))
-        time.sleep(self.DATA['SLEEP_AFTER_SAY']*word_len*2)
+        time.sleep(self.DATA['SLEEP_AFTER_SAY'] * word_len * 2)
 
     def get_all_rooms(self) -> List[str]:
         # TODO: create a separate entry for ROOMS in data.yaml
@@ -150,7 +150,7 @@ class RobotActions:
             print(f"Robot asks {person}: \"{question}\" with options {options}")
         print(f"Response: {response}")
         word_len = len(question.split(" "))
-        time.sleep(self.DATA['SLEEP_AFTER_ASK']*word_len*2)
+        time.sleep(self.DATA['SLEEP_AFTER_ASK'] * word_len * 2)
         return response
 
     def execute(self):

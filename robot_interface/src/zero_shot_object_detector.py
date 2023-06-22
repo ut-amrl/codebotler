@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../code_generator"))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../code_generation"))
 
 from utilities import *
-add_pythonpath("third_party/GroundingDINO")
+add_pythonpath("../third_party/GroundingDINO")
 load_amrl_msgs()
 
 import warnings
