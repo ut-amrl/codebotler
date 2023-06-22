@@ -95,10 +95,10 @@ class OpenAIModel:
     def __init__(
             self,
             use_azure: bool = False,
-            engine: str | None = None,
-            model: str | None = None,
-            api_base: str | None = None,
-            api_version: str | None = None,
+            engine: Union[str, None] = None,
+            model: Union[str, None] = None,
+            api_base: Union[str, None] = None,
+            api_version: Union[str, None] = None,
             api_key: str = ""):
         import openai as openai
         self.openai = openai
