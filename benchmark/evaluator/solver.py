@@ -5,35 +5,22 @@ from typing import List
 import clingo
 import random 
 import re
+from solve_utils import SolveUtils, model_to_str
 
-def ordered_model_to_str(model:str) -> str:
-    """
-    Print model ordered by timesteps
-    HACKY
-    """
-    modelstr = ""
-    temporal_atoms = []
-    other_atoms = []
-    
-    
-    for atom in model.split(')')[:-1]:#hacky
-        if atom[-1].isdigit(): 
-            temporal_atoms.append(atom.strip()+")")
-        else:
-            other_atoms.append(atom.strip()+")")
-    
-    ordered_model = sorted(temporal_atoms, key=lambda x:int(re.findall(r'\d+',x)[-1]))
-    modelstr += (f"Answer:\n"+"\n".join(ordered_model + other_atoms) + "\n")
-    return modelstr
 
+    
 class Context:
 
     def __init__(self, asp_rules_file="robot.lp", timeout=10, debug=True, debug_file="debug.lp"):
         self.debug = debug
         self.program_file = debug_file
-        # clear contents
-        open(self.program_file, 'w').close()
         
+        with open(debug_file, 'w') as f:
+            f.write("#script (python)\n")
+            # clear contents and add temporal functions
+            f.write(open("solve_utils.py", 'r').read())
+            f.write("#end.\n\n")
+
         self.ctl = Control()
         self.timeout=timeout
         # self.prg = Program()
@@ -45,6 +32,7 @@ class Context:
         self.robot_location = "start_loc"
         self.all_simulation_rooms = []
         
+          
     def add(self, atom, part = "base"):
         if self.debug and part == "base":
             with open(self.program_file, "a+") as f:
@@ -52,6 +40,29 @@ class Context:
     
         self.ctl.add(part, [], atom)   
         
+    # def add_constraints(self, constraints:str):
+    #     """
+    #     Constraints are divided into: init states
+    #     and integrity constraints
+    #     """
+    #     world_states = []
+    #     for constraint in constraints.split(".\n"):
+    #         constraint = constraint.strip()
+            
+    #         ## HACKY for empty str
+    #         if len(constraint) < 2:
+    #             continue
+            
+    #         if not constraint.endswith("."):
+    #             constraint += "."
+                
+    #         if ":-" in constraint:
+    #             self.add(constraint)
+    #         else:
+    #             world_states.append(constraint)
+                
+    #     self.add_world_states(world_states)
+    
     def add_constraints(self, constraints:List[str]):
         """
         Constraints are divided into: init states
@@ -79,27 +90,27 @@ class Context:
         all_simulation_rooms = []
         for atom in init_state:
             self.add(atom)
-            if "at" in atom or "go_to" in atom:
+            if "at" in atom or "go_to" in atom or "room" in atom:
                 room = atom.split('"')[-2]
                 all_simulation_rooms.append(room)
         
         all_simulation_rooms = list(set(self.all_simulation_rooms + all_simulation_rooms))
         for room in all_simulation_rooms:
             self.add(f'room("{room}").')
-        self.all_simulation_rooms = all_simulation_rooms        
+        self.all_simulation_rooms = sorted(all_simulation_rooms)        
         
         
 
 
     def ground_and_solve(self):
-        self.ctl.ground()
+        self.ctl.ground(context=SolveUtils())
         self.ctl.solve()
         # self.ctl.solve(on_model=lambda m: print("\nAnswer: {}".format(m)))
         model = ""
         with self.ctl.solve(yield_=True) as hnd:
             for i,m in enumerate(hnd):
                 # print(m)
-                model = ordered_model_to_str(str(m))
+                model = model_to_str(str(m))
                 
             # TODO assume one model
             return (model, str(hnd.get()))
@@ -121,6 +132,9 @@ class Context:
         for atom in self.init_state:
             if f'at("{obj}", "{curr_loc}",' in atom:
                 return True
+            
+        # record that a check was made
+        self.add(f'check_at("{obj}", "{curr_loc}", {self.current_t}).')
         return False
 
         
@@ -134,8 +148,10 @@ class Context:
     def robot_go_to(self, location : str) -> None:
         # location = location.lower()
         # issue goto
+        # TODO: this is a problem when people = people location
         if location not in self.all_simulation_rooms:
             self.all_simulation_rooms.append(location)
+            self.all_simulation_rooms = sorted(self.all_simulation_rooms)
             self.add(f'room("{location}").')
         self.add(f't_go_to("{location}", {self.current_t}).')
         self.current_t += 1 
