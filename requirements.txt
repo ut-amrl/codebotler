@@ -3,3 +3,4 @@ text_generation
 transformers
 google-generativeai
 openai
+websockets
