@@ -32,6 +32,34 @@ go_to("conference room")
 say("I have arrived at the conference room. Enjoy your visit here!")
 """
 
+program_good3 = """
+# good
+go_to("elevator")
+while True:
+    while not is_in_room("person"):
+        time.sleep(1)
+    response = ask("", "Are you here for the tour?", ["Yes", "No"])
+    if response == "Yes":
+        say("Welcome to the university!")
+        go_to("conference room")
+        say("I have arrived at the conference room. Enjoy your visit here!")
+        break
+"""
+
+program_good3 = """
+# good
+go_to("elevator")
+while True:
+    while not is_in_room("person"):
+        time.sleep(1)
+    response = ask("", "Are you here for the tour?", ["Yes", "No"])
+    if response == "Yes":
+        say("Welcome to the university!")
+        go_to("conference room")
+        say("I have arrived at the conference room. Enjoy your visit here!")
+        break
+"""
+
 program_bad1 = """
 # bad: does not go to elevator
 start_loc = get_current_location()
