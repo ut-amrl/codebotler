@@ -52,7 +52,17 @@ class Robot:
     self.state = state
     self.trace_t = 0
     self.asp_trace : list[str] = []
+    self.add_world_state()
     
+  def add_world_state(self):
+    for locations in self.state.locations:
+      self.asp_trace.append(f"room(\"{locations}\").")
+    for objects in self.state.objects:
+      self.asp_trace.append(f"at(\"{objects.label}\",\"{objects.location}\", 0).")
+    for agents in self.state.interactive_agents:
+      self.asp_trace.append(f"at(\"{agents.name}\",\"{agents.location}\", 0).")
+    self.asp_trace.append(f"at(\"robot\",\"{self.state.robot_location}\", 0).")
+      
   # Get the current location of the robot.
   def get_current_location(self) -> str :
     self.asp_trace.append(f"t_get_current_location({self.trace_t}).")
@@ -66,11 +76,11 @@ class Robot:
     return self.state.locations
 
   # Check if an object is in the current room.
-  def is_in_room(self, object : str) -> bool :
-    self.asp_trace.append(f"t_is_in_room(\"{object}\",{self.trace_t}).")
+  def is_in_room(self, obj : str) -> bool :
+    self.asp_trace.append(f"t_is_in_room(\"{obj}\",{self.trace_t}).")
     self.trace_t += 1
     for o in self.state.objects:
-      if o.location == self.state.robot_location and o.label == object:
+      if o.location == self.state.robot_location and o.label == obj:
         return True
     return False
 
@@ -90,6 +100,7 @@ class Robot:
     options_str = ""
     for o in options:
       options_str += f"[{o}],"
+    options_str = options_str[:-1]
     self.asp_trace.append(f"t_ask(\"{person}\", \"{question}\", \"{options_str}\", {self.trace_t}).")
     self.trace_t += 1
     for p in self.state.interactive_agents:
