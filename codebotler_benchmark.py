@@ -29,7 +29,7 @@ def load_model(args):
     assert len(palm_api_key) > 0, "PaLM API key not found. Either create a '.palm_api_key' file or set the PALM_API_KEY environment variable."
     model = PaLMModel(model=args.model_name, api_key = palm_api_key)
   elif args.model_type == "automodel":
-    model = AutoModel(batch_size=1, path=args.model_name)
+    model = AutoModel(batch_size=args.batch_size, path=args.model_name)
   else:
     raise ValueError(f"Unknown model type: {args.model_type}")
 
@@ -81,6 +81,8 @@ def main():
   parser.add_argument("--top-p", type=float, default=0.95)
   parser.add_argument("--temperature", type=float, default=0.2)
 
+  # For an automodel
+  parser.add_argument("--batch-size", type=int, default=1)
   args = parser.parse_args()
 
   if not args.generate and not args.evaluate:
