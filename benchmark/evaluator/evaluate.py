@@ -60,12 +60,9 @@ def run_simulation(example: dict, timeout:int, robot_asp_logic:str, debug_file:s
         f.write(f"#const timeout={timeout}.\n")
         f.write("\n".join(asp_trace))
         f.write(constraint)
-    
-    # TODO bounded subprocess cuts stdout early
+        
     # run clingo robot.lp debug/debug_ex{i+1}.lp
-    # out = bounded_subprocess.run(["clingo", "-f", robot_asp_logic, "-f", debug_file], 
-    #                              timeout_seconds=max_seconds,  max_output_size=2)
-    out = subprocess.run(["clingo", "-f", robot_asp_logic, "-f", debug_file], 
+    out = subprocess.run(["clingo", "-f", robot_asp_logic, "-f", debug_file, "--time-limit", str(max_seconds)], 
                                  capture_output=True)
 
     
