@@ -95,10 +95,10 @@ class OpenAIModel:
     def __init__(
             self,
             use_azure: bool = False,
-            engine: str | None = None,
-            model: str | None = None,
-            api_base: str | None = None,
-            api_version: str | None = None,
+            engine: Union[str, None] = None,
+            model: Union[str, None] = None,
+            api_base: Union[str, None] = None,
+            api_version: Union[str, None] = None,
             api_key: str = ""):
         import openai as openai
         self.openai = openai
@@ -375,6 +375,7 @@ def completions(
     top_p: float,
     max_tokens: int,
     prompt_prefix: str,
+    prompt_suffix: str,
     problems: pd.DataFrame,
     completions_path: Union[Path, str],
     num_completions: int):
@@ -383,7 +384,7 @@ def completions(
 
     completions = read_completions_if_exists(completions_path, problems)
     worklist = build_worklist(problems, prompt_prefix, completions, num_completions)
-    prompts = [prompt_prefix + item["prompt"] for item in worklist]
+    prompts = [prompt_prefix + item["prompt"] + prompt_suffix for item in worklist]
 
     # Build the worklist of prompts to run and write existing prompts to the output file
     with completions_path.open("a") as f:
@@ -402,7 +403,7 @@ def completions(
                 "prompt_prefix": prompt_prefix,
                 "stop_sequences": stop_sequences,
             }
-            item["completion"] = completion
+            item["completion"] = prompt_suffix + completion
             f.write(json.dumps(item))
             f.write("\n")
 
@@ -417,6 +418,7 @@ def main():
     parser.add_argument("--completions", type=Path, required=True)
     parser.add_argument("--model-type", choices=["hf-textgen", "openai", "palm", "automodel"])
     parser.add_argument("--prompt-prefix", type=Path)
+    parser.add_argument("--prompt-suffix", type=Path)
     parser.add_argument("--num-completions", type=int, default=20)
     parser.add_argument("--max-tokens", type=int, default=256)
     parser.add_argument("--top-p", type=float, default=0.95)
@@ -503,6 +505,7 @@ def main():
         args.top_p,
         args.max_tokens,
         args.prompt_prefix.read_text() if args.prompt_prefix is not None else "",
+        args.prompt_suffix.read_text() if args.prompt_suffix is not None else "",
         read_df(args.prompts),
         args.completions,
         args.num_completions,

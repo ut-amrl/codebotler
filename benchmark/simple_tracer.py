@@ -1,0 +1,186 @@
+import typing
+
+class Object:
+  def __init__(self, label : str, location : str):
+    self.label = label
+    self.location = location
+
+  def __str__(self) -> str:
+    return "{ label: \"" + self.label + "\", location: \"" + \
+        self.location + "\" }"
+
+  def __repr__(self) -> str:
+    return "{ label: \"" + self.label + "\", location: \"" + \
+        self.location + "\" }"
+
+class InteractiveAgent:
+  def __init__(self, name : str, location : str, answers : list[str]) :
+    self.name = name
+    self.location = location
+    self.answers = answers
+
+  def __str__(self) -> str:
+    return "{ name: \"" + self.name + \
+        "\", location: \"" + self.location + "\", answers: " + \
+        str(self.answers) + " }"
+
+  def __repr__(self) -> str:
+    return "{ name: \"" + self.name + \
+        "\", location: \"" + self.location + "\", answers: " + \
+        str(self.answers) + " }"
+    
+class State:
+  def __init__(self,
+               locations : list[str],
+               objects : list[Object],
+               interactive_agents : list[InteractiveAgent],
+               robot_location : str):
+    self.locations = locations
+    self.objects = objects
+    self.interactive_agents = interactive_agents
+    self.robot_location = robot_location
+
+  def __str__(self) -> str:
+    return "{\n" + \
+        "locations: " + str(self.locations) + ", \n" + \
+        "objects: " + str(self.objects) + ", \n" + \
+        "interactive_agents: " + str(self.interactive_agents) + ", \n" + \
+        "robot_location: " + str(self.robot_location) + "\n}"
+
+class Robot:
+  def __init__(self, state : State):
+    self.state = state
+    self.trace_t = 0
+    self.asp_trace : list[str] = []
+    
+  # Get the current location of the robot.
+  def get_current_location(self) -> str :
+    self.asp_trace.append(f"t_get_current_location({self.trace_t}).")
+    self.trace_t += 1
+    return self.state.robot_location
+
+  # Get a list of all rooms in the house.
+  def get_all_rooms(self) -> list[str] :
+    self.asp_trace.append(f"t_get_all_rooms({self.trace_t}).")
+    self.trace_t += 1
+    return self.state.locations
+
+  # Check if an object is in the current room.
+  def is_in_room(self, object : str) -> bool :
+    self.asp_trace.append(f"t_is_in_room(\"{object}\",{self.trace_t}).")
+    self.trace_t += 1
+    for o in self.state.objects:
+      if o.location == self.state.robot_location and o.label == object:
+        return True
+    return False
+
+  # Go to a specific named location, e.g. go_to("kitchen"), go_to("Arjun's
+  # office"), go_to("Jill's study").
+  def go_to(self, location : str) -> None :
+    self.asp_trace.append(f"t_go_to(\"{location}\",{self.trace_t}).")
+    self.trace_t += 1
+    global state
+    assert location in self.state.locations
+    self.state.robot_location = location
+    # print(state)
+
+  # Ask a person a question, and offer a set of specific options for the person to
+  # respond. Return with the response selected by the person.
+  def ask(self, person : str, question : str, options: list[str]) -> str :
+    options_str = ""
+    for o in options:
+      options_str += f"[{o}],"
+    self.asp_trace.append(f"t_ask(\"{person}\", \"{question}\", \"{options_str}\", {self.trace_t}).")
+    self.trace_t += 1
+    for p in self.state.interactive_agents:
+      # if p.location == state.robot_location and p.name == person:
+      if p.location == self.state.robot_location:
+        # print(f"matched location {state.robot_location}")
+        for a in p.answers:
+          # print(f"option: {a}")
+          for o in options:
+            if o == a:
+              response = a
+        # print(f"no match between {options} and {p.answers}")
+        # No matching answer found.
+        return options[0]
+        assert False
+    # No matching person found at the location.
+    return options[0]
+    assert False
+
+  # Say the message out loud. Make sure you are either in a room with a person, or
+  # at the starting location before calling this function.
+  def say(self, message : str) -> None :
+    self.asp_trace.append(f"t_say(\"{message}\",{self.trace_t}).")
+    self.trace_t += 1
+    pass
+
+def run_program(program : str, state : State) -> list[str] :
+  robot = Robot(state)
+  grounding = "say = robot.say\n" + \
+              "go_to = robot.go_to\n" + \
+              "ask = robot.ask\n" + \
+              "is_in_room = robot.is_in_room\n" + \
+              "get_all_rooms = robot.get_all_rooms\n" + \
+              "get_current_location = robot.get_current_location\n"
+  p = grounding + program
+  print("=======================\nGrounded Program:\n=======================")
+  print(p)
+  exec(grounding + program)
+  return robot.asp_trace
+
+program = """
+list_of_rooms = get_all_rooms()
+start_loc = get_current_location()
+candies = [\"Chocolate\", \"Gummies\", \"Licorice\"]
+candies_count = {candy : 0 for candy in candies}
+for room in list_of_rooms:
+  if \"office\" not in room:
+    continue
+  go_to(room)
+  if is_in_room(\"person\"):
+    response = ask(\"Person\", \"Which kind of candy would you like?\", candies)
+    candies_count[response] += 1
+go_to(start_loc)
+for candy, count in candies_count.items():
+  say(\"We need to buy \" + str(count) + \" \" + candy)
+"""
+
+def main():
+  state = State(
+    locations=["Arjun's office",
+                "Kitchen",
+                "Joydeep's office",
+                "Conference room"],
+    objects = [
+      Object(label = "pringles", location = "Kitchen" ),
+      Object(label = "black backpack", location = "Conference room"),
+      Object(label = "person", location = "Arjun's office"),
+      Object(label = "person", location = "Joydeep's office")
+      ],
+    interactive_agents = [
+      InteractiveAgent(name = "Arjun",
+                      location = "Arjun's office",
+                      answers = ["yes", "5", "Gummies"]),
+      InteractiveAgent(name = "Arjun",
+                      location = "Arjun's office",
+                      answers = ["no", "1"]),
+      InteractiveAgent(name = "Joydeep",
+                      location = "Conference room",
+                      answers = ["no", "Licorice"])
+    ],
+    robot_location = "Arjun's office"
+  )
+  # program = "say(\"Hello, world!\")"
+  # program = "r = 10\n"
+  print("=======================\nProgram:\n=======================")
+  print(program)
+  print("=======================\nState:\n=======================")
+  print(state)
+  asp_trace = run_program(program, state)
+  print("=======================\nASP Trace:\n=======================")
+  print(*asp_trace, sep="\n")
+
+if __name__ == "__main__":
+  main()

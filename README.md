@@ -58,18 +58,18 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
 
 1. Run code generation for the benchmark tasks using the following command:
     ```shell
-    python3 codebotler_benchmark.py --generate --model-type automodel --model-path "bigcode/starcoder" --prompt-prefix benchmark/docstring_prompt_prefix.py --output starcoder_completions.json
+    python3 codebotler_benchmark.py --generate --model-type automodel --model-path "bigcode/starcoder" --generate-output starcoder_completions.jsonl
     ```
     This will generate the programs for the benchmark tasks and save them in
-    an output file named `starcoder_completions.json`. It assumes default values
+    an output file named `starcoder_completions.jsonl`. It assumes default values
     for temperature (0.2), top-p (0.9), and num-completions (20), to generate 20
     programs for each task --- this will suffice for pass@1 evaluation. 
 2. Evaluate the generated programs using the following command:
     ```shell
-    python3 codebotler_benchmark.py --evaluate --input starcoder_completions.json --output starcoder_eval.json
+    python3 codebotler_benchmark.py --evaluate --generate-output starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
     ```
-    This will evaluate the generated programs using the benchmark test, and save
-    all the results in an output file named `starcoder_eval.json`. It will also
+    This will evaluate the generated programs from the previous step, and save
+    all the evaluation results in an output file named `starcoder_eval.jsonl`. It will also
     print out the pass@1 accuracy for the benchmark.
 
 Detailed instructions for running the benchmark are included in

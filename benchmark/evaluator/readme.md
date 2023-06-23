@@ -20,6 +20,9 @@ Easiest way is through conda:
 
 Note: the order of rooms is *NON DETERMINISTIC*. Beware of tests that can be good/bad depending on the order of rooms.
 
+## Integrity Constraints
+
+Integrity constraints fail (return UNSAT) when all their literals are true. If you have an integrity constraints with two literals separated by a comma, make sure you are considering the case where only one literal is true.
 
 ## Todo
 
