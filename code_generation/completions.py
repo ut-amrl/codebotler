@@ -171,6 +171,8 @@ class OpenAIModel:
         temperature: float,
         top_p: float,
         max_tokens: int):
+        if len(stop_sequences) > 4:
+            raise ValueError(f"{len(stop_sequences)} stop sequences provided to OpenAI interface, the API only supports up to 4.")
         if self.engine is not None:
             return self.openai.Completion.create(
                 engine=self.engine,
