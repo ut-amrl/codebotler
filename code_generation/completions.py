@@ -73,6 +73,9 @@ class PaLMModel:
                 top_p=top_p,
                 max_output_tokens=max_tokens,
             )
+            # Preview is rate-limited to 30/minute, so we sleep for 2 seconds.
+            # https://developers.generativeai.google/models/language#model_attributes
+            time.sleep(2)
             yield completion.result
 
     def generate_one(
