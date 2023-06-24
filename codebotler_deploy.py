@@ -7,7 +7,7 @@ import websockets
 import json
 import signal
 import time
-from code_generation.completions import AutoModel, PaLMModel, OpenAIModel
+from code_generation.completions import AutoModel, PaLMModel, OpenAIModel, TextGenerationModel
 
 httpd = None
 server_thread = None
@@ -43,7 +43,10 @@ def load_model(args):
         openai_api_key = f.read().strip()
     else:
       openai_api_key = os.getenv("OPENAI_API_KEY")
-    assert len(openai_api_key) > 0, "OpenAI API key not found. Either create a '.openai_api_key' file or set the OPENAI_API_KEY environment variable."
+    assert len(openai_api_key) > 0, \
+        "OpenAI API key not found. " + \
+        "Either create a '.openai_api_key' file or " + \
+        "set the OPENAI_API_KEY environment variable."
     model = OpenAIModel(model=args.model_name, api_key = openai_api_key)
   elif args.model_type == "palm":
     # If there exists a ".palm_api_key" file, use that as the API key.
@@ -52,10 +55,15 @@ def load_model(args):
         palm_api_key = f.read().strip()
     else:
       palm_api_key = os.getenv("PALM_API_KEY")
-    assert len(palm_api_key) > 0, "PaLM API key not found. Either create a '.palm_api_key' file or set the PALM_API_KEY environment variable."
+    assert len(palm_api_key) > 0, \
+        "PaLM API key not found. " + \
+        "Either create a '.palm_api_key' file or " + \
+        "set the PALM_API_KEY environment variable."
     model = PaLMModel(model=args.model_name, api_key = palm_api_key)
   elif args.model_type == "automodel":
     model = AutoModel(batch_size=1, path=args.model_name)
+  elif args.model_type == "hf-textgen":
+    model = TextGenerationModel(args.model_name, args.max_workers)
   else:
     raise ValueError(f"Unknown model type: {args.model_type}")
 
@@ -67,7 +75,7 @@ def generate_code(prompt):
   code = model.generate_one(prompt=prompt,
                             stop_sequences=stop_sequences,
                             temperature=0.9,
-                            top_p=1,
+                            top_p=0.99999,
                             max_tokens=512)
   end_time = time.time()
   print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
@@ -131,13 +139,28 @@ def main():
   parser = argparse.ArgumentParser()
 
   parser.add_argument('--ip', type=str, help='IP address', default="localhost")
-  parser.add_argument('--port', type=int, help='HTML server port number', default=8080)
-  parser.add_argument('--ws-port', type=int, help='Websocket server port number', default=8190)
-  parser.add_argument("--model-type", choices=["openai", "palm", "automodel"], default="openai")
-  parser.add_argument('--model-name', type=str, help='Model name', default='text-davinci-003')
-  parser.add_argument('--prompt-prefix', type=Path, help='Prompt prefix', default='code_generation/prompt_prefix.py')
-  parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix', default='code_generation/prompt_suffix.py')
-  parser.add_argument('--interface-page', type=Path, help='Interface page', default='code_generation/interface.html')
+  parser.add_argument('--port',
+                      type=int, help='HTML server port number', default=8080)
+  parser.add_argument('--ws-port',
+                      type=int, help='Websocket server port number',
+                      default=8190)
+  parser.add_argument("--model-type",
+                      choices=["openai", "palm", "automodel", "hf-textgen"],
+                      default="openai")
+  parser.add_argument('--model-name',
+                      type=str, help='Model name', default='text-davinci-003')
+  parser.add_argument('--prompt-prefix',
+                      type=Path, help='Prompt prefix',
+                      default='code_generation/prompt_prefix.py')
+  parser.add_argument('--prompt-suffix',
+                      type=Path, help='Prompt suffix',
+                      default='code_generation/prompt_suffix.py')
+  parser.add_argument('--interface-page',
+                      type=Path, help='Interface page',
+                      default='code_generation/interface.html')
+  parser.add_argument('--max-workers',
+                      type=int, help='Maximum number of workers',
+                      default=1)
 
   args = parser.parse_args()
 
