@@ -134,29 +134,20 @@ class OpenAIModel:
         top_p: float,
         max_tokens: int):
         for prompt in prompts:
+            kwargs = {
+                "prompt": prompt,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "top_p": top_p,
+                "stop": stop_sequences
+            }
+            if self.engine is not None:
+                kwargs["engine"] = self.engine
+            elif self.model is not None:
+                kwargs["model"] = self.model
             while True:
                 try:
-                    if self.engine is not None:
-                        results = self.openai.Completion.create(
-                            engine=self.engine,
-                            prompt=prompt.rstrip(),
-                            temperature=temperature,
-                            max_tokens=max_tokens,
-                            top_p=top_p,
-                            n=1,
-                            stop=stop_sequences,
-                        )
-                    else:
-                        results = self.openai.Completion.create(
-                            model=self.model,
-                            prompt=prompt.rstrip(),
-                            temperature=temperature,
-                            max_tokens=max_tokens,
-                            top_p=top_p,
-                            n=1,
-                            stop=stop_sequences,
-                        )
-                    time.sleep(0.01)
+                    results = self.openai.Completion.create(**kwargs)
                     break
                 except self.openai.error.RateLimitError:
                     print("Rate limited...")
@@ -171,27 +162,20 @@ class OpenAIModel:
         temperature: float,
         top_p: float,
         max_tokens: int):
+        if len(stop_sequences) > 4:
+            raise ValueError(f"{len(stop_sequences)} stop sequences provided to OpenAI interface, the API only supports up to 4.")
+        kwargs = {
+            "prompt": prompt,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": top_p,
+            "stop": stop_sequences
+        }
         if self.engine is not None:
-            return self.openai.Completion.create(
-                engine=self.engine,
-                prompt=prompt.rstrip(),
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                n=1,
-                stop=stop_sequences
-            )["choices"][0]["text"]
-        else:
-            return self.openai.Completion.create(
-                model=self.model,
-                prompt=prompt.rstrip(),
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                n=1,
-                stop=stop_sequences
-            )["choices"][0]["text"]
-
+            kwargs["engine"] = self.engine
+        elif self.model is not None:
+            kwargs["model"] = self.model
+        return self.openai.Completion.create(**kwargs)["choices"][0]["text"]
 
 class TextGenerationModel:
     def __init__(self, url, max_workers):
