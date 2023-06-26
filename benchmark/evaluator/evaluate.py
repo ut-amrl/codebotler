@@ -12,7 +12,7 @@ import bounded_subprocess
 import re
 import sys
 sys.path.append("..")
-from simple_tracer import run_program, State, InteractiveAgent, Object
+from simple_tracer import run_program, State, InteractiveAgent, Object, Robot
 
 """
 Timeout is max number of time steps after which solver is killed. 
@@ -24,6 +24,7 @@ that can be good/bad depending on the order of rooms.
 """
 
 def dict_to_state(state_dict):
+    additional_constraints = state_dict["additional_constraints"]
     return State(
     locations= state_dict["locations"],
     objects = [Object(label = d["label"], location=d["location"]) for d in state_dict["objects"]],
@@ -34,7 +35,7 @@ def dict_to_state(state_dict):
       for agent in state_dict["interactive_agents"]
     ],
     robot_location = state_dict["robot_location"],
-  )
+  ), additional_constraints
 
 def code_replace(program):
     
@@ -47,10 +48,11 @@ def code_replace(program):
 def run_simulation(example: dict, timeout:int, robot_asp_logic:str, debug_file:str, max_seconds = 10):
     constraint = example["constraint"]
     program = code_replace(example["completion"])
-    state = dict_to_state(eval(example["state"]))
+    state, additional_constraints = dict_to_state(eval(example["state"]))
     try:
         asp_trace = run_program(program, state)
     except Exception as e:
+        # raise e
         return ("", "UNSAT")
     
     with open(debug_file, "w") as f:
@@ -60,9 +62,12 @@ def run_simulation(example: dict, timeout:int, robot_asp_logic:str, debug_file:s
         f.write(f"#const timeout={timeout}.\n")
         f.write("\n".join(asp_trace))
         f.write(constraint)
+        f.write(additional_constraints)
         
+    with open(debug_file, "r") as f:
+        print("DEBUG:", f.read())
     # run clingo robot.lp debug/debug_ex{i+1}.lp
-    out = subprocess.run(["clingo", "-f", robot_asp_logic, "-f", debug_file, "--time-limit", str(max_seconds)], 
+    out = subprocess.run(["clingo", "-f", robot_asp_logic, "-f", debug_file], 
                                  capture_output=True)
 
     
@@ -103,9 +108,10 @@ def main(args):
         
          
         # reorder so is_sat shown first
-        # orders = ("is_sat", )
-        order = ("is_sat", "description", "constraint", "state", "completion", "model")
+        order = ("is_sat", "state_num", "description", "constraint", "state", "completion", "model")
         for key in order:
+            if key == "state_num":
+                example_completion[key] += "/" + str(int(i/4+1))
             v = example_completion[key]
             del(example_completion[key])
             example_completion[key] = v
@@ -124,7 +130,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('completions_file', type=str)
     parser.add_argument('--eval_file', type=str, default="task_evaluations.jsonl")
-    parser.add_argument('--asp-timeout', type=int, default=10)
+    parser.add_argument('--asp-timeout', type=int, default=20)
     parser.add_argument('--asp-file', type=str, default="robot.lp")
     
     os.makedirs("debug", exist_ok=True)

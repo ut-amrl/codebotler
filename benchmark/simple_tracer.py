@@ -75,13 +75,17 @@ class Robot:
     self.trace_t += 1
     return self.state.locations
 
-  # Check if an object is in the current room.
-  def is_in_room(self, obj : str) -> bool :
-    self.asp_trace.append(f"t_is_in_room(\"{obj}\",{self.trace_t}).")
+  # Check if an entity (person or object) is in the current room.
+  def is_in_room(self, entity : str) -> bool :
+    self.asp_trace.append(f"t_is_in_room(\"{entity}\",{self.trace_t}).")
     self.trace_t += 1
     for o in self.state.objects:
-      if o.location == self.state.robot_location and o.label == obj:
+      if o.location == self.state.robot_location and o.label == entity:
         return True
+    for a in self.state.interactive_agents:
+      if a.location == self.state.robot_location and a.name == entity:
+        return True
+
     return False
 
   # Go to a specific named location, e.g. go_to("kitchen"), go_to("Arjun's
@@ -91,6 +95,8 @@ class Robot:
     self.trace_t += 1
     global state
     assert location in self.state.locations
+    # if location not in self.state.locations:
+    #   self.asp_trace.append(":- .") # unsat
     self.state.robot_location = location
     # print(state)
 
@@ -99,6 +105,7 @@ class Robot:
   def ask(self, person : str, question : str, options: list[str]) -> str :
     options_str = ""
     for o in options:
+      self.asp_trace.append(f"option(\"{o}\").")
       options_str += f"[{o}],"
     options_str = options_str[:-1]
     self.asp_trace.append(f"t_ask(\"{person}\", \"{question}\", \"{options_str}\", {self.trace_t}).")
@@ -112,6 +119,8 @@ class Robot:
           for o in options:
             if o == a:
               response = a
+              self.asp_trace.append(f"reply(\"{person}\", \"{response}\",{self.trace_t}).")
+              return response
         # print(f"no match between {options} and {p.answers}")
         # No matching answer found.
         return options[0]

@@ -25,7 +25,7 @@ at(A, R, T+1) :- at(A, R, T), A!="robot", T < timeout.
 asked(A, Q, T+1) :- at(A, R, T), 
                 at("robot", R, T),
                 A != "robot",
-                t_ask(A, Q, T),
+                t_ask(A, Q, O, T),
                 T < timeout.
 
 % after question asked, there is a response
@@ -34,4 +34,3 @@ replied(A, R, T) :- asked(A, Q, T),
 
 % sanity check: no two places at once
 :- at("robot", A, T), at("robot", B, T), B!=A.
-

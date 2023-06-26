@@ -8,6 +8,7 @@ import collections
 from clingo import Control
 from solve_utils import model_to_str
 import subprocess
+import bounded_subprocess
 import re
 """
 Timeout is max number of time steps after which solver is killed. 
@@ -23,6 +24,9 @@ def code_replace(program, sim_name):
     def normalize(s):
         return s.group(0).lower().replace("'", "")
     program = re.sub(r'\".*?\"', normalize, program)
+    program = program.replace("wait()", f"{sim_name}.wait()")
+    program = program.replace("time.sleep(", f"{sim_name}.wait(")
+    program = program.replace("get_current_location(", f"{sim_name}.get_robot_location(")
     program = program.replace("get_current_loc(", f"{sim_name}.get_robot_location(")
     program = program.replace("get_all_rooms(", f"{sim_name}.get_simulation_rooms(")
     program = program.replace("is_in_room(", f"{sim_name}.is_in_robot_location(")
@@ -32,29 +36,43 @@ def code_replace(program, sim_name):
     return program
 
 
-def run_simulation(example: dict, timeout:int, robot_asp_logic:str, debug_file:str):
+def run_simulation(example: dict, timeout:int, robot_asp_logic:str, debug_file:str, max_seconds = 1):
+    constraint = example["constraint"]
+    print(debug_file)
     
-    simulator = Context(timeout=timeout, asp_rules_file=robot_asp_logic, 
-                        debug_file=debug_file)
-    constraints = example["constraint"]
+    init = f"""
+from solver import Context
+simulator = Context(timeout={timeout}, asp_rules_file='{robot_asp_logic}', 
+                    debug_file='{debug_file}')
+constraints = '''{constraint}'''
+
+simulator.add_constraints(constraints)\n
+"""
     
-    simulator.add_constraints(constraints)
+    ret = "\n(model, is_sat) = simulator.ground_and_solve()\nprint(model, is_sat)"
     
     generated_code = code_replace(example["completion"], "simulator")
-    print(generated_code)
     
-    try:
-        exec(generated_code)
-    except Exception as e:
-        print("generated code failed: ", e)    
-        return "", ""
+    result = bounded_subprocess.run(
+        ["python3", "-c", init+generated_code+ret],
+        timeout_seconds=max_seconds)
     
-    (model, is_sat) = simulator.ground_and_solve()
+    if result.exit_code != 0:
+        print("generated code failed: ", result.stderr, init+generated_code+ret) 
+        is_sat = "UNSAT"
+        model = ""
+    elif "UNSAT" in result.stdout:
+        is_sat = "UNSAT"
+        model = ""
+    else:
+        is_sat = "SAT"
+        model = result.stdout
+    print(result.stdout)
     
-    # sanity check
-    # run clingo robot.lp debug/debug_ex{i+1}.lp
-    out = subprocess.run(["clingo", "-f", "robot.lp", "-f", debug_file,  "/dev/null"], capture_output=True)
-    assert(("UNSATISFIABLE" not in str(out)) == (is_sat == "SAT")), str(out)+"\nis_sat:"+ is_sat
+    
+    # sanity check: run clingo robot.lp debug/debug_ex{i+1}.lp
+    result = bounded_subprocess.run(["clingo", "-f", "robot.lp", "-f", debug_file,  "/dev/null"], timeout_seconds = max_seconds )
+    assert(("UNSATISFIABLE" not in str(result.stdout)) == (is_sat == "SAT")), str(result.stdout)+"\nis_sat:"+ is_sat
     
     # print(model, is_sat)
     return (model, is_sat) 
@@ -148,7 +166,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('completions_file', type=str)
     parser.add_argument('--eval_file', type=str, default="task_evaluations.jsonl")
-    parser.add_argument('--asp-timeout', type=int, default=10)
+    parser.add_argument('--asp-timeout', type=int, default=20)
     parser.add_argument('--asp-file', type=str, default="robot.lp")
     
     os.makedirs("debug", exist_ok=True)
