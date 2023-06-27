@@ -17,7 +17,6 @@ cmd_pub = None
 try:
     from code_generation.utilities import add_pythonpath, cd_rel
     add_pythonpath(".")
-    cd_rel(".")
     import rospy
     from std_msgs.msg import String
     ros_available = True
