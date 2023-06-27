@@ -4,7 +4,7 @@ HUMAN_RESPONSE_TOPIC: "/human_response"
 DINO:
   box_threshold: 0.6
   text_threshold: 0.4
-MAP: "ahg2"
+MAP: "ahg_amrl"
 NAV_STATUS_TOPIC: "/navigation_goal_status"
 NAV_GOAL_TOPIC: "/move_base_simple/goal_amrl"
 CAM_IMG_TOPIC: /zed2i/zed_node/stereo/image_rect_color/compressed

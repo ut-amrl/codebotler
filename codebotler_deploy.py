@@ -94,22 +94,29 @@ def generate_code(prompt):
                             max_tokens=512)
   end_time = time.time()
   print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
-  pub_code = code.strip()
+  code = (prompt_suffix + code).strip()
+  return code
+
+def execute(generated_code):
+  global prompt_suffix
+  global cmd_pub
+  c = generated_code.replace("def task_program():", "")
+  pub_code = c.strip()
   pub_code = pub_code.replace("\n    ", "\n")
   if pub_code.startswith('\n'):
     pub_code = pub_code[1:]
-  code = (prompt_suffix + code).strip()
-  return code, pub_code
-
+  cmd_pub.publish(pub_code)
+  
 async def handle_message(websocket, message):
   global ros_available
   global robot_available
-  global cmd_pub
   data = json.loads(message)
   if data['type'] == 'code':
     print("Received code request")
-    code, _ = generate_code(data['prompt'])
+    code = generate_code(data['prompt'])
     response = {"code": f"{code}"}
+    if data['execute']:
+      execute(code)
     await websocket.send(json.dumps(response))
   elif data['type'] == 'eval':
     print("Received eval request")
@@ -121,10 +128,7 @@ async def handle_message(websocket, message):
     elif not robot_available:
       print("Robot not available. Ignoring execute request.")
     else:
-      code, pub_code = generate_code(data['prompt'])
-      cmd_pub.publish(pub_code)
-      response = {"code": f"{code}"}
-      await websocket.send(json.dumps(response))
+      execute(data['code'])
   else:
     print("Unknown message type: " + data['type'])
 
