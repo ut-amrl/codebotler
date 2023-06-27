@@ -2,3 +2,5 @@
 .palm_api_key
 __pycache__
 **/.vscode
+build/
+devel/
