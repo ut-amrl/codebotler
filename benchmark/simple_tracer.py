@@ -1,16 +1,31 @@
 import typing
+import bounded_subprocess
+import sys
 
+def dict_to_state(state_dict):
+    return State(
+    locations= state_dict["locations"],
+    objects = [Object(label = d["label"], location=d["location"]) for d in state_dict["objects"]],
+    interactive_agents = [
+      InteractiveAgent(name = agent["name"],
+                      location = agent["location"],
+                      answers = agent["answers"])
+      for agent in state_dict["interactive_agents"]
+    ],
+    robot_location = state_dict["robot_location"],
+  )
+    
 class Object:
   def __init__(self, label : str, location : str):
     self.label = label
     self.location = location
 
   def __str__(self) -> str:
-    return "{ label: \"" + self.label + "\", location: \"" + \
+    return "{ \"label\": \"" + self.label + "\", \"location\": \"" + \
         self.location + "\" }"
 
   def __repr__(self) -> str:
-    return "{ label: \"" + self.label + "\", location: \"" + \
+    return "{ \"label\": \"" + self.label + "\", \"location\": \"" + \
         self.location + "\" }"
 
 class InteractiveAgent:
@@ -20,13 +35,13 @@ class InteractiveAgent:
     self.answers = answers
 
   def __str__(self) -> str:
-    return "{ name: \"" + self.name + \
-        "\", location: \"" + self.location + "\", answers: " + \
+    return "{ \"name\": \"" + self.name + \
+        "\", \"location\": \"" + self.location + "\", \"answers\": " + \
         str(self.answers) + " }"
 
   def __repr__(self) -> str:
-    return "{ name: \"" + self.name + \
-        "\", location: \"" + self.location + "\", answers: " + \
+    return "{ \"name\": \"" + self.name + \
+        "\", \"location\": \"" + self.location + "\", \"answers\": " + \
         str(self.answers) + " }"
     
 class State:
@@ -42,10 +57,10 @@ class State:
 
   def __str__(self) -> str:
     return "{\n" + \
-        "locations: " + str(self.locations) + ", \n" + \
-        "objects: " + str(self.objects) + ", \n" + \
-        "interactive_agents: " + str(self.interactive_agents) + ", \n" + \
-        "robot_location: " + str(self.robot_location) + "\n}"
+        "\"locations\": " + str(self.locations) + ", \n" + \
+        "\"objects\": " + str(self.objects) + ", \n" + \
+        "\"interactive_agents\": " + str(self.interactive_agents) + ", \n" + \
+        "\"robot_location\": \"" + str(self.robot_location) + "\"\n}"
 
 class Robot:
   def __init__(self, state : State):
@@ -57,27 +72,34 @@ class Robot:
   def add_world_state(self):
     for locations in self.state.locations:
       self.asp_trace.append(f"room(\"{locations}\").")
+      print(f"room(\"{locations}\").", flush=True)
     for objects in self.state.objects:
       self.asp_trace.append(f"at(\"{objects.label}\",\"{objects.location}\", 0).")
+      print(f"at(\"{objects.label}\",\"{objects.location}\", 0).", flush=True)
     for agents in self.state.interactive_agents:
       self.asp_trace.append(f"at(\"{agents.name}\",\"{agents.location}\", 0).")
+      print(f"at(\"{agents.name}\",\"{agents.location}\", 0).", flush=True)
     self.asp_trace.append(f"at(\"robot\",\"{self.state.robot_location}\", 0).")
+    print(f"at(\"robot\",\"{self.state.robot_location}\", 0).", flush=True)
       
   # Get the current location of the robot.
   def get_current_location(self) -> str :
     self.asp_trace.append(f"t_get_current_location({self.trace_t}).")
+    print(f"t_get_current_location({self.trace_t}).", flush=True)
     self.trace_t += 1
     return self.state.robot_location
 
   # Get a list of all rooms in the house.
   def get_all_rooms(self) -> list[str] :
     self.asp_trace.append(f"t_get_all_rooms({self.trace_t}).")
+    print(f"t_get_all_rooms({self.trace_t}).", flush=True)
     self.trace_t += 1
     return self.state.locations
 
   # Check if an entity (person or object) is in the current room.
   def is_in_room(self, entity : str) -> bool :
     self.asp_trace.append(f"t_is_in_room(\"{entity}\",{self.trace_t}).")
+    print(f"t_is_in_room(\"{entity}\",{self.trace_t}).", flush=True)
     self.trace_t += 1
     for o in self.state.objects:
       if o.location == self.state.robot_location and o.label == entity:
@@ -92,9 +114,10 @@ class Robot:
   # office"), go_to("Jill's study").
   def go_to(self, location : str) -> None :
     self.asp_trace.append(f"t_go_to(\"{location}\",{self.trace_t}).")
+    print(f"t_go_to(\"{location}\",{self.trace_t}).", flush=True)
     self.trace_t += 1
     global state
-    assert location in self.state.locations
+    assert location in self.state.locations, location
     # if location not in self.state.locations:
     #   self.asp_trace.append(":- .") # unsat
     self.state.robot_location = location
@@ -106,9 +129,11 @@ class Robot:
     options_str = ""
     for o in options:
       self.asp_trace.append(f"option(\"{o}\").")
+      print(f"option(\"{o}\").", flush=True)
       options_str += f"[{o}],"
     options_str = options_str[:-1]
     self.asp_trace.append(f"t_ask(\"{person}\", \"{question}\", \"{options_str}\", {self.trace_t}).")
+    print(f"t_ask(\"{person}\", \"{question}\", \"{options_str}\", {self.trace_t}).", flush=True)
     self.trace_t += 1
     for p in self.state.interactive_agents:
       # if p.location == state.robot_location and p.name == person:
@@ -120,6 +145,7 @@ class Robot:
             if o == a:
               response = a
               self.asp_trace.append(f"reply(\"{person}\", \"{response}\",{self.trace_t}).")
+              print(f"reply(\"{person}\", \"{response}\",{self.trace_t}).", flush=True)
               return response
         # print(f"no match between {options} and {p.answers}")
         # No matching answer found.
@@ -133,22 +159,40 @@ class Robot:
   # at the starting location before calling this function.
   def say(self, message : str) -> None :
     self.asp_trace.append(f"t_say(\"{message}\",{self.trace_t}).")
+    print(f"t_say(\"{message}\",{self.trace_t}).", flush=True)
     self.trace_t += 1
     pass
 
 def run_program(program : str, state : State) -> list[str] :
-  robot = Robot(state)
-  grounding = "say = robot.say\n" + \
-              "go_to = robot.go_to\n" + \
-              "ask = robot.ask\n" + \
-              "is_in_room = robot.is_in_room\n" + \
-              "get_all_rooms = robot.get_all_rooms\n" + \
-              "get_current_location = robot.get_current_location\n"
-  p = grounding + program
-  print("=======================\nGrounded Program:\n=======================")
-  print(p)
-  exec(grounding + program)
-  return robot.asp_trace
+  # robot = Robot(state)
+  
+  # grounding = "say = robot.say\n" + \
+  #             "go_to = robot.go_to\n" + \
+  #             "ask = robot.ask\n" + \
+  #             "is_in_room = robot.is_in_room\n" + \
+  #             "get_all_rooms = robot.get_all_rooms\n" + \
+  #             "get_current_location = robot.get_current_location\n"
+              
+  p = (f"""import sys\nimport time\nsys.path.append(\"..\")\nfrom simple_tracer import Robot, dict_to_state
+\nstate_dict = {state}\nstate = dict_to_state(state_dict)\nrobot = Robot(state)\n"""
+    + program + "\n")
+  # print("=======================\nGrounded Program:\n=======================")
+  # print(p)
+  # print("=======================\nASP Trace:\n=======================")
+  
+  ret = bounded_subprocess.run(["python", "-c", p], timeout_seconds=2)
+  
+  asp_trace = [i for i in ret.stdout.split("\n") if i != ""]
+  if ret.exit_code == -1:
+    asp_trace.append("timed_out.")
+    print("TIMED_OUT:", ret.exit_code, ret.stderr)
+  
+  if ret.exit_code == 0:
+    assert len(asp_trace) > 0, p
+    return asp_trace
+  else:
+    asp_trace.append("runtime_error.")
+    return asp_trace
 
 program = """
 list_of_rooms = get_all_rooms()
@@ -192,8 +236,8 @@ def main():
     ],
     robot_location = "Arjun's office"
   )
-  # program = "say(\"Hello, world!\")"
-  # program = "r = 10\n"
+  program = "say(\"Hello, world!\")"
+  program = "r = 10\n"
   print("=======================\nProgram:\n=======================")
   print(program)
   print("=======================\nState:\n=======================")

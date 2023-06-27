@@ -1,60 +1,51 @@
 import sys 
+sys.path.append("..")
 import json 
 import argparse
-from solver import Context
 import os
 from pathlib import Path
-import collections
-from clingo import Control
-from solve_utils import model_to_str
+from collections import OrderedDict
 import subprocess
-import bounded_subprocess
 import re
-import sys
-sys.path.append("..")
-from simple_tracer import run_program, State, InteractiveAgent, Object, Robot
+from solve_utils import model_to_str
+from simple_tracer import run_program, dict_to_state
 
 """
 Timeout is max number of time steps after which solver is killed. 
 All prompted tasks should be designed to be completed
 before TIMEOUT for accurate results.
-
-Note: the order of rooms is NON DETERMINISTIC. Beware of tests
-that can be good/bad depending on the order of rooms.
 """
 
-def dict_to_state(state_dict):
-    additional_constraints = state_dict["additional_constraints"]
-    return State(
-    locations= state_dict["locations"],
-    objects = [Object(label = d["label"], location=d["location"]) for d in state_dict["objects"]],
-    interactive_agents = [
-      InteractiveAgent(name = agent["name"],
-                      location = agent["location"],
-                      answers = agent["answers"])
-      for agent in state_dict["interactive_agents"]
-    ],
-    robot_location = state_dict["robot_location"],
-  ), additional_constraints
 
 def code_replace(program):
     
     def normalize(s):
-        return s.group(0).lower().replace("'", "")
+        return s.group(0).lower()
+    
     program = re.sub(r'\".*?\"', normalize, program)
-    return program
+    sim_name = "robot"
+    program = program.replace("task_program()", "task_program(robot)")
+    program = program.replace("get_current_location(", f"{sim_name}.get_current_location(")
+    program = program.replace("get_all_rooms(", f"{sim_name}.get_all_rooms(")
+    program = program.replace("is_in_room(", f"{sim_name}.is_in_room(")
+    program = program.replace("say(", f"{sim_name}.say(")
+    program = program.replace("go_to(", f"{sim_name}.go_to(")
+    program = program.replace("ask(", f"{sim_name}.ask(")
+    return program + "\n\ntask_program(robot)"
+    # return program
 
 
-def run_simulation(example: dict, timeout:int, robot_asp_logic:str, debug_file:str, max_seconds = 10):
-    constraint = example["constraint"]
-    program = code_replace(example["completion"])
-    state, additional_constraints = dict_to_state(eval(example["state"]))
+def run_simulation(program: str, state:dict,constraint: str, timeout:int, robot_asp_logic:str, debug_file:str, max_seconds = 10):
+    program = code_replace(program)
+    state = dict_to_state(state)
+    print(program, state)
     try:
         asp_trace = run_program(program, state)
     except Exception as e:
-        # raise e
-        return ("", "UNSAT")
+        raise e
+        # return ("", "UNSAT")
     
+    os.makedirs("debug", exist_ok=True)
     with open(debug_file, "w") as f:
         f.write("#script (python)\n")
         f.write(open("solve_utils.py", 'r').read())
@@ -62,77 +53,87 @@ def run_simulation(example: dict, timeout:int, robot_asp_logic:str, debug_file:s
         f.write(f"#const timeout={timeout}.\n")
         f.write("\n".join(asp_trace))
         f.write(constraint)
-        f.write(additional_constraints)
+        f.write("\n")
+        f.write("\n".join([f"% {line}" for line in program.split("\n")]))
         
-    with open(debug_file, "r") as f:
-        print("DEBUG:", f.read())
+    # with open(debug_file, "r") as f:
+    #     print("DEBUG:", f.read())
+        
     # run clingo robot.lp debug/debug_ex{i+1}.lp
-    out = subprocess.run(["clingo", "-f", robot_asp_logic, "-f", debug_file], 
+    out = subprocess.run(["clingo", "-f", robot_asp_logic, "-f", debug_file,
+                          "--time-limit", str(max_seconds)], 
                                  capture_output=True)
 
     
     if "UNSATISFIABLE" in str(out.stdout):
-        return ("", "UNSAT")
+        return ("", "UNSAT")     
     else:
         model = re.search(r"Answer: 1(.*)SATISFIABLE", str(out.stdout)).group(1)
         return (model_to_str(model.strip("\n")), "SAT")
     
-    
 
-def main(args):
+def evaluate_trace(completions_file, eval_file, asp_file="robot.lp", asp_timeout=20):
     completions = []
-    with open(Path(args.completions_file), 'r') as f:
+    with open(Path(completions_file), 'r') as f:
         for line in f:
-            orddict = json.JSONDecoder(object_pairs_hook=collections.OrderedDict).decode(line)
-            completions.append(orddict)
+            completions.append(json.loads(line))
     
     evaluated_completions = []
     
     
     for i, example_completion in enumerate(completions):
+        program = example_completion["completion"]
+        for j, test in enumerate(example_completion["tests"]):
+            evaluated_ex = {}
+            # program, state dict, constraints
+            state = eval(str(test["state"]))
+            constraints = test["test"]
+            (model, is_sat) = run_simulation(program, 
+                                            state,
+                                            constraints,
+                                            timeout=asp_timeout,
+                                            robot_asp_logic=asp_file,
+                                            debug_file=f"debug/debug_ex{i+1}_{j+1}.lp")
+            
+            evaluated_ex["model"] = model
+            evaluated_ex["is_sat"] = (is_sat == "SAT")
+            print("example {}: sat is {}".format(i, evaluated_ex["is_sat"]))
+            
+            evaluated_ex["name"] = example_completion["name"]
+            evaluated_ex["completion"] = program
+            evaluated_ex["state"] = state
+            evaluated_ex["constraint"] = constraints
+            # evaluated_ex["description"] = example_completion["description"]
+            
+            # turn into ordered dict so is_sat shown first
+            order = ["is_sat", "name", "state", "completion", "model", "constraint"]
+            # order = ["description", "is_sat", "name", "state", "completion", "model", "constraint"]
+            
+            
+            list_of_tuples = [(key, evaluated_ex[key]) for key in order]
+            ord_evaluated_ex = OrderedDict(list_of_tuples)
+            evaluated_completions.append(ord_evaluated_ex)
+        
+    
+            with open(eval_file, "a+") as f:
+                json.dump(ord_evaluated_ex, f)
+                f.write("\n")   
 
-         # to prevent future headaches:
-        try:
-            example_completion["description"]
-        except KeyError:
-            raise ValueError("Wrong format for completion file, description only used for dev")
-        
-        (model, is_sat) = run_simulation(example_completion, 
-                                            timeout=args.asp_timeout,
-                                            robot_asp_logic=args.asp_file,
-                                            debug_file=f"debug/debug_ex{i+1}.lp")
-        
-        example_completion["model"] = model
-        example_completion["is_sat"] = (is_sat == "SAT")
-        print("example {}: sat is {}".format(i, example_completion["is_sat"]))
-        
-         
-        # reorder so is_sat shown first
-        order = ("is_sat", "state_num", "description", "constraint", "state", "completion", "model")
-        for key in order:
-            if key == "state_num":
-                example_completion[key] += "/" + str(int(i/4+1))
-            v = example_completion[key]
-            del(example_completion[key])
-            example_completion[key] = v
+
+def main(args):
+    evaluate_trace(args.completions_file, args.eval_file, args.asp_file, args.asp_timeout)
     
-        evaluated_completions.append(example_completion)
-        
-    
-    with open(args.eval_file, "a+") as f:
-        for comp in evaluated_completions:
-            # json.dump(comp, f, indent=4)
-            json.dump(comp, f)
-            f.write("\n")
     
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('completions_file', type=str)
-    parser.add_argument('--eval_file', type=str, default="task_evaluations.jsonl")
+    parser.add_argument('eval_file', type=str)
     parser.add_argument('--asp-timeout', type=int, default=20)
     parser.add_argument('--asp-file', type=str, default="robot.lp")
     
+    
     os.makedirs("debug", exist_ok=True)
+
     args = parser.parse_args()
     main(args)

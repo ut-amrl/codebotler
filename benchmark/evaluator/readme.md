@@ -31,3 +31,24 @@ There are still bugs to hunt down.
 I believe I fixed the bug of absolute negation that people were discussing in Slack, i.e. `not go_to(X, T)` not holding for every `room(X)` at time `T`. 
 
 Be on the lookout if it appears again. This is why I added the `debug.lp` file, as it's always a good idea to run `clingo robot.lp debug.lp` to double check the simulation.
+
+## Problems
+
+- lunchbreak: technically this openai completion is correct but it makes it hard to check that the correct person replied so we put it aside for now (currently it's counted as `is_sat = False`)
+
+```
+def task_program(robot):
+    start_loc = robot.get_current_location()
+    list_of_rooms = ["alice's office", "bob's office"]
+    people_joining = []
+    for room in list_of_rooms:  
+        robot.go_to(room)
+        response = robot.ask("", "are you up for lunch?", ["yes", "no"])
+        if response == "yes":
+            people_joining.append(room.split("'")[0])
+            robot.say("we'll meet in the lobby in 5 minutes")
+            robot.go_to(start_loc)
+            robot.say("people joining for lunch: " + ",".join(people_joining))
+            
+task_program(robot)
+```
