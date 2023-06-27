@@ -3,11 +3,9 @@
 import rospy
 import actionlib
 
-from std_msgs.msg import String
 from robot_client.msg import AskAction, GetAllRoomsAction, GetCurrentLocationAction, GoToAction, IsInRoomAction, SayAction
 from robot_client.msg import AskGoal, GetAllRoomsGoal, GetCurrentLocationGoal, GoToGoal, IsInRoomGoal, SayGoal
  
-
 class Robot:
     def __init__(self):
         self.ask_client = actionlib.SimpleActionClient('/robot_ask', AskAction)
@@ -24,10 +22,9 @@ class Robot:
         self.is_in_room_client.wait_for_server()
         self.say_client.wait_for_server()
 
-        rospy.Subscriber('/generated_code', String, self.python_cmds_callback, queue_size=10)
         print("====== all server connected ========")
 
-    def python_cmds_callback(self, msg):
+    def execute_task_program(self, program: str) -> None :
         try:
             grounding = "say = self.say\n" + \
                 "go_to = self.go_to\n" + \
@@ -35,7 +32,6 @@ class Robot:
                 "is_in_room = self.is_in_room\n" + \
                 "get_all_rooms = self.get_all_rooms\n" + \
                 "get_current_location = self.get_current_location\n"
-            program = msg.data
             p = grounding + program 
             exec(p)
         except Exception as e:
@@ -57,7 +53,6 @@ class Robot:
     def get_all_rooms(self) -> list[str] :
         goal = GetAllRoomsGoal()
         return self.send_goal_wrapper(self.get_all_rooms_client, goal).result
-
 
     # Check if an object is in the current room.
     def is_in_room(self, obj : str) -> bool :
