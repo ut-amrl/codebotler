@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../code_generation"))
 
-from utilities import *
-add_pythonpath(".")
-load_amrl_msgs()
-
+import roslib
+roslib.load_manifest('amrl_msgs')
 from zero_shot_object_detector import GroundingDINO
 import rospy
-from typing import List
-from utilities import process_command_string
 import yaml
 from amrl_msgs.msg import NavStatusMsg
 from amrl_msgs.msg import Localization2DMsg
@@ -21,7 +14,6 @@ import numpy as np
 import time
 import torch
 import os
-import re
 from PIL import Image
 import shutil
 import signal
@@ -81,6 +73,12 @@ class RobotActions:
 
     def go_to(self, goal):
         location = goal.location
+
+        # process location
+        location = location.replace("'s", "")
+        location = location.replace("-", " ")
+        location = location.lower()
+
         success = True
         goal_msg = Localization2DMsg()
         if location not in self.DATA['LOCATIONS'][self.DATA['MAP']].keys():

@@ -9,16 +9,15 @@ import websockets
 import json
 import signal
 import time
+import actionlib
 from code_generation.completions import AutoModel, PaLMModel, OpenAIModel, TextGenerationModel
+from robot_actions_pkg.msg import ExecuteAction, ExecuteGoal
 
 ros_available = False
 robot_available = False
-cmd_pub = None
+execute_client = None
 try:
-    from code_generation.utilities import add_pythonpath, cd_rel
-    add_pythonpath(".")
     import rospy
-    from std_msgs.msg import String
     ros_available = True
 except:
     print("Could not import rospy. Robot interface is not available.")
@@ -96,27 +95,20 @@ def generate_code(prompt):
   print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
   code = (prompt_suffix + code).strip()
   return code
-
-def execute(generated_code):
-  global prompt_suffix
-  global cmd_pub
-  c = generated_code.replace("def task_program():", "")
-  pub_code = c.strip()
-  pub_code = pub_code.replace("\n    ", "\n")
-  if pub_code.startswith('\n'):
-    pub_code = pub_code[1:]
-  cmd_pub.publish(pub_code)
   
 async def handle_message(websocket, message):
   global ros_available
   global robot_available
+  global execute_client
+  g = ExecuteGoal()
   data = json.loads(message)
   if data['type'] == 'code':
     print("Received code request")
     code = generate_code(data['prompt'])
     response = {"code": f"{code}"}
     if data['execute']:
-      execute(code)
+      g.program = code
+      execute_client.send_goal(g)
     await websocket.send(json.dumps(response))
   elif data['type'] == 'eval':
     print("Received eval request")
@@ -128,7 +120,8 @@ async def handle_message(websocket, message):
     elif not robot_available:
       print("Robot not available. Ignoring execute request.")
     else:
-      execute(data['code'])
+      g.program = data['code']
+      execute_client.send_goal(g)
   else:
     print("Unknown message type: " + data['type'])
 
@@ -217,6 +210,7 @@ def main():
 if __name__ == "__main__":
   if ros_available:
     rospy.init_node('python_commands_publisher')
-    cmd_pub = rospy.Publisher('/chat_commands', String, queue_size=1)
+    execute_client = actionlib.SimpleActionClient("/execute_server", ExecuteAction)
+    execute_client.wait_for_server()
   
   main()

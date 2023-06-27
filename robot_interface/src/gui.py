@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
-import sys
+
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../code_generation"))
-
-from utilities import *
-
 import rospy
 from std_msgs.msg import String
 import tkinter as tk
@@ -12,7 +8,6 @@ from gtts import gTTS
 import os
 import speech_recognition as sr
 import yaml
-import time
 
 
 def listen_for_yes_or_no():

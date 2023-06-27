@@ -1,23 +1,16 @@
 #!/usr/bin/env python3
+
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../code_generation"))
-
-from utilities import *
-add_pythonpath("../third_party/GroundingDINO")
-load_amrl_msgs()
-
 import warnings
 warnings.filterwarnings("ignore")
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
-import supervision as sv
-import sys
 from groundingdino.util.inference import load_model, load_image, predict, annotate
 from groundingdino.datasets import transforms as T
 import numpy as np
-import matplotlib.pyplot as plt
 from PIL import Image
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../third_party/GroundingDINO"))
 
 
 class GroundingDINO:

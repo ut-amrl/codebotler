@@ -69,6 +69,7 @@ add_action_files(
   GoTo.action
   IsInRoom.action
   Say.action
+  Execute.action
 )
 
 ## Generate added messages and services with any dependencies listed here
