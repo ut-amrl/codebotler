@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import os
 import threading
 import http.server
@@ -8,6 +10,19 @@ import json
 import signal
 import time
 from code_generation.completions import AutoModel, PaLMModel, OpenAIModel, TextGenerationModel
+
+ros_available = False
+robot_available = False
+cmd_pub = None
+try:
+    from code_generation.utilities import add_pythonpath, cd_rel
+    add_pythonpath(".")
+    import rospy
+    from std_msgs.msg import String
+    ros_available = True
+except:
+    print("Could not import rospy. Robot interface is not available.")
+    ros_available = False
 
 httpd = None
 server_thread = None
@@ -82,19 +97,38 @@ def generate_code(prompt):
   code = (prompt_suffix + code).strip()
   return code
 
+def execute(generated_code):
+  global prompt_suffix
+  global cmd_pub
+  c = generated_code.replace("def task_program():", "")
+  pub_code = c.strip()
+  pub_code = pub_code.replace("\n    ", "\n")
+  if pub_code.startswith('\n'):
+    pub_code = pub_code[1:]
+  cmd_pub.publish(pub_code)
+  
 async def handle_message(websocket, message):
+  global ros_available
+  global robot_available
   data = json.loads(message)
   if data['type'] == 'code':
     print("Received code request")
     code = generate_code(data['prompt'])
     response = {"code": f"{code}"}
+    if data['execute']:
+      execute(code)
     await websocket.send(json.dumps(response))
   elif data['type'] == 'eval':
     print("Received eval request")
     # await eval(websocket, data)
   elif data['type'] == 'execute':
     print("Received execute request")
-    # await execute(websocket, data)
+    if not ros_available:
+      print("ROS not available. Ignoring execute request.")
+    elif not robot_available:
+      print("Robot not available. Ignoring execute request.")
+    else:
+      execute(data['code'])
   else:
     print("Unknown message type: " + data['type'])
 
@@ -134,6 +168,8 @@ def main():
   global server_thread
   global prompt_prefix
   global prompt_suffix
+  global ros_available
+  global robot_available
   import argparse
   from pathlib import Path
   parser = argparse.ArgumentParser()
@@ -161,8 +197,14 @@ def main():
   parser.add_argument('--max-workers',
                       type=int, help='Maximum number of workers',
                       default=1)
+  parser.add_argument('--robot', action='store_true', help='Flag to indicate if the robot is available')
 
-  args = parser.parse_args()
+  if ros_available:
+    args = parser.parse_args(rospy.myargv()[1:])
+  else:
+    args = parser.parse_args()
+  
+  robot_available = args.robot
 
   prompt_prefix = args.prompt_prefix.read_text()
   prompt_suffix = args.prompt_suffix.read_text()
@@ -173,4 +215,8 @@ def main():
   start_completion_callback(args)
 
 if __name__ == "__main__":
+  if ros_available:
+    rospy.init_node('python_commands_publisher')
+    cmd_pub = rospy.Publisher('/chat_commands', String, queue_size=1)
+  
   main()

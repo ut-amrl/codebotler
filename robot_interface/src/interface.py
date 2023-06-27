@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import sys
+import os
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../code_generation"))
 
 from utilities import *
-add_pythonpath_load_amrl_msgs_cd_rel(".", ".")
+add_pythonpath(".")
+load_amrl_msgs()
 
 import rospy
 from typing import List
