@@ -1,9 +1,7 @@
 <launch>
-    <!-- Jackal autonomy stack -->
-    <include file="$(find ut_jackal)/launch/autonomy.launch" />
 
     <!-- Put the Robot IP here in place of 10.0.0.123 -->
-    <node name="interface_server"
+    <node name="codebotler_deploy"
         pkg="robot_commands"
         type="codebotler_deploy.py"
         cwd="node"

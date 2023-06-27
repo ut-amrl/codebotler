@@ -50,7 +50,7 @@ List of arguments:
   `text-daVinci-003` for OpenAI (default), `models/text-bison-001` for PaLM, and
   `bigcode/starcoder` for AutoModel.
 
-Instructions for deploying on real robots are included in [robot_interface/README.md]
+Instructions for deploying on real robots are included in [robot_interface/README.md](robot_interface/README.md).
 
 ## CodeBotler-Benchmark Quick-Start Guide
 
