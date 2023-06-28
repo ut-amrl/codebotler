@@ -100,21 +100,23 @@ class RobotInterface:
     def execute(self, goal):
         program = goal.program
         try:
-            grounding = "say = self.say\n" + \
-                "go_to = self.go_to\n" + \
-                "ask = self.ask\n" + \
-                "is_in_room = self.is_in_room\n" + \
-                "get_all_rooms = self.get_all_rooms\n" + \
-                "get_current_location = self.get_current_location\n"
-            p = grounding + program
-            exec(p)
-            task_program()
+            namespace = {
+                'say': self.say,
+                'go_to': self.go_to,
+                'ask': self.ask,
+                'is_in_room': self.is_in_room,
+                'get_all_rooms': self.get_all_rooms,
+                'get_current_location': self.get_current_location,
+                'time': time
+            }
+            program_with_call = program + "\n\ntask_program()\n"
+            exec(program_with_call, namespace)
             self.execute_server.set_succeeded()
         except RobotExecutionInterrupted as i:
             print(f"Robot Execution stopped as {i} was interrupted! Terminating execution!!")
             self.execute_server.set_preempted()
         except Exception as e:
-            print("There is a problem with the executing the program: {}. \n Quitting Execution!! ".format(e))
+            print("There is a problem with executing the program: {}. \nQuitting Execution!! ".format(e))
             self.execute_server.set_preempted()
 
 
