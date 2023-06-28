@@ -1,5 +1,8 @@
 import json 
 
+# Check every printer room for a stapler, and come back and tell me
+# which ones do not have a stapler.
+
 
 stapler_good1 = """
 # good

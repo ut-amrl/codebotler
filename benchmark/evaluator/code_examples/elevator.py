@@ -8,7 +8,7 @@ while True:
     if is_in_room("person"):
         response = ask("", "Are you here for the tour?", ["Yes", "No"])
         if response == "Yes":
-            say("Welcome to the university!")
+            say("Welcome to the university! Follow me please.")
             break
     time.sleep(1)
 go_to("conference room")
@@ -25,7 +25,7 @@ while True:
     if is_in_room("person"):
         response = ask("", "Are you here for the tour?", ["Yes", "No"])
         if response == "Yes":
-            say("Welcome to the university!")
+            say("Welcome to the university! Follow me please.")
             break
     time.sleep(1)
 go_to("conference room")
@@ -40,7 +40,7 @@ while True:
         time.sleep(1)
     response = ask("", "Are you here for the tour?", ["Yes", "No"])
     if response == "Yes":
-        say("Welcome to the university!")
+        say("Welcome to the university! Follow me please.")
         go_to("conference room")
         say("I have arrived at the conference room. Enjoy your visit here!")
         break
@@ -54,7 +54,7 @@ while True:
         time.sleep(1)
     response = ask("", "Are you here for the tour?", ["Yes", "No"])
     if response == "Yes":
-        say("Welcome to the university!")
+        say("Welcome to the university! Follow me please.")
         go_to("conference room")
         say("I have arrived at the conference room. Enjoy your visit here!")
         break

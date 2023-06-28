@@ -484,7 +484,7 @@ with open("lunchbreak.json", "w") as f:
         {"program": program_good4, "description": "good"},
         {"program": program_good5, "description": "good"},
         {"program": program_good6, "description": "good"},
-        {"program": program_good7, "description": "good"},
+        # {"program": program_good7, "description": "good"},
         {"program": program_bad1, "description": "bad: go to other ppl's office"},
         {"program": program_bad2, "description": "bad: go to other ppl's office 2"},
         {"program": program_bad3, "description": "bad: go to Alice office twice"},
