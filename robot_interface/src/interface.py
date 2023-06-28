@@ -6,15 +6,15 @@ import time
 import signal
 import actionlib
 import sys
-from robot_actions_pkg.msg import ExecuteAction, ExecuteFeedback, ExecuteResult, GoToAction, GoToGoal, GetCurrentLocationAction, GetCurrentLocationGoal, IsInRoomAction, IsInRoomGoal, SayAction, SayGoal, GetAllRoomsAction, GetAllRoomsGoal, AskAction, AskGoal
-
+from robot_actions_pkg.msg import GoToAction, GetCurrentLocationAction, IsInRoomAction, SayAction, GetAllRoomsAction, AskAction
+from robot_actions_pkg.msg import GoToGoal, GetCurrentLocationGoal, IsInRoomGoal, SayGoal, GetAllRoomsGoal, AskGoal
 
 class RobotExecutionInterrupted(Exception):
     pass
 
 
 class RobotInterface:
-    def __init__(self):
+    def __init__(self):        
         # Action clients
         self.go_to_client = actionlib.SimpleActionClient("/go_to_server", GoToAction)
         self.get_current_location_client = actionlib.SimpleActionClient("/get_current_location_server", GetCurrentLocationAction)
@@ -22,6 +22,7 @@ class RobotInterface:
         self.say_client = actionlib.SimpleActionClient("/say_server", SayAction)
         self.get_all_rooms_client = actionlib.SimpleActionClient("/get_all_rooms_server", GetAllRoomsAction)
         self.ask_client = actionlib.SimpleActionClient("/ask_server", AskAction)
+
         self.go_to_client.wait_for_server()
         self.get_current_location_client.wait_for_server()
         self.is_in_room_client.wait_for_server()
@@ -29,93 +30,71 @@ class RobotInterface:
         self.get_all_rooms_client.wait_for_server()
         self.ask_client.wait_for_server()
 
-        # Action servers
-        self.execute_server = actionlib.SimpleActionServer("/execute_server", ExecuteAction, self.execute, auto_start=False)
-        self.execute_server.start()
-
         print("====== all clients and servers connected ========")
 
     @staticmethod
-    def _check_action_success(client, action_name):
+    def _handle_client(client, goal, action_name):
+        client.send_goal(goal)
+
+        client.wait_for_result()
+
         if client.get_state() == actionlib.GoalStatus.PREEMPTED:
             raise RobotExecutionInterrupted(f"{action_name}()")
         else:
             assert client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"{action_name} client not preempted, but still failed with state {client.get_state()}!"
+        return client.get_result()        
+    
+    # Get the current location of the robot.
+    def get_current_location(self) -> str :
+        goal = GetCurrentLocationGoal()
+        return self._handle_client(self.get_current_location_client, goal, "get_current_location").result
+
+    # Get a list of all rooms in the house.
+    def get_all_rooms(self) -> list[str] :
+        goal = GetAllRoomsGoal()
+        return self._handle_client(self.get_all_rooms_client, goal, "get_all_rooms").result
+
+    # Check if an object is in the current room.
+    def is_in_room(self, obj : str) -> bool :
+        goal = IsInRoomGoal(object=obj)
+        return self._handle_client(self.is_in_room_client, goal, "is_in_room").result
 
     # Go to a specific named location, e.g. go_to("kitchen"), go_to("Arjun's
     # office"), go_to("Jill's study").
-    def go_to(self, location) -> None:
-        g = GoToGoal()
-        g.location = location
-        self.go_to_client.send_goal(g)
-        self.go_to_client.wait_for_result()
-        RobotInterface._check_action_success(self.go_to_client, "go_to")
-
-    # Get the current location of the robot.
-    def get_current_location(self) -> str:
-        g = GetCurrentLocationGoal()
-        self.get_current_location_client.send_goal(g)
-        self.get_current_location_client.wait_for_result()
-        RobotInterface._check_action_success(self.get_current_location_client, "get_current_location")
-        return self.get_current_location_client.get_result().result
-
-    # Check if an object is in the current room.
-    def is_in_room(self, object) -> bool:
-        g = IsInRoomGoal()
-        g.object = object
-        self.is_in_room_client.send_goal(g)
-        self.is_in_room_client.wait_for_result()
-        RobotInterface._check_action_success(self.is_in_room_client, "is_in_room")
-        return self.is_in_room_client.get_result().result
+    def go_to(self, location : str) -> None :
+        goal = GoToGoal(location=location)
+        return self._handle_client(self.go_to_client, goal, "go_to")
+        
+    # Ask a person a question, and offer a set of specific options for the person to
+    # respond. Return with the response selected by the person.
+    def ask(self, person : str, question : str, options: list[str]) -> str :
+        goal = AskGoal(person=person,question=question,options=options)
+        return self._handle_client(self.ask_client, goal, "ask").result
 
     # Say the message out loud. Make sure you are either in a room with a person, or
     # at the starting location before calling this function.
-    def say(self, message) -> None:
-        g = SayGoal()
-        g.message = message
-        self.say_client.send_goal(g)
-        self.say_client.wait_for_result()
-        RobotInterface._check_action_success(self.say_client, "say")
+    def say(self, message : str) -> None :
+        goal = SayGoal(message=message)
+        return self._handle_client(self.say_client, goal, "say")
 
-    # Get a list of all rooms in the house.
-    def get_all_rooms(self) -> List[str]:
-        g = GetAllRoomsGoal()
-        self.get_all_rooms_client.send_goal(g)
-        self.get_all_rooms_client.wait_for_result()
-        RobotInterface._check_action_success(self.get_all_rooms_client, "get_all_rooms")
-        return self.get_all_rooms_client.get_result().result
-
-    # Ask a person a question, and offer a set of specific options for the person to
-    # respond. Return with the response selected by the person.
-    def ask(self, person, question, options=None) -> str:
-        g = AskGoal()
-        g.person = person
-        g.question = question
-        g.options = options
-        self.ask_client.send_goal(g)
-        self.ask_client.wait_for_result()
-        RobotInterface._check_action_success(self.ask_client, "ask")
-        return self.ask_client.get_result().result
-
-    def execute(self, goal):
-        program = goal.program
-        try:
-            grounding = "say = self.say\n" + \
-                "go_to = self.go_to\n" + \
-                "ask = self.ask\n" + \
-                "is_in_room = self.is_in_room\n" + \
-                "get_all_rooms = self.get_all_rooms\n" + \
-                "get_current_location = self.get_current_location\n"
-            p = grounding + program
-            exec(p)
-            task_program()
-            self.execute_server.set_succeeded()
-        except RobotExecutionInterrupted as i:
-            print(f"Robot Execution stopped as {i} was interrupted! Terminating execution!!")
-            self.execute_server.set_preempted()
-        except Exception as e:
-            print("There is a problem with the executing the program: {}. \n Quitting Execution!! ".format(e))
-            self.execute_server.set_preempted()
+def execute_task_program(program):
+    # every time this is called, a RobotInterface Instance is created in the local scope: 
+    # might affect performance, but this is clean
+    try:
+        grounding = "robot = RobotInterface()\n" + \
+            "say = robot.say\n" + \
+            "go_to = robot.go_to\n" + \
+            "ask = robot.ask\n" + \
+            "is_in_room = robot.is_in_room\n" + \
+            "get_all_rooms = robot.get_all_rooms\n" + \
+            "get_current_location = robot.get_current_location\n"
+        grounding_suffix = "\ntask_program()"
+        p = grounding + program + grounding_suffix
+        exec(p, globals())
+    except RobotExecutionInterrupted as i:
+        print(f"Robot Execution stopped as {i} was interrupted! Terminating execution!!")
+    except Exception as e:
+        print("There is a problem with the executing the program: {}. \n Quitting Execution!! ".format(e))
 
 
 if __name__ == "__main__":

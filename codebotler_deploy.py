@@ -9,16 +9,16 @@ import websockets
 import json
 import signal
 import time
-import actionlib
 from code_generation.completions import AutoModel, PaLMModel, OpenAIModel, TextGenerationModel
-from robot_actions_pkg.msg import ExecuteAction, ExecuteGoal
+from robot_interface.src.interface import execute_task_program
+import threading 
 
 ros_available = False
 robot_available = False
-execute_client = None
 try:
     import rospy
     ros_available = True
+    rospy.init_node('ros_interface', anonymous=False)
 except:
     print("Could not import rospy. Robot interface is not available.")
     ros_available = False
@@ -99,16 +99,11 @@ def generate_code(prompt):
 async def handle_message(websocket, message):
   global ros_available
   global robot_available
-  global execute_client
-  g = ExecuteGoal()
   data = json.loads(message)
   if data['type'] == 'code':
     print("Received code request")
     code = generate_code(data['prompt'])
     response = {"code": f"{code}"}
-    if data['execute']:
-      g.program = code
-      execute_client.send_goal(g)
     await websocket.send(json.dumps(response))
   elif data['type'] == 'eval':
     print("Received eval request")
@@ -120,8 +115,8 @@ async def handle_message(websocket, message):
     elif not robot_available:
       print("Robot not available. Ignoring execute request.")
     else:
-      g.program = data['code']
-      execute_client.send_goal(g)
+      robot_execution_thread = threading.Thread(target=execute_task_program, name="robot_execute", args=[data['code']])
+      robot_execution_thread.start()
   else:
     print("Unknown message type: " + data['type'])
 
@@ -208,9 +203,4 @@ def main():
   start_completion_callback(args)
 
 if __name__ == "__main__":
-  if ros_available:
-    rospy.init_node('python_commands_publisher')
-    execute_client = actionlib.SimpleActionClient("/execute_server", ExecuteAction)
-    execute_client.wait_for_server()
-  
   main()
