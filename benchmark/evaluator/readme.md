@@ -6,6 +6,14 @@ Easiest way is through conda:
 `conda create -n potassco -c conda-forge clingo`
 `conda activate potassco`
 
+## Running evals
+
+from `benchmark/evaluator` do:
+
+`python evaluate.py input_completions.jsonl output_eval.jsonl`
+
+*TODO* fix imports so we can call evals from `codebotler_benchmark.py`
+
 ## Walkthrough
 
 - `robot.lp` contains the asp rules governing state changes in our simulated world.

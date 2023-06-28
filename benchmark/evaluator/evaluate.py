@@ -38,7 +38,7 @@ def code_replace(program):
 def run_simulation(program: str, state:dict,constraint: str, timeout:int, robot_asp_logic:str, debug_file:str, max_seconds = 10):
     program = code_replace(program)
     state = dict_to_state(state)
-    print(program, state)
+    # print(program, state)
     try:
         asp_trace = run_program(program, state)
     except Exception as e:
