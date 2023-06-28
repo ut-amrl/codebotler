@@ -47,6 +47,7 @@ List of arguments:
 * `--model-name`: The name of the model to use. Recommended options are
   `text-daVinci-003` for OpenAI (default), `models/text-bison-001` for PaLM, and
   `bigcode/starcoder` for AutoModel.
+* `--robot`: Flag to indicate if the robot is available (default is `False`).
 
 Instructions for deploying on real robots are included in [robot_interface/README.md](robot_interface/README.md).
 

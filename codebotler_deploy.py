@@ -10,11 +10,11 @@ import json
 import signal
 import time
 from code_generation.completions import AutoModel, PaLMModel, OpenAIModel, TextGenerationModel
-from robot_interface.src.interface import execute_task_program
-import threading 
+import threading
 
 ros_available = False
 robot_available = False
+robot_interface = None
 try:
     import rospy
     ros_available = True
@@ -95,28 +95,36 @@ def generate_code(prompt):
   print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
   code = (prompt_suffix + code).strip()
   return code
-  
-async def handle_message(websocket, message):
+
+def execute(code):
   global ros_available
   global robot_available
+  global robot_interface
+  if not ros_available:
+    print("ROS not available. Ignoring execute request.")
+  elif not robot_available:
+    print("Robot not available. Ignoring execute request.")
+  else:
+    from robot_interface.src.interface import execute_task_program
+    robot_execution_thread = threading.Thread(target=execute_task_program, name="robot_execute", args=[code, robot_interface])
+    robot_execution_thread.start()
+
+async def handle_message(websocket, message):
   data = json.loads(message)
   if data['type'] == 'code':
     print("Received code request")
     code = generate_code(data['prompt'])
     response = {"code": f"{code}"}
     await websocket.send(json.dumps(response))
+    if data['execute']:
+      print("Received execute request")
+      execute(code)
   elif data['type'] == 'eval':
     print("Received eval request")
     # await eval(websocket, data)
   elif data['type'] == 'execute':
     print("Received execute request")
-    if not ros_available:
-      print("ROS not available. Ignoring execute request.")
-    elif not robot_available:
-      print("Robot not available. Ignoring execute request.")
-    else:
-      robot_execution_thread = threading.Thread(target=execute_task_program, name="robot_execute", args=[data['code']])
-      robot_execution_thread.start()
+    execute(data['code'])
   else:
     print("Unknown message type: " + data['type'])
 
@@ -129,15 +137,21 @@ async def ws_main(websocket, path):
     print("Client disconnected.")
 
 def start_completion_callback(args):
+  global ros_available
+  global robot_available
+  global robot_interface
   # Create an asyncio event loop
   loop = asyncio.new_event_loop()
   asyncio.set_event_loop(loop)
   start_server = websockets.serve(ws_main, args.ip, args.ws_port)
 
-  # Register a signal handler to stop the server when Ctrl-C is pressed
-  loop.add_signal_handler(
-      signal.SIGINT,
-      lambda: (print("INFO: Shutting down Server"), loop.stop()))
+  def custom_signal_handler():
+    print("INFO: Shutting down Server")
+    if robot_available and ros_available:
+      robot_interface._cancel_goals()
+    loop.stop()
+  
+  loop.add_signal_handler(signal.SIGINT, custom_signal_handler)
 
   try:
     server = loop.run_until_complete(start_server)
@@ -158,33 +172,20 @@ def main():
   global prompt_suffix
   global ros_available
   global robot_available
+  global robot_interface
   import argparse
   from pathlib import Path
   parser = argparse.ArgumentParser()
 
   parser.add_argument('--ip', type=str, help='IP address', default="localhost")
-  parser.add_argument('--port',
-                      type=int, help='HTML server port number', default=8080)
-  parser.add_argument('--ws-port',
-                      type=int, help='Websocket server port number',
-                      default=8190)
-  parser.add_argument("--model-type",
-                      choices=["openai", "palm", "automodel", "hf-textgen"],
-                      default="openai")
-  parser.add_argument('--model-name',
-                      type=str, help='Model name', default='text-davinci-003')
-  parser.add_argument('--prompt-prefix',
-                      type=Path, help='Prompt prefix',
-                      default='code_generation/prompt_prefix.py')
-  parser.add_argument('--prompt-suffix',
-                      type=Path, help='Prompt suffix',
-                      default='code_generation/prompt_suffix.py')
-  parser.add_argument('--interface-page',
-                      type=Path, help='Interface page',
-                      default='code_generation/interface.html')
-  parser.add_argument('--max-workers',
-                      type=int, help='Maximum number of workers',
-                      default=1)
+  parser.add_argument('--port', type=int, help='HTML server port number', default=8080)
+  parser.add_argument('--ws-port', type=int, help='Websocket server port number', default=8190)
+  parser.add_argument("--model-type", choices=["openai", "palm", "automodel", "hf-textgen"], default="openai")
+  parser.add_argument('--model-name', type=str, help='Model name', default='text-davinci-003')
+  parser.add_argument('--prompt-prefix', type=Path, help='Prompt prefix', default='code_generation/prompt_prefix.py')
+  parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix', default='code_generation/prompt_suffix.py')
+  parser.add_argument('--interface-page', type=Path, help='Interface page', default='code_generation/interface.html')
+  parser.add_argument('--max-workers', type=int, help='Maximum number of workers', default=1)
   parser.add_argument('--robot', action='store_true', help='Flag to indicate if the robot is available')
 
   if ros_available:
@@ -193,6 +194,10 @@ def main():
     args = parser.parse_args()
   
   robot_available = args.robot
+
+  if robot_available and ros_available:
+    from robot_interface.src.interface import RobotInterface
+    robot_interface = RobotInterface()
 
   prompt_prefix = args.prompt_prefix.read_text()
   prompt_suffix = args.prompt_suffix.read_text()

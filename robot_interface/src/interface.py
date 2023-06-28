@@ -9,12 +9,13 @@ import sys
 from robot_actions_pkg.msg import GoToAction, GetCurrentLocationAction, IsInRoomAction, SayAction, GetAllRoomsAction, AskAction
 from robot_actions_pkg.msg import GoToGoal, GetCurrentLocationGoal, IsInRoomGoal, SayGoal, GetAllRoomsGoal, AskGoal
 
+
 class RobotExecutionInterrupted(Exception):
     pass
 
 
 class RobotInterface:
-    def __init__(self):        
+    def __init__(self):
         # Action clients
         self.go_to_client = actionlib.SimpleActionClient("/go_to_server", GoToAction)
         self.get_current_location_client = actionlib.SimpleActionClient("/get_current_location_server", GetCurrentLocationAction)
@@ -30,89 +31,76 @@ class RobotInterface:
         self.get_all_rooms_client.wait_for_server()
         self.ask_client.wait_for_server()
 
-        print("====== all clients and servers connected ========")
+        print("====== all clients connected ========")
 
     @staticmethod
     def _handle_client(client, goal, action_name):
         client.send_goal(goal)
-
         client.wait_for_result()
-
         if client.get_state() == actionlib.GoalStatus.PREEMPTED:
             raise RobotExecutionInterrupted(f"{action_name}()")
         else:
             assert client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"{action_name} client not preempted, but still failed with state {client.get_state()}!"
-        return client.get_result()        
-    
+        return client.get_result()
+
     # Get the current location of the robot.
-    def get_current_location(self) -> str :
+    def get_current_location(self) -> str:
         goal = GetCurrentLocationGoal()
         return self._handle_client(self.get_current_location_client, goal, "get_current_location").result
 
     # Get a list of all rooms in the house.
-    def get_all_rooms(self) -> list[str] :
+    def get_all_rooms(self) -> List[str]:
         goal = GetAllRoomsGoal()
         return self._handle_client(self.get_all_rooms_client, goal, "get_all_rooms").result
 
     # Check if an object is in the current room.
-    def is_in_room(self, obj : str) -> bool :
+    def is_in_room(self, obj: str) -> bool:
         goal = IsInRoomGoal(object=obj)
         return self._handle_client(self.is_in_room_client, goal, "is_in_room").result
 
     # Go to a specific named location, e.g. go_to("kitchen"), go_to("Arjun's
     # office"), go_to("Jill's study").
-    def go_to(self, location : str) -> None :
+    def go_to(self, location: str) -> None:
         goal = GoToGoal(location=location)
-        return self._handle_client(self.go_to_client, goal, "go_to")
-        
+        self._handle_client(self.go_to_client, goal, "go_to")
+
     # Ask a person a question, and offer a set of specific options for the person to
     # respond. Return with the response selected by the person.
-    def ask(self, person : str, question : str, options: list[str]) -> str :
-        goal = AskGoal(person=person,question=question,options=options)
+    def ask(self, person: str, question: str, options: List[str]) -> str:
+        goal = AskGoal(person=person, question=question, options=options)
         return self._handle_client(self.ask_client, goal, "ask").result
 
     # Say the message out loud. Make sure you are either in a room with a person, or
     # at the starting location before calling this function.
-    def say(self, message : str) -> None :
+    def say(self, message: str) -> None:
         goal = SayGoal(message=message)
-        return self._handle_client(self.say_client, goal, "say")
+        self._handle_client(self.say_client, goal, "say")
 
-def execute_task_program(program):
-    # every time this is called, a RobotInterface Instance is created in the local scope: 
+    def _cancel_goals(self):
+        self.go_to_client.cancel_all_goals()
+        self.get_current_location_client.cancel_all_goals()
+        self.is_in_room_client.cancel_all_goals()
+        self.say_client.cancel_all_goals()
+        self.get_all_rooms_client.cancel_all_goals()
+        self.ask_client.cancel_all_goals()
+
+
+def execute_task_program(program: str, robot: RobotInterface):
+    # every time this is called, a RobotInterface Instance is created in the local scope:
     # might affect performance, but this is clean
     try:
-        grounding = "robot = RobotInterface()\n" + \
-            "say = robot.say\n" + \
-            "go_to = robot.go_to\n" + \
-            "ask = robot.ask\n" + \
-            "is_in_room = robot.is_in_room\n" + \
-            "get_all_rooms = robot.get_all_rooms\n" + \
-            "get_current_location = robot.get_current_location\n"
-        grounding_suffix = "\ntask_program()"
-        p = grounding + program + grounding_suffix
-        exec(p, globals())
+        namespace = {
+            'robot': robot,
+            'say': robot.say,
+            'go_to': robot.go_to,
+            'ask': robot.ask,
+            'is_in_room': robot.is_in_room,
+            'get_all_rooms': robot.get_all_rooms,
+            'get_current_location': robot.get_current_location,
+        }
+        program_with_call = program + "\n\ntask_program()\n"
+        exec(program_with_call, namespace)
     except RobotExecutionInterrupted as i:
         print(f"Robot Execution stopped as {i} was interrupted! Terminating execution!!")
     except Exception as e:
-        print("There is a problem with the executing the program: {}. \n Quitting Execution!! ".format(e))
-
-
-if __name__ == "__main__":
-    rospy.init_node('ros_interface', anonymous=False)
-    ra = RobotInterface()
-
-    def signal_handler(sig, frame):
-        print("Ctrl+C detected! Sending cancel requests to action servers...")
-        ra.go_to_client.cancel_all_goals()
-        ra.get_current_location_client.cancel_all_goals()
-        ra.is_in_room_client.cancel_all_goals()
-        ra.say_client.cancel_all_goals()
-        ra.get_all_rooms_client.cancel_all_goals()
-        ra.ask_client.cancel_all_goals()
-        rospy.sleep(5)
-        sys.exit(0)
-
-    signal.signal(signal.SIGINT, signal_handler)
-
-    time.sleep(1)
-    rospy.spin()
+        print("There is a problem with executing the program: {}. \nQuitting Execution!! ".format(e))
