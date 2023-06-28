@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import os
 import threading
 import http.server
@@ -7,7 +9,19 @@ import websockets
 import json
 import signal
 import time
+import actionlib
 from code_generation.completions import AutoModel, PaLMModel, OpenAIModel, TextGenerationModel
+from robot_actions_pkg.msg import ExecuteAction, ExecuteGoal
+
+ros_available = False
+robot_available = False
+execute_client = None
+try:
+    import rospy
+    ros_available = True
+except:
+    print("Could not import rospy. Robot interface is not available.")
+    ros_available = False
 
 httpd = None
 server_thread = None
@@ -81,20 +95,33 @@ def generate_code(prompt):
   print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
   code = (prompt_suffix + code).strip()
   return code
-
+  
 async def handle_message(websocket, message):
+  global ros_available
+  global robot_available
+  global execute_client
+  g = ExecuteGoal()
   data = json.loads(message)
   if data['type'] == 'code':
     print("Received code request")
     code = generate_code(data['prompt'])
     response = {"code": f"{code}"}
+    if data['execute']:
+      g.program = code
+      execute_client.send_goal(g)
     await websocket.send(json.dumps(response))
   elif data['type'] == 'eval':
     print("Received eval request")
     # await eval(websocket, data)
   elif data['type'] == 'execute':
     print("Received execute request")
-    # await execute(websocket, data)
+    if not ros_available:
+      print("ROS not available. Ignoring execute request.")
+    elif not robot_available:
+      print("Robot not available. Ignoring execute request.")
+    else:
+      g.program = data['code']
+      execute_client.send_goal(g)
   else:
     print("Unknown message type: " + data['type'])
 
@@ -134,6 +161,8 @@ def main():
   global server_thread
   global prompt_prefix
   global prompt_suffix
+  global ros_available
+  global robot_available
   import argparse
   from pathlib import Path
   parser = argparse.ArgumentParser()
@@ -161,8 +190,14 @@ def main():
   parser.add_argument('--max-workers',
                       type=int, help='Maximum number of workers',
                       default=1)
+  parser.add_argument('--robot', action='store_true', help='Flag to indicate if the robot is available')
 
-  args = parser.parse_args()
+  if ros_available:
+    args = parser.parse_args(rospy.myargv()[1:])
+  else:
+    args = parser.parse_args()
+  
+  robot_available = args.robot
 
   prompt_prefix = args.prompt_prefix.read_text()
   prompt_suffix = args.prompt_suffix.read_text()
@@ -173,4 +208,9 @@ def main():
   start_completion_callback(args)
 
 if __name__ == "__main__":
+  if ros_available:
+    rospy.init_node('python_commands_publisher')
+    execute_client = actionlib.SimpleActionClient("/execute_server", ExecuteAction)
+    execute_client.wait_for_server()
+  
   main()

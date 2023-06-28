@@ -25,8 +25,6 @@ pip install -r requirements.txt
 * To use a PaLM model, you will need a [Google Generative API key](https://developers.generativeai.google/tutorials/setup), either saved in a file named `.palm_api_key`, or in the `PALM_API_KEY` environment variable.
 * You can use any pretrained model compatible with the [HuggingFace AutoModel](https://huggingface.co/transformers/v3.5.1/model_doc/auto.html#automodelforcausallm) interface, including open-source models from the [HuggingFace repository](https://huggingface.co/models) such as [Starcoder](https://huggingface.co/bigcode/starcoder). Note that some models, including Starcoder, require you to agree to the HuggingFace terms of use, and you must be logged in using `huggingface-cli login`.
 
-**Robot Interface**
-TBD
 
 ## CodeBotler-Deploy Quick-Start Guide
 
@@ -50,7 +48,7 @@ List of arguments:
   `text-daVinci-003` for OpenAI (default), `models/text-bison-001` for PaLM, and
   `bigcode/starcoder` for AutoModel.
 
-Instructions for deploying on real robots are included in [robot_interface/README.md]
+Instructions for deploying on real robots are included in [robot_interface/README.md](robot_interface/README.md).
 
 ## CodeBotler-Benchmark Quick-Start Guide
 

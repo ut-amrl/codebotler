@@ -1,20 +1,11 @@
 <launch>
-    <!-- Jackal autonomy stack -->
-    <include file="$(find ut_jackal)/launch/autonomy.launch" />
 
-    <node name="interface_server"
+    <!-- Put the Robot IP here in place of 10.0.0.123 -->
+    <node name="codebotler_deploy"
         pkg="robot_commands"
-        type="interface_server.py"
+        type="codebotler_deploy.py"
         cwd="node"
-        args="--ip 10.0.0.123 --port 8190"
-        respawn="true"
-        respawn_delay="2"
-        output="screen"/>
-
-    <node name="gui"
-        pkg="robot_commands"
-        type="gui.py"
-        cwd="node"
+        args="--ip 10.0.0.123 --robot"
         respawn="true"
         respawn_delay="2"
         output="screen"/>
@@ -27,11 +18,4 @@
         respawn_delay="2"
         output="screen"/>
 
-    <node name="robot_low_level_actions"
-        pkg="robot_commands"
-        type="actions.py"
-        cwd="node"
-        respawn="true"
-        respawn_delay="2"
-        output="screen"/>
 </launch>
