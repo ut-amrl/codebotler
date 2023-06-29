@@ -60,7 +60,6 @@ def generate_code(prompt):
                             top_p=0.99999,
                             max_tokens=512)
   end_time = time.time()
-  print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
   code = (prompt_suffix + code).strip()
   return code
 
@@ -77,7 +76,7 @@ def main():
   parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix', default='code_generation/prompt_suffix.py')
   parser.add_argument('--max-workers', type=int, help='Maximum number of workers', default=1)
   parser.add_argument('--n', type=int, help='Number of completions', default=20)
-  
+
   args = parser.parse_known_args()
   # Get all unparsed arguments.
   prompt = " ".join(args[1:][0])
@@ -85,15 +84,30 @@ def main():
   prompt_prefix = args.prompt_prefix.read_text()
   prompt_suffix = args.prompt_suffix.read_text()
   load_model(args)
-  
-  print(f"Prompt:\n{prompt}")
-  
+
+  definitions = """
+def get_current_location():
+    ...
+def get_all_rooms():
+    ...
+def go_to(room):
+    ...
+def is_in_room(item):
+    ...
+def say(text):
+    ...
+def ask(person, question, options):
+    ...
+  """
+  print(definitions)
+  print(f"Prompt=\"{prompt}\"")
+
   for i in range(args.n):
     code = generate_code(prompt)
-    print(f"{i+1}=======================================")
+    print(f"# {i+1}=======================================")
     print(code)
-    print(f"{i+1}=======================================")
-  
+    print(f"# {i+1}=======================================")
+
 
 if __name__ == "__main__":
   main()

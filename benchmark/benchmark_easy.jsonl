@@ -1,0 +1,3 @@
+{"name": "MovieMessenger", "prompt": "Ask Sally in her office if she wants to go to the cinema with Mark. Go to Mark's office and tell him Sally’s answer. If Sally says yes, ask Mark whether he wants to leave at 4PM, 5PM, or 6PM - then go tell Sally what time Mark is leaving."}
+{"name": "HalloweenList", "prompt": "Go to every office, and if there is anyone there, ask if they'd like a chocolate, caramel, or gummy. Come back and tell me how many of each we need to buy."}
+{"name": "MeetingPrep", "prompt": "Go to every conference room and check if there is a whiteboard. Come back and tell me which are all the options."}
