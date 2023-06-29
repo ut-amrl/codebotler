@@ -1,7 +1,7 @@
 import os
 import threading
 import json
-from code_generation.completions import AutoModel, PaLMModel, OpenAIModel
+from code_generation.completions import AutoModel, PaLMModel, OpenAIModel, TextGenerationModel
 from code_generation.completions import completions, read_df
 
 model = None
@@ -17,7 +17,10 @@ def load_model(args):
         openai_api_key = f.read().strip()
     else:
       openai_api_key = os.getenv("OPENAI_API_KEY")
-    assert len(openai_api_key) > 0, "OpenAI API key not found. Either create a '.openai_api_key' file or set the OPENAI_API_KEY environment variable."
+    assert len(openai_api_key) > 0, \
+        "OpenAI API key not found. " + \
+        "Either create a '.openai_api_key' file or " + \
+        "set the OPENAI_API_KEY environment variable."
     model = OpenAIModel(model=args.model_name, api_key = openai_api_key)
   elif args.model_type == "palm":
     # If there exists a ".palm_api_key" file, use that as the API key.
@@ -26,10 +29,15 @@ def load_model(args):
         palm_api_key = f.read().strip()
     else:
       palm_api_key = os.getenv("PALM_API_KEY")
-    assert len(palm_api_key) > 0, "PaLM API key not found. Either create a '.palm_api_key' file or set the PALM_API_KEY environment variable."
+    assert len(palm_api_key) > 0, \
+        "PaLM API key not found. " + \
+        "Either create a '.palm_api_key' file or " + \
+        "set the PALM_API_KEY environment variable."
     model = PaLMModel(model=args.model_name, api_key = palm_api_key)
   elif args.model_type == "automodel":
-    model = AutoModel(batch_size=args.batch_size, path=args.model_name)
+    model = AutoModel(batch_size=1, path=args.model_name)
+  elif args.model_type == "hf-textgen":
+    model = TextGenerationModel(args.model_name, args.max_workers)
   else:
     raise ValueError(f"Unknown model type: {args.model_type}")
 
@@ -69,10 +77,11 @@ def main():
   parser.add_argument("--generate-output", type=Path)
   parser.add_argument("--evaluate-output", type=Path)
 
-  parser.add_argument("--model-type", choices=["openai", "palm", "automodel"], default="openai")
+  parser.add_argument("--model-type", choices=["openai", "palm", "automodel", "hf-textgen"], default="openai")
   parser.add_argument('--model-name', type=str, help='Model name', default='text-davinci-003')
   parser.add_argument('--prompt-prefix', type=Path, help='Prompt prefix', default='code_generation/prompt_prefix.py')
   parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix', default='code_generation/prompt_suffix.py')
+  parser.add_argument('--max-workers', type=int, help='Maximum number of workers', default=1)
 
   parser.add_argument('--benchmark-file', type=Path, help='Benchmark file', default='benchmark/benchmark.jsonl')
 
