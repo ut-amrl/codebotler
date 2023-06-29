@@ -40,7 +40,7 @@ class RobotInterface:
         if client.get_state() == actionlib.GoalStatus.PREEMPTED:
             raise RobotExecutionInterrupted(f"{action_name}()")
         else:
-            assert client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"{action_name} client not preempted, but still failed with state {client.get_state()}!"
+            assert client.get_state() == actionlib.GoalStatus.SUCCEEDED, f"{action_name} client not preempted, but still failed with state {actionlib.GoalStatus.to_string(client.get_state())}!"
         return client.get_result()
 
     # Get the current location of the robot.
@@ -97,6 +97,7 @@ def execute_task_program(program: str, robot: RobotInterface):
             'is_in_room': robot.is_in_room,
             'get_all_rooms': robot.get_all_rooms,
             'get_current_location': robot.get_current_location,
+            'time': time,
         }
         program_with_call = program + "\n\ntask_program()\n"
         exec(program_with_call, namespace)

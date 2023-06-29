@@ -331,12 +331,13 @@
         }
         document.addEventListener('DOMContentLoaded', function() {
           document.getElementById("code").textContent =
-            "list_of_rooms = get_all_rooms()\n" +
-            "start_loc = get_current_location()\n" +
-            "for room in list_of_rooms:\n" +
-            "  go_to(room)\n" +
-            "  say(\"Hello, world!\")\n" +
-            "go_to(start_loc)";
+            "def task_program():\n" + 
+            "    list_of_rooms = get_all_rooms()\n" +
+            "    start_loc = get_current_location()\n" +
+            "    for room in list_of_rooms:\n" +
+            "        go_to(room)\n" +
+            "        say(\"Hello, world!\")\n" +
+            "    go_to(start_loc)";
           doSyntaxHighlighting();
         }, false);
 
