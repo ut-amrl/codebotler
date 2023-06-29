@@ -48,24 +48,23 @@ def task_program():
     go_to(start_loc)
     say("Arjun said: " + response)
 
-# Go to the kitchen, ask Mom if dinner is ready, and come back and tell me what she said
+# Ask Alice if she needs 1, 2, or 3 staplers, and then go to the supply room and tell them how many she needs.
 def task_program():
-    start_loc = get_current_location()
-    go_to("kitchen")
-    response = ask("Mom", "Is dinner ready?", ["Yes", "No"])
-    go_to(start_loc)
-    say("Mom said: " + response)
+    go_to("Alice's office")
+    response = ask("Alice", "How many staplers do you need?", ["1", "2", "3"])
+    go_to("supply room")
+    say("Alice needs " + str(response) + " staplers")
 
-# Check if there are any mugs in the living room, and come back and tell me if there are any
+# Check if there is a red marker in conference room C, and if so, tell Eve that there is a marker there. If not, go to the main office and tell them that conference room C needs a red marker.
 def task_program():
-    start_loc = get_current_location()
-    go_to("living room")
-    mug_found = is_in_room("mug")
-    go_to(start_loc)
-    if mug_found:
-        say("There is a mug in the living room")
+    go_to("conference room C")
+    red_marker_found = is_in_room("red marker")
+    if red_marker_found:
+        go_to("Eve's office")
+        say("There is a red marker in conference room C")
     else:
-        say("There is no mug in the living room")
+        go_to("main office")
+        say("Conference room C needs a red marker")
 
 # Check if there are any staplers in any printer room, and come back and tell me if there are any, and if so, where
 def task_program():
@@ -100,4 +99,4 @@ def task_program():
         time.sleep(1)
     go_to(start_loc)
 
-#  
+# 
