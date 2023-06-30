@@ -17,6 +17,6 @@ This utilises [ROS actions](http://wiki.ros.org/actionlib) to provide a simple i
 1. Add `source <path_to_robot_commands>/robot_interface/devel/setup.bash` line to the `.bashrc` file
 
 ## Usage
-The action servers catering to the actions `go_to`, `get_current_location`, `is_in_room`, `say`, `get_all_rooms`, and `ask` need to be running on the robot before the following is run. Also, ensure you have setup the API keys as described [here](../README.md#requirements).
+The action servers catering to the actions `go_to`, `get_current_location`, `is_in_room`, `say`, `get_all_rooms`, and `ask` need to be running on the robot before the following is run. An example script is provided [src/servers_example.py](src/servers_example.py). Also, ensure you have setup the API keys as described [here](../README.md#requirements).
 1. Run `python codebotler_deploy.py --ip <robot_ip> --robot` on the robot
 1. Open `http://<robot_ip>:8080/` in your browser and type in natural language tasks
