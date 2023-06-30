@@ -150,7 +150,7 @@ def start_completion_callback(args):
     if robot_available and ros_available:
       robot_interface._cancel_goals()
     loop.stop()
-  
+
   loop.add_signal_handler(signal.SIGINT, custom_signal_handler)
 
   try:
@@ -192,7 +192,7 @@ def main():
     args = parser.parse_args(rospy.myargv()[1:])
   else:
     args = parser.parse_args()
-  
+
   robot_available = args.robot
 
   if robot_available and ros_available:

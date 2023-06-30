@@ -24,14 +24,14 @@ class RobotInterface:
         self.get_all_rooms_client = actionlib.SimpleActionClient("/get_all_rooms_server", GetAllRoomsAction)
         self.ask_client = actionlib.SimpleActionClient("/ask_server", AskAction)
 
+        print("====== Waiting for robot action servers... ======")
         self.go_to_client.wait_for_server()
         self.get_current_location_client.wait_for_server()
         self.is_in_room_client.wait_for_server()
         self.say_client.wait_for_server()
         self.get_all_rooms_client.wait_for_server()
         self.ask_client.wait_for_server()
-
-        print("====== all clients connected ========")
+        print("======= Connected to robot action servers =======")
 
     @staticmethod
     def _handle_client(client, goal, action_name):
