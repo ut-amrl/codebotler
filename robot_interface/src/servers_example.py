@@ -5,6 +5,7 @@ import time
 import sys
 import signal
 import actionlib
+import random
 from robot_actions_pkg.msg import GoToAction, GetCurrentLocationAction, IsInRoomAction, SayAction, GetAllRoomsAction, AskAction
 from robot_actions_pkg.msg import GoToResult, GetCurrentLocationResult, IsInRoomResult, SayResult, GetAllRoomsResult, AskResult
 
@@ -25,7 +26,7 @@ class RobotActions:
         self.get_all_rooms_server.start()
         self.ask_server.start()
 
-        print("============ all servers started ============")
+        print("======= Started all robot action servers =======")
 
     def go_to(self, goal):
         success = True
@@ -68,7 +69,8 @@ class RobotActions:
 
         # Implement code to check if the object is in the room
         print(f"Checking if {object} is in the room...")
-        r.result = False
+        # Placeholder: return a random result
+        r.result = random.choice([True, False])
 
         if self.is_in_room_server.is_preempt_requested():
             self.is_in_room_server.set_preempted()
@@ -109,8 +111,9 @@ class RobotActions:
         r = AskResult()
         success = True
 
-        # Implement code to ask the question to the person with options and get the response
-        r.result = "no answer"
+        # Implement code to ask the question to the person with options and get the response.
+        # Placeholder: return a random option from the options list.
+        r.result = random.choice(options)
 
         if self.ask_server.is_preempt_requested():
             self.ask_server.set_preempted()
@@ -122,12 +125,4 @@ class RobotActions:
 if __name__ == "__main__":
     rospy.init_node('robot_low_level_actions', anonymous=False)
     ra = RobotActions()
-
-    def signal_handler(sig, frame):
-        print("Ctrl+C detected! Killing server...")
-        sys.exit(0)
-
-    signal.signal(signal.SIGINT, signal_handler)
-
-    time.sleep(1)
     rospy.spin()
