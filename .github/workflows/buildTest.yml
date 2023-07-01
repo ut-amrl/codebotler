@@ -1,0 +1,51 @@
+name: Build-Test
+# Run this workflow every time a new commit pushed to your repository
+on: push
+
+jobs:
+  # Set the job key. The key is displayed as the job name
+  # when a job name is not provided
+  build-test:
+    # Name the Job
+    name: Build test
+    # Set the type of machine to run on
+    runs-on: ubuntu-20.04
+    container: ros:noetic
+    # Only run when merging to master.
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      # Run package update
+      - name: Run package update
+        run: |
+          sudo apt update
+          sudo apt dist-upgrade -y
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          sudo apt-get install python-is-python3
+
+      # Checks out a copy of your repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Install dependencies
+        run: |
+          cd $GITHUB_WORKSPACE
+          pip install -r requirements.txt
+
+      - name: Catkin make
+        run: |
+          source /opt/ros/noetic/setup.bash
+          cd $GITHUB_WORKSPACE/robot_interface
+          catkin_make
+
+      - name: Test run robot interface
+        run: |
+          source /opt/ros/noetic/setup.bash
+          source $GITHUB_WORKSPACE/robot_interface/devel/setup.bash
+          cd $GITHUB_WORKSPACE
+          timeout 5 python3 robot_interface/src/robot_example.py
