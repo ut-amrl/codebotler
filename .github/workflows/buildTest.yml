@@ -24,7 +24,7 @@ jobs:
       # Install dependencies
       - name: Install dependencies
         run: |
-          sudo apt-get install -y python-is-python3 git
+          sudo apt-get install -y python-is-python3 git python3-pip
 
       # Checks out a copy of your repository
       - name: Checkout code
