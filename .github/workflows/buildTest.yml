@@ -11,8 +11,8 @@ jobs:
     # Set the type of machine to run on
     runs-on: ubuntu-20.04
     container: ros:noetic
-    # Only run when merging to master.
-    if: github.ref == 'refs/heads/master'
+    # Only run when merging to main.
+    if: github.ref == 'refs/heads/main'
 
     steps:
       # Run package update
