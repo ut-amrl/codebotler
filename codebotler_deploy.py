@@ -109,7 +109,7 @@ def execute(code):
   elif not robot_available:
     print("Robot not available. Ignoring execute request.")
   else:
-    from robot_interface.src.interface import execute_task_program
+    from robot_interface.src.robot_client_interface import execute_task_program
     robot_execution_thread = threading.Thread(target=execute_task_program, name="robot_execute", args=[code, robot_interface])
     robot_execution_thread.start()
 
@@ -210,14 +210,14 @@ def main():
   signal.signal(signal.SIGINT, shutdown)
 
   if robot_available and ros_available:
-    from robot_interface.src.interface import RobotInterface
+    from robot_interface.src.robot_client_interface import RobotInterface
     robot_interface = RobotInterface()
 
   prompt_prefix = args.prompt_prefix.read_text()
   prompt_suffix = args.prompt_suffix.read_text()
   load_model(args)
-  server_thread = threading.Thread(target=serve_interface_html, 
-                                   name="HTTP server thread", 
+  server_thread = threading.Thread(target=serve_interface_html,
+                                   name="HTTP server thread",
                                    args=[args])
   server_thread.start()
 

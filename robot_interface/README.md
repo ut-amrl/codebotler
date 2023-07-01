@@ -1,22 +1,33 @@
 # CodeBotler Robot Interface
-The robot interface utilizes [ROS actions](http://wiki.ros.org/actionlib) to execute CodeBotler robot actions. The important components are:
-- `robot_interface/src/robot_actions_pkg`: ROS Catkin Package containing the custom action messages
-- `robot_interface/src/interface.py`: The main interface script that defines the CodeBotler robot actions:
-  * `go_to_client`: Action client for the `/go_to_server` action server. The associated action file is `src/robot_actions_pkg/action/GoTo.action`
-  * `get_current_location_client`: Action client for the `/get_current_location_server` action server. The associated action file is `src/robot_actions_pkg/action/GetCurrentLocation.action`
-  * `is_in_room_client`: Action client for the `/is_in_room_server` action server. The associated action file is `src/robot_actions_pkg/action/IsInRoom.action`
-  * `say_client`: Action client for the `/say_server` action server. The associated action file is `src/robot_actions_pkg/action/Say.action`
-  * `get_all_rooms_client`: Action client for the `/get_all_rooms_server` action server. The associated action file is `src/robot_actions_pkg/action/GetAllRooms.action`
-  * `ask_client`: Action client for the `/ask_server` action server. The associated action file is `src/robot_actions_pkg/action/Ask.action`
-- `codebotler_deploy.py`: This starts up the HTTP server serving the `interface.html` interface to type in natural language commands, as well as the WebSocket server that internally calls `robot_interface/src/interface.py` to execute the generated code
 
+CodeBotler utilizes [ROS actions](http://wiki.ros.org/actionlib) to execute generated code on a real robot.
+[robot_interface/src/robot_client_interface.py](robot_interface/src/robot_client_interface.py) defines the action clients that CodeBotler uses to call the robot action servers. The action definitions are in [robot_interface/src/robot_actions_pkg/action](robot_interface/src/robot_actions_pkg/action). An example robot action server script is provided in [robot_interface/src/robot_server_example.py](robot_interface/src/robot_server_example.py) - the example server simply prints action calls to the terminal, along with the call arguments and the result.
+You can use this example script as a template to implement the action servers for your robot.
 
 ## Build
-1. Navigate to the `robot_interface` directory and run `catkin_make`.
-1. Run `source <path_to_robot_commands>/robot_interface/devel/setup.bash`
-1. Optionally, add `source <path_to_robot_commands>/robot_interface/devel/setup.bash` to your `~/.bashrc` file to automatically source the setup script when opening a new terminal.
+To build the action messages and the CodeBotler client:
+1. Navigate to the `robot_interface` subdirectory and run `catkin_make`:
+    ```bash
+    cd robot_interface
+    catkin_make
+    ```
+1. Source the Catkin workspace setup script:
+    ```bash
+    source devel/setup.bash
+    ```
+1. Optionally, add the Catkin workspace setup script to your `~/.bashrc` file to automatically source the setup script when opening a new terminal.
+    ```bash
+    echo "source $(pwd)/devel/setup.bash" >> ~/.bashrc
+    ```
 
 ## Usage
-The action servers for the CodeBotler actions must be launched on the robot before running the deployment interface. An example robot action server script is provided [src/robot_example.py](src/robot_example.py).
-1. Run `python codebotler_deploy.py --ip <robot_ip> --robot` on the robot
-1. Open `http://<robot_ip>:8080/` in your browser and type in natural language tasks
+The robot-specific action server must be launched before running the deployment interface.
+1. Launch your robot action server. To launch the example server:
+    ```bash
+    python3 robot_interface/src/robot_server_example.py
+    ```
+1. Launch the deployment script on the robot:
+    ```bash
+    python3 codebotler_deploy.py --robot --ip <robot_ip>
+    ```
+1. Open `http://<robot_ip>:8080/` in your browser to access the deployment interface.
