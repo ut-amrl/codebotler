@@ -150,17 +150,6 @@ def start_completion_callback(args):
     ws_server = asyncio_loop.run_until_complete(start_server)
     asyncio_loop.run_forever()
   except Exception as e:
-<<<<<<< HEAD
-    print("ERROR_INFO: " + str(e))
-  finally:
-    print("Closing server")
-    for task in asyncio.all_tasks(loop=loop):
-        task.cancel()
-    server.close()
-    loop.run_until_complete(server.wait_closed())
-    loop.close()
-    os._exit(0)
-=======
     print("Websocket error: " + str(e))
     shutdown(None, None)
 
@@ -179,7 +168,6 @@ def shutdown(sig, frame):
   asyncio_loop.stop()
   ws_server.close()
   sys.exit(0)
->>>>>>> c8500c7 (Clean shutdown)
 
 def main():
   global server_thread
