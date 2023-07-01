@@ -48,13 +48,6 @@ jobs:
           source /opt/ros/noetic/setup.bash
           source $GITHUB_WORKSPACE/robot_interface/devel/setup.bash
           screen -s bash -mdS roscore roscore
+          sleep 2
           cd $GITHUB_WORKSPACE
-          timeout 5 python3 robot_interface/src/robot_example.py
-          exitcode="$?"
-          if [ "$exitcode" -eq 124 ]; then
-            echo "Test timed out, assume success"
-            exit 0
-          else
-            echo "Test Failed"
-            exit 1
-          fi
+          timeout --preserve-status 5 python3 robot_interface/src/robot_example.py
