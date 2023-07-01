@@ -82,10 +82,7 @@ def load_model(args):
     raise ValueError(f"Unknown model type: {args.model_type}")
 
 def generate_code(prompt):
-  global model
-  global prompt_prefix
-  global prompt_suffix
-  global code_timeout
+  global model, prompt_prefix, prompt_suffix, code_timeout
   start_time = time.time()
   prompt = prompt_prefix + prompt + prompt_suffix
   stop_sequences = ["#", "\ndef ", "\nclass", "import "]
@@ -116,7 +113,7 @@ async def handle_message(websocket, message):
   data = json.loads(message)
   if data['type'] == 'code':
     print("Received code generation request")
-    code = await generate_code(data['prompt'])
+    code = generate_code(data['prompt'])
     response = {"code": f"{code}"}
     await websocket.send(json.dumps(response))
     if data['execute']:
@@ -145,7 +142,6 @@ def start_completion_callback(args):
   asyncio_loop = asyncio.new_event_loop()
   asyncio.set_event_loop(asyncio_loop)
   start_server = websockets.serve(ws_main, args.ip, args.ws_port)
-
   try:
     ws_server = asyncio_loop.run_until_complete(start_server)
     asyncio_loop.run_forever()

@@ -41,7 +41,7 @@ class RobotActions:
         robot_location = goal.location
 
         # Implement code to move the robot to the location
-        print(f"Moving robot to {robot_location}.")
+        print(f"go_to(\"{robot_location}\")")
 
         # Check if preempt requested (should be inside a loop when moving to the goal location)
         if self.go_to_server.is_preempt_requested():
@@ -57,7 +57,7 @@ class RobotActions:
         success = True
 
         # Implement code to get the current location of the robot
-        print(f"Getting current location: \"{robot_location}\"")
+        print(f"get_current_location() -> \"{robot_location}\"")
         r.result = robot_location
 
         if self.get_current_location_server.is_preempt_requested():
@@ -74,7 +74,7 @@ class RobotActions:
 
         # Implement code to check if the object is in the room
         result = random.choice([True, False])
-        print(f"Checking if {object} is in the room ({robot_location}): {result}")
+        print(f"is_in_room(\"{object}\") -> {result}")
         # Placeholder: return a random result
         r.result = result
 
@@ -89,7 +89,7 @@ class RobotActions:
         success = True
 
         # Implement code to make the robot say the message
-        print(f"Robot says: \"{message}\"")
+        print(f"say(\"{message}\")")
 
         if self.say_server.is_preempt_requested():
             self.say_server.set_preempted()
@@ -103,7 +103,7 @@ class RobotActions:
         success = True
 
         # Implement code to get all the rooms
-        print(f"Getting all rooms: {rooms}")
+        print(f"get_all_rooms() -> {rooms}")
         r.result = rooms
 
         if self.get_all_rooms_server.is_preempt_requested():
@@ -122,7 +122,7 @@ class RobotActions:
         # Implement code to ask the question to the person with options and get the response.
         # Placeholder: return a random option from the options list.
         result = random.choice(options)
-        print(f"Robot asks {person} \"{question}\"; options: {options}; response: {result}")
+        print(f"ask(\"{person}\", \"{question}\", {options}) -> {result}")
         r.result = result
 
         if self.ask_server.is_preempt_requested():
