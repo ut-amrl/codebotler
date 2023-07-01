@@ -1,10 +1,12 @@
 # CodeBotler Overview
 
+[![Build Status](https://github.com/ut-amrl/robot_commands/actions/workflows/buildTest.yml/badge.svg)](https://github.com/ut-amrl/robot_commands/actions)
+
 CodeBotler is a system that converts natural language task descriptions into
 task-specific programs that can be executed by general-purpose service mobile
-robots. 
+robots.
 It includes a benchmark for evaluating LLMs for code generation for service
-mobile robot tasks. 
+mobile robot tasks.
 
 CodeBotler consists of two key components:
 * [CodeBotler-Deploy](#codebotler-deploy-quick-start-guide): A web interface and server for deploying CodeBotler on a
@@ -34,7 +36,7 @@ To run the web interface for CodeBotler-Deploy using the default options (using 
 OPENAI_API_KEY=YOURKEY python3 codebotler_deploy.py
 ```
 This will start the server on `localhost:8080`. You can then open the interface
-by navigating to http://localhost:8080/ in your browser.  
+by navigating to http://localhost:8080/ in your browser.
 
 List of arguments:
 * `--ip`: The IP address to host the server on (default is `localhost`).
@@ -62,7 +64,7 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
     This will generate the programs for the benchmark tasks and save them in
     an output file named `starcoder_completions.jsonl`. It assumes default values
     for temperature (0.2), top-p (0.9), and num-completions (20), to generate 20
-    programs for each task --- this will suffice for pass@1 evaluation. 
+    programs for each task --- this will suffice for pass@1 evaluation.
 2. Evaluate the generated programs using the following command:
     ```shell
     python3 codebotler_benchmark.py --evaluate --generate-output starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
