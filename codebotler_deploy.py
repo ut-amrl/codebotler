@@ -151,11 +151,13 @@ def start_completion_callback(args):
 
 def shutdown(sig, frame):
   global ros_available, robot_available, robot_interface, server_thread, asyncio_loop, httpd, ws_server
-  print(" Shutting down Server")
-  if ros_available:
-    rospy.signal_shutdown("Shutting down Server")
+  print("Shutting down Server")
   if robot_available and ros_available:
     robot_interface._cancel_goals()
+    print("Waiting for actions to preempt...")
+  time.sleep(10)
+  if ros_available:
+    rospy.signal_shutdown("Shutting down Server")
   httpd.server_close()
   httpd.shutdown()
   server_thread.join()
