@@ -173,7 +173,11 @@ def shutdown(sig, frame):
     asyncio_loop.stop()
   if ws_server is not None:
     ws_server.close()
-  sys.exit(0)
+  if sig == signal.SIGINT or sig == signal.SIGTERM:
+    exit_code = 0
+  else:
+    exit_code = 1
+  sys.exit(exit_code)
 
 def main():
   global server_thread
