@@ -42,7 +42,7 @@ jobs:
           cd $GITHUB_WORKSPACE/robot_interface
           catkin_make
 
-      - name: Test run robot interface
+      - name: Run robot server interface
         shell: bash
         run: |
           source /opt/ros/noetic/setup.bash
@@ -50,4 +50,15 @@ jobs:
           screen -s bash -mdS roscore roscore
           sleep 2
           cd $GITHUB_WORKSPACE
-          timeout --preserve-status 5 python3 robot_interface/src/robot_example.py
+          timeout --preserve-status 5 python3 robot_interface/src/robot_server_example.py
+
+      - name: Run deployment interface with robot server
+        shell: bash
+        run: |
+          source /opt/ros/noetic/setup.bash
+          source $GITHUB_WORKSPACE/robot_interface/devel/setup.bash
+          screen -s bash -mdS roscore roscore
+          sleep 2
+          cd $GITHUB_WORKSPACE
+          screen -s bash -mdS robot_server python3 robot_interface/src/robot_server_example.py
+          timeout --preserve-status 5 python3 codebotler_deploy.py --robot
