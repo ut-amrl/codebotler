@@ -11,6 +11,7 @@ import signal
 import time
 from code_generation.completions import AutoModel, PaLMModel, OpenAIModel, TextGenerationModel
 import threading
+import queue
 
 ros_available = False
 robot_available = False
@@ -28,6 +29,7 @@ server_thread = None
 model = None
 prompt_prefix = ""
 prompt_suffix = ""
+code_timeout = None
 
 def serve_interface_html(args):
   global httpd
@@ -83,18 +85,39 @@ def load_model(args):
 
 def generate_code(prompt):
   global model
+  global prompt_prefix
+  global prompt_suffix
+  global code_timeout
   start_time = time.time()
   prompt = prompt_prefix + prompt + prompt_suffix
   stop_sequences = ["#", "\ndef ", "\nclass", "import "]
-  code = model.generate_one(prompt=prompt,
-                            stop_sequences=stop_sequences,
-                            temperature=0.9,
-                            top_p=0.99999,
-                            max_tokens=512)
+
+  result_queue = queue.Queue()
+
+  def generate_code_thread():
+    code = model.generate_one(prompt=prompt,
+                              stop_sequences=stop_sequences,
+                              temperature=0.9,
+                              top_p=0.99999,
+                              max_tokens=512)
+    # Put the result into the queue
+    result_queue.put(code)
+  
+  code_thread = threading.Thread(target=generate_code_thread)
+  code_thread.daemon = True
+  code_thread.start()
+  code_thread.join(timeout=code_timeout)
   end_time = time.time()
-  print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
-  code = (prompt_suffix + code).strip()
-  return code
+
+  if not result_queue.empty():
+    code = result_queue.get()
+    print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
+    code = (prompt_suffix + code).strip()
+    return code
+  else:
+    # The API call didn't complete in time
+    print("Code generation timed out!")
+    return "Code generation timed out!"
 
 def execute(code):
   global ros_available
@@ -165,6 +188,7 @@ def start_completion_callback(args):
     server.close()
     loop.run_until_complete(server.wait_closed())
     loop.close()
+    os._exit(0)
 
 def main():
   global server_thread
@@ -173,6 +197,7 @@ def main():
   global ros_available
   global robot_available
   global robot_interface
+  global code_timeout
   import argparse
   from pathlib import Path
   parser = argparse.ArgumentParser()
@@ -187,6 +212,7 @@ def main():
   parser.add_argument('--interface-page', type=Path, help='Interface page', default='code_generation/interface.html')
   parser.add_argument('--max-workers', type=int, help='Maximum number of workers', default=1)
   parser.add_argument('--robot', action='store_true', help='Flag to indicate if the robot is available')
+  parser.add_argument('--timeout', type=int, help='Code generation timeout in seconds', default=20)
 
   if ros_available:
     args = parser.parse_args(rospy.myargv()[1:])
@@ -194,6 +220,7 @@ def main():
     args = parser.parse_args()
 
   robot_available = args.robot
+  code_timeout = args.timeout
 
   if robot_available and ros_available:
     from robot_interface.src.interface import RobotInterface
