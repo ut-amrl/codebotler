@@ -163,7 +163,32 @@
         margin-right: 0.5em;
         vertical-align: middle;
       }
+      
+      .table-container table tr:nth-child(even) {
+        background-color: #fff; /* White for odd rows */
+      }
 
+      .table-container table tr:nth-child(odd) {
+        background-color: #f2f2f2; /* Light grey for even rows */
+      }
+      
+      .table-container table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        margin-left: 20px;
+      }
+
+      .table-container table tr {
+        border-bottom: 1px solid #ccc; /* Grey horizontal lines */
+      }
+      
+      .table-container table tr td {
+        padding: 0.5rem; /* Padding inside the cell */
+      }
+      .table-container table tr:first-child {
+        border-top: 1px solid #ccc;
+      }
     </style>
 </head>
 <body>
@@ -182,14 +207,21 @@
     </div>
     <div class="details-container">
       <details>
-          <summary>Generated Code Feedback</summary>
-          <!-- <br /> -->
-        <div class="button-container">
-          <button class="button" onclick="buttonPressed(this)">Correct</button>
-          <button class="button" onclick="buttonPressed(this)">Correct, inefficient</button>
-          <button class="button" onclick="buttonPressed(this)">Incorrect</button>
-          <button class="button" onclick="buttonPressed(this)">Syntax error</button>
-        </div>
+          <summary>Execution Trace</summary>
+          <div class="table-container">
+            <table>
+              <tr>
+                <td>get_all_rooms() -> ["Alice's office", "Bob's office",
+                "kitchen", "supply room"]</td>
+              </tr>
+              <tr>
+                <td>go_to("Alice's office")</td>
+              </tr>
+              <tr>
+                <td>say("Hello, world!")</td>
+              </tr>
+            </table>
+          </div>
       </details>
     </div>
 
@@ -264,6 +296,10 @@
           codeElement.innerHTML = codeHTML;
         }
 
+        function handleTraceCallback(event) {
+          
+        }
+        
         function generateCodeRequest(text, execute) {
             let tStart = performance.now();
             try {
@@ -277,15 +313,17 @@
               };
               socket.onmessage = function(event) {
                   let tEnd = performance.now();
-                  setStatus("Code generated in " + (tEnd - tStart).toFixed(2) + "ms. Closing connection...");
+                  setStatus("Code generated in " + (tEnd - tStart).toFixed(2) + "ms.");
                   let response = JSON.parse(event.data);
                   let codeElement = document.getElementById("code");
                   if (codeElement.textContent.startsWith("\n")) {
                       codeElement.textContent = codeElement.textContent.slice(1);
                   }
                   codeElement.textContent = response.code;
-                  socket.close();
                   doSyntaxHighlighting();
+                  if (execute) {
+                    socket.onmessage = handleTraceCallback;
+                  }
               };
               socket.onerror = function(error) {
                   setStatus("Websocket error.");
