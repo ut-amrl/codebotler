@@ -11,11 +11,12 @@ The robot interface utilizes [ROS actions](http://wiki.ros.org/actionlib) to exe
 - `codebotler_deploy.py`: This starts up the HTTP server serving the `interface.html` interface to type in natural language commands, as well as the WebSocket server that internally calls `robot_interface/src/interface.py` to execute the generated code
 
 
-## Setup
-1. Navigate to the `robot_interface` directory and do `catkin_make`
-1. Add `source <path_to_robot_commands>/robot_interface/devel/setup.bash` line to the `.bashrc` file
+## Build
+1. Navigate to the `robot_interface` directory and run `catkin_make`.
+1. Run `source <path_to_robot_commands>/robot_interface/devel/setup.bash`
+1. Optionally, add `source <path_to_robot_commands>/robot_interface/devel/setup.bash` to your `~/.bashrc` file to automatically source the setup script when opening a new terminal.
 
 ## Usage
-The action servers for the CodeBotler actions must be launched on the robot before running the deployment interface. An example robot action server script is provided [src/robot_example.py](src/robot_example.py). 
+The action servers for the CodeBotler actions must be launched on the robot before running the deployment interface. An example robot action server script is provided [src/robot_example.py](src/robot_example.py).
 1. Run `python codebotler_deploy.py --ip <robot_ip> --robot` on the robot
 1. Open `http://<robot_ip>:8080/` in your browser and type in natural language tasks
