@@ -15,7 +15,7 @@ Robot tasks are defined in named functions, with docstrings describing the task.
 def get_current_location() -> str:
     ...
 
-# Get a list of all rooms in the house.
+# Get a list of all rooms.
 def get_all_rooms() -> list[str]:
     ...
 
@@ -23,20 +23,15 @@ def get_all_rooms() -> list[str]:
 def is_in_room(object : str) -> bool:
     ...
 
-# Go to a specific named location, e.g. go_to("kitchen"), go_to("Arjun's
-# office"), go_to("Jill's study"). Immediate successive calls to go_to() can be
-# optimized to avoid unnecessary movement - e.g. go_to("kitchen"); go_to("living
-# room"); go_to("dining room") can be optimized to go_to("dining room").
+# Go to a specific named location, e.g. go_to("kitchen"), go_to("Arjun's office"), go_to("Jill's study").
 def go_to(location : str) -> None:
     ...
 
-# Ask a person a question, and offer a set of specific options for the person to
-# respond. Return with the response selected by the person.
+# Ask a person a question, and offer a set of specific options for the person to respond. Returns the response selected by the person.
 def ask(person : str, question : str, options: list[str]) -> str:
     ...
 
-# Say the message out loud. Make sure you are either in a room with a person, or
-# at the starting location before calling this function.
+# Say the message out loud.
 def say(message : str) -> None:
     ...
 
@@ -55,21 +50,20 @@ def task_program():
     go_to("supply room")
     say("Alice needs " + str(response) + " staplers")
 
-# Check if there is a red marker in conference room C, and if so, tell Eve that there is a marker there. If not, go to the main office and tell them that conference room C needs a red marker.
+# Check if there is a red marker in the main office, and if so, tell Eve that there is a marker there. If not, go to the supply room and tell them that the main office needs a red marker.
 def task_program():
-    go_to("conference room C")
+    go_to("main office")
     red_marker_found = is_in_room("red marker")
     if red_marker_found:
         go_to("Eve's office")
-        say("There is a red marker in conference room C")
+        say("There is a red marker in the main office")
     else:
-        go_to("main office")
-        say("Conference room C needs a red marker")
+        go_to("supply room")
+        say("The main office needs a red marker")
 
-# Check if there are any staplers in any printer room, and come back and tell me if there are any, and if so, where
+# Check if there are any staplers in any printer room, and then go to Aiden's office and tell him where they are.
 def task_program():
     list_of_rooms = get_all_rooms()
-    start_loc = get_current_location()
     stapler_found = False
     stapler_loc = None
     for room in list_of_rooms:
@@ -80,11 +74,11 @@ def task_program():
             stapler_found = True
             stapler_loc = room
             break
-    go_to(start_loc)
+    go_to("Aiden's office")
     if stapler_found:
         say("There is a stapler in the " + stapler_loc)
     else:
-        say("There is no stapler in the house")
+        say("There is no stapler in any printer room")
 
 
 # Go to the kitchen and wait for someone to show up. When someone shows up, ask them to place the diet coke from the fridge in your basket, and bring it here
