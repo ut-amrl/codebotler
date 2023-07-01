@@ -81,19 +81,16 @@ def load_model(args):
   else:
     raise ValueError(f"Unknown model type: {args.model_type}")
 
-async def generate_code(prompt):
+def generate_code(prompt):
   global model
   start_time = time.time()
   prompt = prompt_prefix + prompt + prompt_suffix
   stop_sequences = ["#", "\ndef ", "\nclass", "import "]
-  gencode_loop = asyncio.get_event_loop()
-  code = await gencode_loop.run_in_executor(executor=None, 
-                                            func=model.generate_one, 
-                                            prompt=prompt, 
-                                            stop_sequences=stop_sequences, 
-                                            temperature=0.9, 
-                                            top_p=0.99999, 
-                                            max_tokens=512)
+  code = model.generate_one(prompt=prompt,
+                            stop_sequences=stop_sequences,
+                            temperature=0.9,
+                            top_p=0.99999,
+                            max_tokens=512)
   end_time = time.time()
   print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
   code = (prompt_suffix + code).strip()
@@ -116,7 +113,7 @@ async def handle_message(websocket, message):
   data = json.loads(message)
   if data['type'] == 'code':
     print("Received code request")
-    code = await generate_code(data['prompt'])
+    code = generate_code(data['prompt'])
     response = {"code": f"{code}"}
     await websocket.send(json.dumps(response))
     if data['execute']:
