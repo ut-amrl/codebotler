@@ -36,12 +36,14 @@ jobs:
           pip install -r requirements.txt
 
       - name: Catkin make
+        shell: bash
         run: |
           source /opt/ros/noetic/setup.bash
           cd $GITHUB_WORKSPACE/robot_interface
           catkin_make
 
       - name: Test run robot interface
+        shell: bash
         run: |
           source /opt/ros/noetic/setup.bash
           source $GITHUB_WORKSPACE/robot_interface/devel/setup.bash
