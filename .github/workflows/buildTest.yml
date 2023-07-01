@@ -47,5 +47,6 @@ jobs:
         run: |
           source /opt/ros/noetic/setup.bash
           source $GITHUB_WORKSPACE/robot_interface/devel/setup.bash
+          roscore &
           cd $GITHUB_WORKSPACE
           timeout 5 python3 robot_interface/src/robot_example.py
