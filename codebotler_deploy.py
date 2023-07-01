@@ -45,8 +45,12 @@ def serve_interface_html(args):
                             f"ws://{args.ip}:{args.ws_port}")
       self.wfile.write(bytes(html, 'utf8'))
   print(f"Starting server at http://{args.ip}:{args.port}")
-  httpd = http.server.HTTPServer((args.ip, args.port), HTMLFileHandler)
-  httpd.serve_forever()
+  try:
+    httpd = http.server.HTTPServer((args.ip, args.port), HTMLFileHandler)
+    httpd.serve_forever()
+  except Exception as e:
+    print("HTTP server error: " + str(e))
+    shutdown(None, None)
 
 def load_model(args):
   global model
@@ -85,7 +89,7 @@ def generate_code(prompt):
   global model, prompt_prefix, prompt_suffix, code_timeout
   start_time = time.time()
   prompt = prompt_prefix + prompt + prompt_suffix
-  stop_sequences = ["#", "\ndef ", "\nclass", "import "]
+  stop_sequences = ["\n#", "\ndef ", "\nclass", "```"]
   code = model.generate_one(prompt=prompt,
                             stop_sequences=stop_sequences,
                             temperature=0.9,
@@ -151,20 +155,24 @@ def start_completion_callback(args):
 
 def shutdown(sig, frame):
   global ros_available, robot_available, robot_interface, server_thread, asyncio_loop, httpd, ws_server
-  print("Shutting down Server")
-  if robot_available and ros_available:
+  print(" Shutting down server.")
+  if robot_available and ros_available and robot_interface is not None:
     robot_interface._cancel_goals()
-    print("Waiting for actions to preempt...")
-  time.sleep(10)
+    print("Waiting for 2s to preempt robot actions...")
+    time.sleep(2)
   if ros_available:
     rospy.signal_shutdown("Shutting down Server")
-  httpd.server_close()
-  httpd.shutdown()
-  server_thread.join()
-  for task in asyncio.all_tasks(loop=asyncio_loop):
-    task.cancel()
-  asyncio_loop.stop()
-  ws_server.close()
+  if httpd is not None:
+    httpd.server_close()
+    httpd.shutdown()
+  if server_thread is not None and threading.current_thread() != server_thread:
+    server_thread.join()
+  if asyncio_loop is not None:
+    for task in asyncio.all_tasks(loop=asyncio_loop):
+      task.cancel()
+    asyncio_loop.stop()
+  if ws_server is not None:
+    ws_server.close()
   sys.exit(0)
 
 def main():
@@ -208,7 +216,9 @@ def main():
   prompt_prefix = args.prompt_prefix.read_text()
   prompt_suffix = args.prompt_suffix.read_text()
   load_model(args)
-  server_thread = threading.Thread(target=serve_interface_html, args=[args])
+  server_thread = threading.Thread(target=serve_interface_html, 
+                                   name="HTTP server thread", 
+                                   args=[args])
   server_thread.start()
 
   start_completion_callback(args)
