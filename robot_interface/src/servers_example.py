@@ -9,6 +9,8 @@ import random
 from robot_actions_pkg.msg import GoToAction, GetCurrentLocationAction, IsInRoomAction, SayAction, GetAllRoomsAction, AskAction
 from robot_actions_pkg.msg import GoToResult, GetCurrentLocationResult, IsInRoomResult, SayResult, GetAllRoomsResult, AskResult
 
+rooms = ["kitchen", "Alice's office", "Bob's office", "supply room"]
+robot_location = random.choice(rooms)
 
 class RobotActions:
     def __init__(self):
@@ -29,16 +31,17 @@ class RobotActions:
         print("======= Started all robot action servers =======")
 
     def go_to(self, goal):
+        global robot_location
         success = True
 
         def stop_robot():
             # Implement code to stop the robot
             print("Stopping robot...")
 
-        location = goal.location
+        robot_location = goal.location
 
         # Implement code to move the robot to the location
-        print(f"Moving robot to {location}...")
+        print(f"Moving robot to {robot_location}.")
 
         # Check if preempt requested (should be inside a loop when moving to the goal location)
         if self.go_to_server.is_preempt_requested():
@@ -49,12 +52,13 @@ class RobotActions:
             self.go_to_server.set_succeeded()
 
     def get_current_location(self, goal):
+        global robot_location
         r = GetCurrentLocationResult()
         success = True
 
         # Implement code to get the current location of the robot
-        print("Getting current location...")
-        r.result = "none"
+        print(f"Getting current location: \"{robot_location}\"")
+        r.result = robot_location
 
         if self.get_current_location_server.is_preempt_requested():
             self.get_current_location_server.set_preempted()
@@ -63,14 +67,16 @@ class RobotActions:
             self.get_current_location_server.set_succeeded(r)
 
     def is_in_room(self, goal):
+        global robot_location
         object = goal.object
         r = IsInRoomResult()
         success = True
 
         # Implement code to check if the object is in the room
-        print(f"Checking if {object} is in the room...")
+        result = random.choice([True, False])
+        print(f"Checking if {object} is in the room ({robot_location}): {result}")
         # Placeholder: return a random result
-        r.result = random.choice([True, False])
+        r.result = result
 
         if self.is_in_room_server.is_preempt_requested():
             self.is_in_room_server.set_preempted()
@@ -92,11 +98,13 @@ class RobotActions:
             self.say_server.set_succeeded()
 
     def get_all_rooms(self, goal):
+        global rooms
         r = GetAllRoomsResult()
         success = True
 
         # Implement code to get all the rooms
-        r.result = ["room1", "room2", "room3"]
+        print(f"Getting all rooms: {rooms}")
+        r.result = rooms
 
         if self.get_all_rooms_server.is_preempt_requested():
             self.get_all_rooms_server.set_preempted()
@@ -113,7 +121,9 @@ class RobotActions:
 
         # Implement code to ask the question to the person with options and get the response.
         # Placeholder: return a random option from the options list.
-        r.result = random.choice(options)
+        result = random.choice(options)
+        print(f"Robot asks {person} \"{question}\"; options: {options}; response: {result}")
+        r.result = result
 
         if self.ask_server.is_preempt_requested():
             self.ask_server.set_preempted()

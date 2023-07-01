@@ -9,9 +9,9 @@ import websockets
 import json
 import signal
 import time
+import sys
 from code_generation.completions import AutoModel, PaLMModel, OpenAIModel, TextGenerationModel
 import threading
-import queue
 
 ros_available = False
 robot_available = False
@@ -27,28 +27,26 @@ except:
 httpd = None
 server_thread = None
 model = None
+asyncio_loop = None
+ws_server = None
 prompt_prefix = ""
 prompt_suffix = ""
-code_timeout = None
 
 def serve_interface_html(args):
   global httpd
-  html_file = args.interface_page
-  class ThreadedHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    pass
   class HTMLFileHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
       self.send_response(200)
       self.send_header('Content-type', 'text/html')
       self.end_headers()
-      with open(html_file, 'r') as file:
+      with open(args.interface_page, 'r') as file:
         html = file.read()
         html = html.replace("ws://localhost:8190",
                             f"ws://{args.ip}:{args.ws_port}")
       self.wfile.write(bytes(html, 'utf8'))
   print(f"Starting server at http://{args.ip}:{args.port}")
-  with ThreadedHTTPServer((args.ip, args.port), HTMLFileHandler) as httpd:
-    httpd.serve_forever()
+  httpd = http.server.HTTPServer((args.ip, args.port), HTMLFileHandler)
+  httpd.serve_forever()
 
 def load_model(args):
   global model
@@ -91,33 +89,15 @@ def generate_code(prompt):
   start_time = time.time()
   prompt = prompt_prefix + prompt + prompt_suffix
   stop_sequences = ["#", "\ndef ", "\nclass", "import "]
-
-  result_queue = queue.Queue()
-
-  def generate_code_thread():
-    code = model.generate_one(prompt=prompt,
-                              stop_sequences=stop_sequences,
-                              temperature=0.9,
-                              top_p=0.99999,
-                              max_tokens=512)
-    # Put the result into the queue
-    result_queue.put(code)
-  
-  code_thread = threading.Thread(target=generate_code_thread)
-  code_thread.daemon = True
-  code_thread.start()
-  code_thread.join(timeout=code_timeout)
+  code = model.generate_one(prompt=prompt,
+                            stop_sequences=stop_sequences,
+                            temperature=0.9,
+                            top_p=0.99999,
+                            max_tokens=512)
   end_time = time.time()
-
-  if not result_queue.empty():
-    code = result_queue.get()
-    print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
-    code = (prompt_suffix + code).strip()
-    return code
-  else:
-    # The API call didn't complete in time
-    print("Code generation timed out!")
-    return "Code generation timed out!"
+  print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
+  code = (prompt_suffix + code).strip()
+  return code
 
 def execute(code):
   global ros_available
@@ -135,12 +115,12 @@ def execute(code):
 async def handle_message(websocket, message):
   data = json.loads(message)
   if data['type'] == 'code':
-    print("Received code request")
-    code = generate_code(data['prompt'])
+    print("Received code generation request")
+    code = await generate_code(data['prompt'])
     response = {"code": f"{code}"}
     await websocket.send(json.dumps(response))
     if data['execute']:
-      print("Received execute request")
+      print("Executing generated code")
       execute(code)
   elif data['type'] == 'eval':
     print("Received eval request")
@@ -148,38 +128,29 @@ async def handle_message(websocket, message):
   elif data['type'] == 'execute':
     print("Received execute request")
     execute(data['code'])
+    await websocket.close()
   else:
     print("Unknown message type: " + data['type'])
 
 async def ws_main(websocket, path):
-  print(f"Client connected.")
   try:
     async for message in websocket:
       await handle_message(websocket, message)
   except websockets.exceptions.ConnectionClosed:
-    print("Client disconnected.")
+    pass
 
 def start_completion_callback(args):
-  global ros_available
-  global robot_available
-  global robot_interface
+  global asyncio_loop, ws_server
   # Create an asyncio event loop
-  loop = asyncio.new_event_loop()
-  asyncio.set_event_loop(loop)
+  asyncio_loop = asyncio.new_event_loop()
+  asyncio.set_event_loop(asyncio_loop)
   start_server = websockets.serve(ws_main, args.ip, args.ws_port)
 
-  def custom_signal_handler():
-    print("INFO: Shutting down Server")
-    if robot_available and ros_available:
-      robot_interface._cancel_goals()
-    loop.stop()
-
-  loop.add_signal_handler(signal.SIGINT, custom_signal_handler)
-
   try:
-    server = loop.run_until_complete(start_server)
-    loop.run_forever()
+    ws_server = asyncio_loop.run_until_complete(start_server)
+    asyncio_loop.run_forever()
   except Exception as e:
+<<<<<<< HEAD
     print("ERROR_INFO: " + str(e))
   finally:
     print("Closing server")
@@ -189,6 +160,26 @@ def start_completion_callback(args):
     loop.run_until_complete(server.wait_closed())
     loop.close()
     os._exit(0)
+=======
+    print("Websocket error: " + str(e))
+    shutdown(None, None)
+
+def shutdown(sig, frame):
+  global ros_available, robot_available, robot_interface, server_thread, asyncio_loop, httpd, ws_server
+  print(" Shutting down Server")
+  if ros_available:
+    rospy.signal_shutdown("Shutting down Server")
+  if robot_available and ros_available:
+    robot_interface._cancel_goals()
+  httpd.server_close()
+  httpd.shutdown()
+  server_thread.join()
+  for task in asyncio.all_tasks(loop=asyncio_loop):
+    task.cancel()
+  asyncio_loop.stop()
+  ws_server.close()
+  sys.exit(0)
+>>>>>>> c8500c7 (Clean shutdown)
 
 def main():
   global server_thread
@@ -221,6 +212,8 @@ def main():
 
   robot_available = args.robot
   code_timeout = args.timeout
+
+  signal.signal(signal.SIGINT, shutdown)
 
   if robot_available and ros_available:
     from robot_interface.src.interface import RobotInterface

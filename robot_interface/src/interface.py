@@ -100,7 +100,9 @@ def execute_task_program(program: str, robot: RobotInterface):
             'time': time,
         }
         program_with_call = program + "\n\ntask_program()\n"
+        print("Executing program...")
         exec(program_with_call, namespace)
+        print("Program executed successfully.")
     except RobotExecutionInterrupted as i:
         print(f"Robot Execution stopped as {i} was interrupted! Terminating execution!!")
     except Exception as e:
