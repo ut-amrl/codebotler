@@ -24,7 +24,7 @@ jobs:
       # Install dependencies
       - name: Install dependencies
         run: |
-          sudo apt-get install -y python-is-python3 git python3-pip
+          sudo apt-get install -y python-is-python3 git python3-pip screen
 
       # Checks out a copy of your repository
       - name: Checkout code
@@ -47,6 +47,14 @@ jobs:
         run: |
           source /opt/ros/noetic/setup.bash
           source $GITHUB_WORKSPACE/robot_interface/devel/setup.bash
-          roscore &
+          screen -s bash -mdS roscore roscore
           cd $GITHUB_WORKSPACE
           timeout 5 python3 robot_interface/src/robot_example.py
+          exitcode="$?"
+          if [ "$exitcode" -eq 124 ]; then
+            echo "Test timed out, assume success"
+            exit 0
+          else
+            echo "Test Failed"
+            exit 1
+          fi
