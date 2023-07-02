@@ -62,4 +62,4 @@ jobs:
           cd $GITHUB_WORKSPACE
           screen -s bash -mdS robot_server python3 robot_interface/src/robot_server_example.py
           export OPENAI_API_KEY=FAKE_KEY
-          timeout --preserve-status 5 python3 codebotler_deploy.py --robot --ip 0.0.0.0
+          timeout --preserve-status -s SIGINT 5 python3 codebotler_deploy.py --robot --ip 0.0.0.0
