@@ -1,17 +1,10 @@
 import argparse
 import json
 from clingo.symbol import *
-import sys
-sys.path.append("..")
-from simple_tracer import State, Object, InteractiveAgent
 """
-This script takes a json file of example good/bad completions in
-the format of staplerSupply.json and adds a constraint according to the
-task name. The output is a jsonl file of the same format with the added
-constraints.
+This script takes a jsonl file as input and dumps the constraints
+to respective tasks
 """
-tasks = ["StaplerSupply", "LunchBreak", "ElevatorTour", "MovieMessenger", 
-         "FindBackpack", "DoubleirOrTakeitGame"]
 
 task_to_states = {
 
@@ -184,14 +177,13 @@ robot_enjoy_visit :- at("robot", "main conference room", T),
 
 def constrain_jsonl(args):
     with open(args.jsonl_file,"r") as f:
-        with open(args.output_file,"w") as o:
+        with open(args.output_file,"a") as o:
             for line in f.readlines():
                 # add constraints per state
                 # only for target tests
                 # list of {state, test}
                 line = json.loads(line)
-                if (line["name"] == "LunchBreak" or line["name"] == "StaplerSupply" or
-                    line["name"] == "ElevatorTour"):
+                if line["name"] in task_to_states.keys():
 
                     tests = []
                     for state in task_to_states[line["name"]]:
@@ -210,6 +202,9 @@ def constrain_jsonl(args):
 
 
 def constrain_json(args):
+    '''
+    Old format
+    '''
     # args.task_name = args.jsonl_file.split("/")[-1].split(".")[0]
     examples = json.loads(open(args.jsonl_file,"r").read())
     
@@ -246,12 +241,13 @@ def constrain_json(args):
  
 def main(args):
     constrain_jsonl(args)
+    ## Old format:
     # constrain_json(args)
  
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('jsonl_file', type=str)
     parser.add_argument('--output_file', type=str, default="constrained_examples.jsonl")
-    parser.add_argument('--task_name', type=str, default=None)
+    # parser.add_argument('--task_name', type=str, default=None)
     args = parser.parse_args()
     main(args)
