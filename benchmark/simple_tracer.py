@@ -173,9 +173,14 @@ def run_program(program : str, state : State) -> list[str] :
   #             "get_all_rooms = robot.get_all_rooms\n" + \
   #             "get_current_location = robot.get_current_location\n"
               
-  p = (f"""import sys\nimport time\nsys.path.append(\"..\")\nfrom simple_tracer import Robot, dict_to_state
-\nstate_dict = {state}\nstate = dict_to_state(state_dict)\nrobot = Robot(state)\n"""
-    + program + "\n")
+  p = f"""
+import sys
+import time
+from benchmark.simple_tracer import Robot, dict_to_state
+state_dict = {state}
+state = dict_to_state(state_dict)
+robot = Robot(state)\n{program}\n
+"""
   # print("=======================\nGrounded Program:\n=======================")
   # print(p)
   # print("=======================\nASP Trace:\n=======================")

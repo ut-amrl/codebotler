@@ -2,13 +2,14 @@ import argparse
 from typing import List
 import json
 import pandas as pd
+import argparse
 
 num_gens = 20
 tasks_to_num_states = {"StaplerSupply":3, "LunchBreak":4, "ElevatorTour":2}
-eval_files = ["../evals/openai_eval.jsonl","../evals/palm_eval.jsonl","../evals/starcoder_eval.jsonl"]
+# eval_files = ["../evals/openai_eval.jsonl","../evals/palm_eval.jsonl","../evals/starcoder_eval.jsonl"]
 
-def main():
-    for file in eval_files:
+def main(args):
+    for file in args.eval_files:
         
         #raw score
         with open(file, 'r') as f:
@@ -22,7 +23,7 @@ def main():
                 if line["is_sat"]:
                     raw_score[line["name"]] += 1
                     
-                    
+            raw_score = {k:f"{v}/{tasks_to_num_states[k] * num_gens}" for k,v in raw_score.items()}        
             print("raw_score:", *list(raw_score.items()), sep="\n")
             # print("\n")
             df = pd.DataFrame(data)
@@ -44,4 +45,7 @@ def main():
         
 
 if __name__=="__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('eval_files', type=str, nargs='+')
+    args = parser.parse_args()
+    main(args)

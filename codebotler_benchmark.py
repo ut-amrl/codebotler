@@ -3,6 +3,7 @@ import threading
 import json
 from code_generation.completions import AutoModel, PaLMModel, OpenAIModel, TextGenerationModel
 from code_generation.completions import completions, read_df
+from benchmark.evaluator.evaluate import evaluate_trace
 
 model = None
 prompt_prefix = ""
@@ -63,7 +64,8 @@ def generate(args):
 def evaluate(args):
   print(f"Evaluating completions from {args.generate_output}...")
   print(f"Benchmark file: {args.benchmark_file}")
-  raise RuntimeError("Evaluation not yet implemented.")
+  evaluate_trace(args.generate_output, args.evaluate_output)
+  
 
 def main():
   global prompt_prefix, prompt_suffix

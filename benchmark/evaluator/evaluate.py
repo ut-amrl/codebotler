@@ -1,5 +1,3 @@
-import sys 
-sys.path.append("..")
 import json 
 import argparse
 import os
@@ -7,9 +5,9 @@ from pathlib import Path
 from collections import OrderedDict
 import subprocess
 import re
-from solve_utils import model_to_str
-from simple_tracer import run_program, dict_to_state
-
+from benchmark.evaluator.solve_utils import model_to_str
+from benchmark.simple_tracer import run_program, dict_to_state
+import shutil
 """
 Timeout is max number of time steps after which solver is killed. 
 All prompted tasks should be designed to be completed
@@ -44,11 +42,12 @@ def run_simulation(program: str, state:dict,constraint: str, timeout:int, robot_
     except Exception as e:
         raise e
         # return ("", "UNSAT")
+    # print(asp_trace)
     
     os.makedirs("debug", exist_ok=True)
     with open(debug_file, "w") as f:
         f.write("#script (python)\n")
-        f.write(open("solve_utils.py", 'r').read())
+        f.write(open("benchmark/evaluator/solve_utils.py", 'r').read())
         f.write("#end.\n\n")
         f.write(f"#const timeout={timeout}.\n")
         f.write("\n".join(asp_trace))
@@ -60,6 +59,7 @@ def run_simulation(program: str, state:dict,constraint: str, timeout:int, robot_
     #     print("DEBUG:", f.read())
         
     # run clingo robot.lp debug/debug_ex{i+1}.lp
+    
     out = subprocess.run(["clingo", "-f", robot_asp_logic, "-f", debug_file,
                           "--time-limit", str(max_seconds)], 
                                  capture_output=True)
@@ -72,8 +72,9 @@ def run_simulation(program: str, state:dict,constraint: str, timeout:int, robot_
         return (model_to_str(model.strip("\n")), "SAT")
     
 
-def evaluate_trace(completions_file, eval_file, asp_file="robot.lp", asp_timeout=20):
+def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/robot.lp", asp_timeout=20, debug_dir="debug"):
     completions = []
+    
     with open(Path(completions_file), 'r') as f:
         for line in f:
             completions.append(json.loads(line))
@@ -93,7 +94,7 @@ def evaluate_trace(completions_file, eval_file, asp_file="robot.lp", asp_timeout
                                             constraints,
                                             timeout=asp_timeout,
                                             robot_asp_logic=asp_file,
-                                            debug_file=f"debug/debug_ex{i+1}_{j+1}.lp")
+                                            debug_file=f"{debug_dir}/debug_ex{i+1}_{j+1}.lp")
             
             evaluated_ex["model"] = model
             evaluated_ex["is_sat"] = (is_sat == "SAT")
@@ -132,7 +133,7 @@ if __name__ == "__main__":
     parser.add_argument('--asp-timeout', type=int, default=20)
     parser.add_argument('--asp-file', type=str, default="robot.lp")
     
-    
+    shutil.rmtree(Path("debug"))
     os.makedirs("debug", exist_ok=True)
 
     args = parser.parse_args()
