@@ -71,14 +71,20 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
     python3 codebotler_benchmark.py --evaluate --generate-output starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
     ```
     This will evaluate the generated programs from the previous step, and save
-    all the evaluation results in an output file named `starcoder_eval.jsonl`. It will also
-    print out the pass@1 accuracy for the benchmark.
+    all the evaluation results in an output file named `starcoder_eval.jsonl`.
+
 
     If you would rather not re-run inference, we have included saved output from every model in the `benchmark/evaluator` directory.
     For example, you can run:
 
     ```shell
     python3 codebotler_benchmark.py --evaluate --generate-output benchmark/evaluator/starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
+    ```
+
+    Finally, you can compute pass rates for every task:
+
+    ```shell
+    python3 pass_k starcoder_eval.jsonl
     ```
 
 Detailed instructions for running the benchmark are included in
