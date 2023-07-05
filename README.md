@@ -17,7 +17,8 @@ CodeBotler consists of two key components:
   models (LLMs) for service mobile robot task code generation.
 
 ## Requirements
-All Python dependencies can be installed using:
+
+First install [PyTorch](https://pytorch.org/get-started/locally/). Then, install Python dependencies:
 ```shell
 pip install -r requirements.txt
 ```
