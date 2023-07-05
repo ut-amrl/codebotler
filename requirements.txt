@@ -4,3 +4,4 @@ transformers
 google-generativeai
 openai
 websockets
+bounded_subprocess
