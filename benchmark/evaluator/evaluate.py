@@ -64,19 +64,25 @@ def run_simulation(program: str, state:dict,constraint: str, timeout:int, robot_
                           "--time-limit", str(max_seconds)],
                                  capture_output=True)
 
-    if out.stderr:
-        print("=====================================")
-        print("Clingo error:")
-        print("=====================================")
-        print(out.stderr.decode("utf-8"))
-        print("=====================================")
-        raise Exception("Clingo error")
 
-    if "UNSATISFIABLE" in str(out.stdout):
-        return ("", "UNSAT")
-    else:
-        model = re.search(r"Answer: 1(.*)SATISFIABLE", str(out.stdout)).group(1)
-        return (model_to_str(model.strip("\n")), "SAT")
+
+    try:
+      if "UNSATISFIABLE" in str(out.stdout):
+          return ("", "UNSAT")
+      else:
+          model = re.search(r"Answer: 1(.*)SATISFIABLE", str(out.stdout)).group(1)
+          return (model_to_str(model.strip("\n")), "SAT")
+    except Exception as e:
+        if out.stderr:
+            print("=====================================")
+            print("Clingo error:")
+            print("=====================================")
+            print(out.stderr.decode("utf-8"))
+            print("=====================================")
+            raise Exception("Clingo error")
+        else:
+            print("Unknown clingo error")
+            raise e
 
 
 def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/robot.lp", asp_timeout=20, debug_dir="debug"):
