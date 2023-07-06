@@ -84,7 +84,7 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
     Finally, you can compute pass rates for every task:
 
     ```shell
-    python3 pass_k starcoder_eval.jsonl
+    python3 pass_k.py starcoder_eval.jsonl
     ```
 
 Detailed instructions for running the benchmark are included in
