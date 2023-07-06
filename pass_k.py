@@ -36,6 +36,35 @@ def evaluate_data_2(df: pd.DataFrame, k: int):
 
     print(df)
 
+def evaluate_data_2(df: pd.DataFrame, k: int):
+    df = df[["name", "constraint", "completion", "is_sat"]]
+    df = df.groupby(["name", "completion"])
+    # Count items in each group
+    df = df.agg(all_sat=("is_sat", pd.Series.all))
+
+    df = df.reset_index()
+    df = df.groupby(["name"])
+    df = df.agg(c=("all_sat", pd.Series.sum))
+    # WARNING: 20 hard-coded below
+
+    df["pass1"]  = df.apply(lambda row: estimator(20, row["c"], 1), axis=1)
+    df = df.drop(columns=["c"])
+
+    print(df)
+
+def evaluate_data_3(df: pd.DataFrame, k: int):
+    # State is unhashable, so we convert it to a string
+    df["state_str"] = df["state"].apply(lambda x: str(x))
+    df = df[["name", "state_str", "constraint", "completion", "is_sat"]]
+    
+    df = df.groupby(["name", "state_str"])
+    df = df.agg(c=("is_sat", pd.Series.sum),
+                n=("is_sat", pd.Series.count))
+    
+    df["pass1"]  = df.apply(lambda row: estimator(row["n"], row["c"], 1), axis=1)
+    df = df.drop(columns=["c"])
+
+    print(df)
 
     
 
@@ -46,7 +75,7 @@ def main():
 
     df = pd.read_json(args.file, lines=True)
     #evaluate_data(df, 1)
-    evaluate_data_2(df, 1)
+    evaluate_data_3(df, 1)
 
 if __name__ == "__main__":
     main()

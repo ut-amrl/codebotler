@@ -9,8 +9,11 @@ def main():
 
     df = pd.read_json(args.file, lines=True)
 
-    df = df[["name", "completion"]]
-    df = df.groupby(["name"])
+    df["state_str"] = df["state"].apply(lambda x: str(x))
+
+
+    df = df[["name", "state_str", "completion"]]
+    df = df.groupby(["name", "state_str"])
     df = df.agg(n=("completion", pd.Series.count))
     print(df)
 
