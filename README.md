@@ -60,7 +60,7 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
 
 1. Run code generation for the benchmark tasks using the following command:
     ```shell
-    python3 codebotler_benchmark.py --generate --model-type automodel --model-path "bigcode/starcoder" --generate-output starcoder_completions.jsonl
+    python3 codebotler_benchmark.py --generate --model-type automodel --model-name "bigcode/starcoder" --generate-output starcoder_completions.jsonl
     ```
     This will generate the programs for the benchmark tasks and save them in
     an output file named `starcoder_completions.jsonl`. It assumes default values
