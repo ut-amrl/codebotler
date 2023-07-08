@@ -18,9 +18,9 @@ CodeBotler consists of two key components:
 
 ## Requirements
 
-First install [PyTorch](https://pytorch.org/get-started/locally/). Then, install Python dependencies:
+Create a conda environment using the following command:
 ```shell
-pip install -r requirements.txt
+conda env create -f fresh_env.yml
 ```
 
 **Language model options**
