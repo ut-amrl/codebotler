@@ -6,6 +6,35 @@ This script takes a jsonl file as input and dumps the constraints
 to respective tasks
 """
 
+# Ask Sally in her office if she wants to go to the cinema with Mark. Go to
+# Mark’s office and tell him Sally’s answer. If Sally says yes, ask Mark
+# whether he wants to leave at 4PM, 5PM, or 6PM - then go tell Sally what 
+# time Mark is leaving.
+#
+# In this scenario, Sally says yes. Robot goes to Mark and mark says 5pm.
+movie_messenger_state_0 = {
+    "locations": [ "sally office", "mark office" ],
+    "interactive_agents" : [
+        # 1. Sally says "yes, I want to go to movie!"
+        { "name" : "sally", "location" : "sally office", "answers" : ["yes"]},
+        # 2. Mark says 5pm
+        { "name" : "mark", "location" : "mark office", "answers" : ["5pm"]},
+    ],
+    "objects": [],
+    "robot_location": "sally office"
+}
+
+movie_messenger_constraints = """
+:- t_go_to("mark office", 0).
+% Robot interacts with Mark in step 1. I am not bothering to fully spell this out.
+:- t_go_to("sally office", 2).
+% Since we don't check that Mark says 5pm, we could in fact have a mind-reading
+% robot. It is more likely that the robot has a successful interaction with Mark
+% in Step 1.
+:- t_say("5pm", 3).
+"""
+
+
 task_to_states = {
 
     "StaplerSupply" : [{
@@ -77,8 +106,11 @@ task_to_states = {
         "robot_location" : "start_loc",
         "additional_constraints" : ":- robot_ask_tour.\n:- robot_follow.\n:- robot_welcome.\n:- robot_enjoy_visit.\n:- not at(\"robot\", \"elevator\", timeout)."
     },
-    ]
+    ],
+    "MovieMessenger": [ movie_messenger_state_0 ],
 }
+
+
 
 task_to_constraints = {
     
@@ -172,7 +204,9 @@ robot_follow :- replied(_,"yes",T), t_say(X, T),
 robot_enjoy_visit :- at("robot", "main conference room", T), 
                 t_say(X, T), @contains_all(X, "enjoy", "visit") = 1.
 
-'''
+''',
+
+    "MovieMessenger" : movie_messenger_constraints,
 }
 
 def constrain_jsonl(args):
