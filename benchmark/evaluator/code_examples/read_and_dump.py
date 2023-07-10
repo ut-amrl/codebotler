@@ -21,17 +21,98 @@ movie_messenger_state_0 = {
         { "name" : "mark", "location" : "mark office", "answers" : ["5pm"]},
     ],
     "objects": [],
-    "robot_location": "sally office"
+    "robot_location": "sally office",
+    "additional_constraints": ""
 }
 
 movie_messenger_constraints = """
-:- t_go_to("mark office", 0).
+:- not t_go_to("mark office", 0).
 % Robot interacts with Mark in step 1. I am not bothering to fully spell this out.
-:- t_go_to("sally office", 2).
+:- not t_go_to("sally office", 2).
 % Since we don't check that Mark says 5pm, we could in fact have a mind-reading
 % robot. It is more likely that the robot has a successful interaction with Mark
 % in Step 1.
-:- t_say("5pm", 3).
+:- not t_say("5pm", 3).
+"""
+
+# Go to every office, and if there is anyone there, ask if they'd like a chocolate, caramel, or gummy. 
+# Come back and tell me how many of each we need to buy.
+#
+
+halloween_list_state_0 = {
+    "locations": [ "sally's office", "mark's office", "cindy's office", "start_loc" ],
+    "interactive_agents" : [
+        # sally and choices"
+        { "name" : "person", "location" : "sally's office", "answers" : ["chocolate"]},
+        # 2. mark and choices
+        { "name" : "person", "location" : "mark's office", "answers" : ["chocolate"]},
+
+    ],
+    "objects": [],
+    "robot_location": "start_loc",
+    "additional_constraints": "constr_0."
+}
+#at last state, i'm at the start location, and say three chocolates, and nothing else
+
+#universal constraints be empty
+
+
+#care about test case where there is more than one person in a room?
+
+halloween_list_state_1 = {
+    "locations": [ "sally's office", "mark's office", "cindy's office", "start_loc" ],
+    "interactive_agents" : [
+        # sally and choices"
+        { "name" : "person", "location" : "sally's office", "answers" : ["chocolate"]},
+        # 2. mark and choices
+        { "name" : "person", "location" : "mark's office", "answers" : ["gummy"]},
+
+    ],
+    "objects": [],
+    "robot_location": "start_loc",
+    "additional_constraints": "constr_1."
+}
+
+"""
+%:- t_go_to(X, T), @contains_any("office", "start_loc") = 0.
+% Robot goes to all rooms that are either have ofice or start location
+
+%:- t_say(X, _), @contains_all(X, "chocolate", "caramel", "gummy") = 0.
+% Anything the robot says has to contain the candy options
+
+
+%:- t_say(X, T), @contains_all(X, "chocolate", "caramel", "gummy", "buy") = 1.
+% Robot goes to start location and says what needs to be bought
+
+                t_say(X, T), @contains_all(X, "chocolates", "3") = 0
+,
+            t_say(X, T), @contains_all(X, "chocolates", "gummies", "2", "1") = 1
+
+constr_0 :- not at("robot", "start_loc", timeout).
+
+
+constr_1 :- not at("robot", "start_loc", timeout).
+
+:- not at("robot", "start_loc", timeout).
+                
+
+:- t_say(X, T), @contains_all(X, "chocolates", "gummies", "2", "1") = 0.
+constr_0 :- not at("robot", "start_loc", timeout).
+
+:- t_say(X, T), @contains_all(X, "chocolates", "gummies", "2") = 0."""
+#must only go to office
+#must ask at each office
+#must return to the start location
+#must at the end report the correct number of things
+halloween_list_constraints = """
+
+:- not at("robot", "start_loc", timeout).
+
+
+constr_1 :- t_say(X, T), @contains_all(X, "chocolates", "gummies", "1") = 0.
+constr_0 :- t_say(X, T), @contains_all(X, "chocolates", "gummies", "2") = 0.
+
+
 """
 
 
@@ -108,6 +189,8 @@ task_to_states = {
     },
     ],
     "MovieMessenger": [ movie_messenger_state_0 ],
+
+    "HalloweenList": [ halloween_list_state_0, halloween_list_state_1],
 }
 
 
@@ -207,6 +290,8 @@ robot_enjoy_visit :- at("robot", "main conference room", T),
 ''',
 
     "MovieMessenger" : movie_messenger_constraints,
+
+    "HalloweenList": halloween_list_constraints
 }
 
 def constrain_jsonl(args):
