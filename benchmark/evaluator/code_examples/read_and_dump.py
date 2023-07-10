@@ -13,26 +13,26 @@ to respective tasks
 #
 # In this scenario, Sally says yes. Robot goes to Mark and mark says 5pm.
 movie_messenger_state_0 = {
-    "locations": [ "sally office", "mark office" ],
+    "locations": [ "sally's office", "mark's office" ],
     "interactive_agents" : [
         # 1. Sally says "yes, I want to go to movie!"
-        { "name" : "sally", "location" : "sally office", "answers" : ["yes"]},
+        { "name" : "sally", "location" : "sally's office", "answers" : ["yes"]},
         # 2. Mark says 5pm
-        { "name" : "mark", "location" : "mark office", "answers" : ["5pm"]},
+        { "name" : "mark", "location" : "mark's office", "answers" : ["5pm"]},
     ],
     "objects": [],
-    "robot_location": "sally office",
-    "additional_constraints": ""
+    "additional_constraints" : "",
+    "robot_location": "sally office"
 }
 
 movie_messenger_constraints = """
-:- not t_go_to("mark office", 0).
+:- not t_go_to("mark's office", 2).
 % Robot interacts with Mark in step 1. I am not bothering to fully spell this out.
-:- not t_go_to("sally office", 2).
+:- not t_go_to("sally's office", 5).
 % Since we don't check that Mark says 5pm, we could in fact have a mind-reading
 % robot. It is more likely that the robot has a successful interaction with Mark
 % in Step 1.
-:- not t_say("5pm", 3).
+:- t_say(X, 6), @contains_all(X, "5pm") = 0.
 """
 
 # Go to every office, and if there is anyone there, ask if they'd like a chocolate, caramel, or gummy. 

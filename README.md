@@ -20,7 +20,7 @@ CodeBotler consists of two key components:
 
 Create a conda environment using the following command:
 ```shell
-conda env create -f fresh_env.yml
+conda env create -f environment.yml
 ```
 
 **Language model options**
