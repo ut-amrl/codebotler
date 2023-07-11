@@ -6,43 +6,6 @@ This script takes a jsonl file as input and dumps the constraints
 to respective tasks
 """
 
-# Language Models as Zero-Shot Planners Example Test Case:
-# Find dictionary. If there is a dictionary, the robot must have visited the room
-# with the dictionary. Otherwise, the robot must have visited all rooms.
-# Additionally, the robot must call say() at the starting location. The word
-# "dictionary" and, if there exists a dictionary, the name of the room containing
-# it must be included.
-#
-# In this scenario, there is a dictionary in the living room.
-find_dictionary_state_0 = {
-    "locations": ["kitchen", "living room", "dining room"],
-    "interactive_agents": [],
-    "objects": [{"label" : "dictionary", "location" : "living room"}],
-    "additional_constraints": "",
-    "robot_location": "kitchen"
-}
-find_dictionary_constraints_0 = """
-:- not t_go_to("kitchen", _).
-:- not at("robot", "kitchen", T), 
-        t_say(X, T), @contains_all(X, "dictionary", "living room") = 1.
-"""
-
-# In this scenario, there isn't a dictionary.
-find_dictionary_state_1 = {
-    "locations": ["kitchen", "living room", "dining room"],
-    "interactive_agents": [],
-    "objects": [],
-    "additional_constraints": "",
-    "robot_location": "kitchen"
-}
-find_dictionary_constraints_1 = """
-:- not t_go_to("kitchen", _).
-:- not t_go_to("living room", _).
-:- not t_go_to("dining room", _).
-:- not at("robot", "kitchen", T), 
-        t_say(X, T), @contains_all(X, "dictionary") = 1.
-"""
-
 # Ask Sally in her office if she wants to go to the cinema with Mark. Go to
 # Mark’s office and tell him Sally’s answer. If Sally says yes, ask Mark
 # whether he wants to leave at 4PM, 5PM, or 6PM - then go tell Sally what 
@@ -71,87 +34,6 @@ movie_messenger_constraints = """
 % in Step 1.
 :- t_say(X, 6), @contains_all(X, "5pm") = 0.
 """
-
-# Go to every office, and if there is anyone there, ask if they'd like a chocolate, caramel, or gummy. 
-# Come back and tell me how many of each we need to buy.
-#
-
-halloween_list_state_0 = {
-    "locations": [ "sally's office", "mark's office", "cindy's office", "start_loc" ],
-    "interactive_agents" : [
-        # sally and choices"
-        { "name" : "person", "location" : "sally's office", "answers" : ["chocolate"]},
-        # 2. mark and choices
-        { "name" : "person", "location" : "mark's office", "answers" : ["chocolate"]},
-
-    ],
-    "objects": [],
-    "robot_location": "start_loc",
-    "additional_constraints": "constr_0."
-}
-#at last state, i'm at the start location, and say three chocolates, and nothing else
-
-#universal constraints be empty
-
-
-#care about test case where there is more than one person in a room?
-
-halloween_list_state_1 = {
-    "locations": [ "sally's office", "mark's office", "cindy's office", "start_loc" ],
-    "interactive_agents" : [
-        # sally and choices"
-        { "name" : "person", "location" : "sally's office", "answers" : ["chocolate"]},
-        # 2. mark and choices
-        { "name" : "person", "location" : "mark's office", "answers" : ["gummy"]},
-
-    ],
-    "objects": [],
-    "robot_location": "start_loc",
-    "additional_constraints": "constr_1."
-}
-
-"""
-%:- t_go_to(X, T), @contains_any("office", "start_loc") = 0.
-% Robot goes to all rooms that are either have ofice or start location
-
-%:- t_say(X, _), @contains_all(X, "chocolate", "caramel", "gummy") = 0.
-% Anything the robot says has to contain the candy options
-
-
-%:- t_say(X, T), @contains_all(X, "chocolate", "caramel", "gummy", "buy") = 1.
-% Robot goes to start location and says what needs to be bought
-
-                t_say(X, T), @contains_all(X, "chocolates", "3") = 0
-,
-            t_say(X, T), @contains_all(X, "chocolates", "gummies", "2", "1") = 1
-
-constr_0 :- not at("robot", "start_loc", timeout).
-
-
-constr_1 :- not at("robot", "start_loc", timeout).
-
-:- not at("robot", "start_loc", timeout).
-                
-
-:- t_say(X, T), @contains_all(X, "chocolates", "gummies", "2", "1") = 0.
-constr_0 :- not at("robot", "start_loc", timeout).
-
-:- t_say(X, T), @contains_all(X, "chocolates", "gummies", "2") = 0."""
-#must only go to office
-#must ask at each office
-#must return to the start location
-#must at the end report the correct number of things
-halloween_list_constraints = """
-
-:- not at("robot", "start_loc", timeout).
-
-
-constr_1 :- t_say(X, T), @contains_all(X, "chocolates", "gummies", "1") = 0.
-constr_0 :- t_say(X, T), @contains_all(X, "chocolates", "gummies", "2") = 0.
-
-
-"""
-
 
 task_to_states = {
 
@@ -226,12 +108,7 @@ task_to_states = {
     },
     ],
     "MovieMessenger": [ movie_messenger_state_0 ],
-
-    "HalloweenList": [ halloween_list_state_0, halloween_list_state_1],
-
-    "FindDictionary": [ find_dictionary_state_0, find_dictionary_state_1 ],
 }
-
 
 
 task_to_constraints = {
@@ -308,7 +185,6 @@ joining(P) :- report_joining(P, _).
 # Must take person to conference room only if the answer is yes
 # If the answer is no, must wait for the next person
 
-
     "ElevatorTour" : '''
 
 :- not t_go_to("elevator", _).
@@ -329,10 +205,6 @@ robot_enjoy_visit :- at("robot", "main conference room", T),
 ''',
 
     "MovieMessenger" : movie_messenger_constraints,
-
-    "HalloweenList": halloween_list_constraints,
-
-    "FindDictionary": [ find_dictionary_constraints_0, find_dictionary_constraints_1 ]
 }
 
 def constrain_jsonl(args):
@@ -343,36 +215,22 @@ def constrain_jsonl(args):
                 # only for target tests
                 # list of {state, test}
                 line = json.loads(line)
-                if line["name"] in task_to_states.keys():
+                task_name = line["name"].split("-")[0]
+                if task_name in task_to_states.keys():
+
                     tests = []
-                    states = task_to_states[line["name"]]
-                    constraints = task_to_constraints[line["name"]]
-
-                    if type(constraints) == list and len(constraints) != len(states):
-                        raise Exception("If there are multiple constraints, there must be an equal number of states.")
-                    elif type(constraints) == list:
-                        for state, constraint in zip(states, constraints):
-                            state_mod = {k:v for k,v in state.items() if k != "additional_constraints"}
-
-                            test = {"state" : state_mod, 
-                              "test" : constraint + "\n" + state["additional_constraints"]} 
-                            tests.append(test)
-                    else:
-                        for state in states:
-                            state_mod = {k:v for k,v in state.items() if k != "additional_constraints"}
-                            
-                            test = {"state" : state_mod, 
-                                "test" : task_to_constraints[line["name"]] + "\n" + state["additional_constraints"]} 
-                            tests.append(test)
+                    for state in task_to_states[task_name]:
+                        state_mod = {k:v for k,v in state.items() if k != "additional_constraints"}
+                        
+                        test = {"state" : state_mod, 
+                              "test" : task_to_constraints[task_name] + "\n" + state["additional_constraints"]} 
+                        tests.append(test)
                         
                     line["tests"] = tests
                     # dump
                     o.write(json.dumps(line))
                     o.write("\n")
             
-    
-
-
 def constrain_json(args):
     '''
     Old format
@@ -394,7 +252,6 @@ def constrain_json(args):
                 line["completion"] = completion
                 # add constraint according to problem
                 line["constraint"] = task_to_constraints[args.task_name]
-                
             
                 tests = []
                 for state in task_to_states[args.task_name]:
@@ -409,7 +266,6 @@ def constrain_json(args):
                 # dump
                 f.write(json.dumps(line))
                 f.write("\n")
-               
  
 def main(args):
     constrain_jsonl(args)
