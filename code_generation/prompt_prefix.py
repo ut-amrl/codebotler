@@ -61,25 +61,28 @@ def task_program():
         go_to("supply room")
         say("The main office needs a red marker")
 
-# Check if there are any staplers in any printer room, and then go to Aiden's office and tell him where they are.
+# Check all classrooms if there is a whiteboard. Go to Aiden's office to tell him which room does not have a whiteboard. Finally, come back and tell me task is completed.
 def task_program():
+    start_loc = get_current_location()
     list_of_rooms = get_all_rooms()
-    stapler_found = False
-    stapler_loc = None
+    room_without_whiteboard = []
     for room in list_of_rooms:
-        if "printer" not in room:
+        if "classrooms" not in room:
             continue
         go_to(room)
-        if is_in_room("stapler"):
-            stapler_found = True
-            stapler_loc = room
-            break
+        if not is_in_room("whiteboard"):
+            room_without_whiteboard.append(room)
     go_to("Aiden's office")
-    if stapler_found:
-        say("There is a stapler in the " + stapler_loc)
+    if len(room_without_whiteboard) > 0:
+        message = ""
+        for room in room_without_whiteboard:
+            message += room + ", "
+        message += "do not have a whiteboard"
     else:
-        say("There is no stapler in any printer room")
-
+        message = "all classrooms have a whiteboard"
+    say(message)
+    go_to(start_loc)
+    say("task is completed")
 
 # Go to the kitchen and wait for someone to show up. When someone shows up, ask them to place the diet coke from the fridge in your basket, and bring it here
 def task_program():
