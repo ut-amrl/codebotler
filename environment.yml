@@ -1,4 +1,4 @@
-name: robo_eval_fresh
+name: codebotler
 channels:
   - huggingface
   - potassco
