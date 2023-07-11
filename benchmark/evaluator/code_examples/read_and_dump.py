@@ -324,9 +324,7 @@ def constrain_json(args):
                 f.write("\n")
  
 def main(args):
-    print('before')
     constrain_jsonl(args)
-    print('after')
     ## Old format:
     # constrain_json(args)
  
