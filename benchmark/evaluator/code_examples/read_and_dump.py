@@ -6,6 +6,43 @@ This script takes a jsonl file as input and dumps the constraints
 to respective tasks
 """
 
+# Language Models as Zero-Shot Planners Example Test Case:
+# Find dictionary. If there is a dictionary, the robot must have visited the room
+# with the dictionary. Otherwise, the robot must have visited all rooms.
+# Additionally, the robot must call say() at the starting location. The word
+# "dictionary" and, if there exists a dictionary, the name of the room containing
+# it must be included.
+#
+# In this scenario, there is a dictionary in the living room.
+find_dictionary_state_0 = {
+    "locations": ["kitchen", "living room", "dining room"],
+    "interactive_agents": [],
+    "objects": [{"label" : "dictionary", "location" : "living room"}],
+    "additional_constraints": "",
+    "robot_location": "kitchen"
+}
+find_dictionary_constraints_0 = """
+:- not t_go_to("kitchen", _).
+:- not at("robot", "kitchen", T), 
+        t_say(X, T), @contains_all(X, "dictionary", "living room") = 1.
+"""
+
+# In this scenario, there isn't a dictionary.
+find_dictionary_state_1 = {
+    "locations": ["kitchen", "living room", "dining room"],
+    "interactive_agents": [],
+    "objects": [],
+    "additional_constraints": "",
+    "robot_location": "kitchen"
+}
+find_dictionary_constraints_1 = """
+:- not t_go_to("kitchen", _).
+:- not t_go_to("living room", _).
+:- not t_go_to("dining room", _).
+:- not at("robot", "kitchen", T), 
+        t_say(X, T), @contains_all(X, "dictionary") = 1.
+"""
+
 # Ask Sally in her office if she wants to go to the cinema with Mark. Go to
 # Mark’s office and tell him Sally’s answer. If Sally says yes, ask Mark
 # whether he wants to leave at 4PM, 5PM, or 6PM - then go tell Sally what 
@@ -191,6 +228,8 @@ task_to_states = {
     "MovieMessenger": [ movie_messenger_state_0 ],
 
     "HalloweenList": [ halloween_list_state_0, halloween_list_state_1],
+
+    "FindDictionary": [ find_dictionary_state_0, find_dictionary_state_1 ],
 }
 
 
@@ -291,7 +330,9 @@ robot_enjoy_visit :- at("robot", "main conference room", T),
 
     "MovieMessenger" : movie_messenger_constraints,
 
-    "HalloweenList": halloween_list_constraints
+    "HalloweenList": halloween_list_constraints,
+
+    "FindDictionary": [ find_dictionary_constraints_0, find_dictionary_constraints_1 ]
 }
 
 def constrain_jsonl(args):
@@ -303,14 +344,26 @@ def constrain_jsonl(args):
                 # list of {state, test}
                 line = json.loads(line)
                 if line["name"] in task_to_states.keys():
-
                     tests = []
-                    for state in task_to_states[line["name"]]:
-                        state_mod = {k:v for k,v in state.items() if k != "additional_constraints"}
-                        
-                        test = {"state" : state_mod, 
-                              "test" : task_to_constraints[line["name"]] + "\n" + state["additional_constraints"]} 
-                        tests.append(test)
+                    states = task_to_states[line["name"]]
+                    constraints = task_to_constraints[line["name"]]
+
+                    if type(constraints) == list and len(constraints) != len(states):
+                        raise Exception("If there are multiple constraints, there must be an equal number of states.")
+                    elif type(constraints) == list:
+                        for state, constraint in zip(states, constraints):
+                            state_mod = {k:v for k,v in state.items() if k != "additional_constraints"}
+
+                            test = {"state" : state_mod, 
+                              "test" : constraint + "\n" + state["additional_constraints"]} 
+                            tests.append(test)
+                    else:
+                        for state in states:
+                            state_mod = {k:v for k,v in state.items() if k != "additional_constraints"}
+                            
+                            test = {"state" : state_mod, 
+                                "test" : task_to_constraints[line["name"]] + "\n" + state["additional_constraints"]} 
+                            tests.append(test)
                         
                     line["tests"] = tests
                     # dump
