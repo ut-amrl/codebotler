@@ -139,16 +139,24 @@ task_to_states = {
     "ElevatorTour" : [{
         "locations" : ["elevator", "main conference room", "start_loc"],
         "objects" : [],
-        "interactive_agents" : [{"name" : "person", "location" : "elevator", "answers" : ["yes", "no"]},
-                                {"name" : "", "location" : "elevator", "answers" : ["yes", "no"]}],
+        "interactive_agents" : [{"name" : "person", "location" : "elevator", "answers" : ["yes"]}, # diff way of writing same person
+                                {"name" : "", "location" : "elevator", "answers" : ["yes"]}],
         "robot_location" : "start_loc",
         "additional_constraints" : ":- not robot_ask_tour.\n:- not robot_follow.\n:- not robot_welcome.\n:- not robot_enjoy_visit."
     },
     {
         "locations" : ["elevator", "main conference room", "start_loc"],
         "objects" : [],
-        "interactive_agents" : [{"name" : "person", "location" : "start_loc", "answers" : ["yes", "no"]},
-                                {"name" : "", "location" : "start_loc", "answers" : ["yes", "no"]}],
+        "interactive_agents" : [{"name" : "person", "location" : "elevator", "answers" : ["no"]}, # diff way of writing same person
+                                {"name" : "", "location" : "elevator", "answers" : ["no"]}],
+        "robot_location" : "start_loc",
+        "additional_constraints" : ":- not robot_ask_tour.\n:- robot_follow.\n:- robot_welcome.\n:- robot_enjoy_visit.\n:- not at(\"robot\", \"elevator\", timeout)."
+    },
+    {
+        "locations" : ["elevator", "main conference room", "start_loc"],
+        "objects" : [],
+        "interactive_agents" : [{"name" : "person", "location" : "start_loc", "answers" : ["yes"]}, # diff way of writing same person
+                                {"name" : "", "location" : "start_loc", "answers" : ["yes"]}],
         "robot_location" : "start_loc",
         "additional_constraints" : ":- robot_ask_tour.\n:- robot_follow.\n:- robot_welcome.\n:- robot_enjoy_visit.\n:- not at(\"robot\", \"elevator\", timeout)."
     },
