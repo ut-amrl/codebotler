@@ -100,7 +100,7 @@ def generate_code(prompt):
   code = (prompt_suffix + code).strip()
   return code
 
-def execute(code, websocket):
+def execute(code):
   global ros_available
   global robot_available
   global robot_interface
@@ -122,12 +122,12 @@ async def handle_message(websocket, message):
     await websocket.send(json.dumps(response))
     if data['execute']:
       print("Executing generated code")
-      execute(code, websocket)
+      execute(code)
   elif data['type'] == 'eval':
     print("Received eval request")
     # await eval(websocket, data)
   elif data['type'] == 'execute':
-    print("Received execute request")
+    print("Executing generated code")
     execute(data['code'])
     await websocket.close()
   else:
