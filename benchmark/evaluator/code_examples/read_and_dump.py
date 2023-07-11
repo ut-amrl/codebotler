@@ -35,6 +35,52 @@ movie_messenger_constraints = """
 :- t_say(X, 6), @contains_all(X, "5pm") = 0.
 """
 
+# Go to every office, and if there is anyone there, ask if they'd like a chocolate, caramel, or gummy. 
+# Come back and tell me how many of each we need to buy.
+#
+
+halloween_list_state_0 = {
+    "locations": [ "sally's office", "mark's office", "cindy's office", "start_loc" ],
+    "interactive_agents" : [
+        # sally and choices"
+        { "name" : "person", "location" : "sally's office", "answers" : ["chocolate"]},
+        # 2. mark and choices
+        { "name" : "person", "location" : "mark's office", "answers" : ["chocolate"]},
+
+    ],
+    "objects": [],
+    "robot_location": "start_loc",
+    "additional_constraints": "constr_0."
+}
+#at last state, i'm at the start location, and say three chocolates, and nothing else
+
+#universal constraints be empty
+
+
+#care about test case where there is more than one person in a room?
+
+halloween_list_state_1 = {
+    "locations": [ "sally's office", "mark's office", "cindy's office", "start_loc" ],
+    "interactive_agents" : [
+        # sally and choices"
+        { "name" : "person", "location" : "sally's office", "answers" : ["chocolate"]},
+        # 2. mark and choices
+        { "name" : "person", "location" : "mark's office", "answers" : ["gummy"]},
+
+    ],
+    "objects": [],
+    "robot_location": "start_loc",
+    "additional_constraints": "constr_1."
+}
+
+halloween_list_constraints = """
+:- not at("robot", "start_loc", timeout).
+constr_1 :- t_say(X, T), @contains_all(X, "chocolates", "gummies", "1") = 0.
+constr_0 :- t_say(X, T), @contains_all(X, "chocolates", "gummies", "2") = 0.
+"""
+
+
+
 task_to_states = {
 
     "StaplerSupply" : [{
@@ -108,6 +154,7 @@ task_to_states = {
     },
     ],
     "MovieMessenger": [ movie_messenger_state_0 ],
+    "HalloweenList": [halloween_list_state_0, halloween_list_state_1]
 }
 
 
@@ -205,6 +252,7 @@ robot_enjoy_visit :- at("robot", "main conference room", T),
 ''',
 
     "MovieMessenger" : movie_messenger_constraints,
+    "HalloweenList" : halloween_list_constraints,
 }
 
 def constrain_jsonl(args):
@@ -236,8 +284,8 @@ def constrain_json(args):
     Old format
     '''
     # args.task_name = args.jsonl_file.split("/")[-1].split(".")[0]
+    print("during")
     examples = json.loads(open(args.jsonl_file,"r").read())
-    
     with open(args.output_file,"w") as f:
         for line in examples:
                 # add constraints per state
@@ -268,7 +316,9 @@ def constrain_json(args):
                 f.write("\n")
  
 def main(args):
+    print('before')
     constrain_jsonl(args)
+    print('after')
     ## Old format:
     # constrain_json(args)
  
