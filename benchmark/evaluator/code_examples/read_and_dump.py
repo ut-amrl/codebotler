@@ -104,7 +104,7 @@ task_to_states = {
         "interactive_agents" : [{"name" : "person", "location" : "elevator", "answers" : ["no"]}, # diff way of writing same person
                                 {"name" : "", "location" : "elevator", "answers" : ["no"]}],
         "robot_location" : "start_loc",
-        "additional_constraints" : ":- not robot_ask_tour.\n:- robot_follow.\n:- robot_welcome.\n:- robot_enjoy_visit."
+        "additional_constraints" : ":- not robot_ask_tour.\n:- robot_follow.\n:- robot_welcome.\n:- robot_enjoy_visit.\n:- not at(\"robot\", \"elevator\", timeout)."
     },
     {
         "locations" : ["elevator", "main conference room", "start_loc"],
