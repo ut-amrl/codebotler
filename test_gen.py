@@ -1,6 +1,8 @@
 from benchmark.evaluator.evaluate import run_simulation
-from benchmark.evaluator.code_examples.read_and_dump import task_to_states, task_to_constraints
+from benchmark.evaluator.read_and_dump import task_to_states, task_to_constraints
 import argparse
+import shutil
+import os
 
 def run_prog(args):
     task = args.task_name
@@ -21,5 +23,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('task_program_file', type=str)
     parser.add_argument('task_name', type=str)
+    # clear debug dir
+    debug_dir = "mydebug"
+    shutil.rmtree(debug_dir, ignore_errors=True)
+    assert not os.path.exists(debug_dir)
+    os.makedirs(debug_dir)
+    
     args = parser.parse_args()
     run_prog(args)
