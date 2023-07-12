@@ -91,7 +91,7 @@ def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/ro
     # clear debug dir
     shutil.rmtree(debug_dir, ignore_errors=True)
     assert not os.path.exists(debug_dir)
-    os.makedirs("debug")
+    os.makedirs(debug_dir)
     
     evaluated_completions = []
 
