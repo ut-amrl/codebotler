@@ -22,7 +22,7 @@ movie_messenger_state_0 = {
     ],
     "objects": [],
     "additional_constraints" : "",
-    "robot_location": "sally office"
+    "robot_location": "sally's office"
 }
 
 movie_messenger_constraints = """
@@ -126,7 +126,7 @@ task_to_states = {
     "interactive_agents" : [{"name" : "alice", "location" : "alice's office", "answers" : ["yes"]},
                             {"name" : "bob", "location" : "bob's office", "answers" : ["no"]}],
     "robot_location" : "start_loc",
-    "additional_constraints" : ":- joining(\"bob\").\n:- not joining(\"alice\").\n:- meet(\"alice\").\n:- not meet(\"bob\")."
+    "additional_constraints" : ":- joining(\"bob\").\n:- not joining(\"alice\").\n:- not meet(\"alice\").\n:- meet(\"bob\")."
     },
     {
     "locations" : ["alice's office", "bob's office", "start_loc"],
@@ -134,7 +134,7 @@ task_to_states = {
     "interactive_agents" : [{"name" : "alice", "location" : "alice's office", "answers" : ["no"]},
                             {"name" : "bob", "location" : "bob's office", "answers" : ["yes"]}],
     "robot_location" : "start_loc",
-    "additional_constraints" : ":- not joining(\"bob\").\n:- joining(\"alice\").\n:- not meet(\"alice\").\n:- meet(\"bob\")."
+    "additional_constraints" : ":- not joining(\"bob\").\n:- joining(\"alice\").\n:- meet(\"alice\").\n:- not meet(\"bob\")."
     }],
     "ElevatorTour" : [{
         "locations" : ["elevator", "main conference room", "start_loc"],
@@ -213,9 +213,8 @@ bob_no :- replied("bob","no",_).
 :- not at("robot","start_loc", timeout).
 
 meet(P) :- replied(P, "yes",T), t_say(X, T), @contains_all(X, "meet", "lobby", "5 minutes/five minutes") = 1.
-report_joining(P, T) :- replied(P, "yes", _), t_say(X, T), @contains_all(X, P, "joining/join/come/coming","lunch") = 1.
+report_joining(P, T) :- replied(P, "yes", _), at("robot", "start_loc", T), t_say(X, T), @contains_all(X, P, "joining/participants/participate/join/come/coming", "lunch") = 1.
 joining(P) :- report_joining(P, _).
-:- report_joining(P, T), not at("robot", "start_loc", T).
 
 :- option(X), @contains_any(X, "yes", "no") = 0.
 ''',
@@ -292,7 +291,6 @@ def constrain_json(args):
     Old format
     '''
     # args.task_name = args.jsonl_file.split("/")[-1].split(".")[0]
-    print("during")
     examples = json.loads(open(args.jsonl_file,"r").read())
     with open(args.output_file,"w") as f:
         for line in examples:

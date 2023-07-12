@@ -7,10 +7,11 @@ def run_prog(args):
     prog = open(args.task_program_file,"r").read()
     for i in range(len((task_to_states[task]))):
         state = task_to_states[task][i]
+        additional_constraints = task_to_states[task][i]["additional_constraints"]
         constraints = task_to_constraints[task]
-        (model, is_sat) = run_simulation(prog, state, constraints, timeout = 10, 
+        (model, is_sat) = run_simulation(prog, state, constraints+"\n"+additional_constraints, timeout = 10, 
                 robot_asp_logic="benchmark/evaluator/robot.lp",
-                debug_file=f"mydebug_{task}_{i}.lp")
+                debug_file=f"mydebug/mydebug_{task}_{i}.lp")
 
         print(i, is_sat)
         # print(model)
