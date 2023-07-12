@@ -14,7 +14,6 @@ All prompted tasks should be designed to be completed
 before TIMEOUT for accurate results.
 """
 
-
 def code_replace(program):
 
     def normalize(s):
@@ -31,7 +30,6 @@ def code_replace(program):
     program = program.replace("ask(", f"{sim_name}.ask(")
     return program + "\n\ntask_program(robot)"
     # return program
-
 
 def run_simulation(program: str, state:dict,constraint: str, timeout:int, robot_asp_logic:str, debug_file:str, max_seconds = 10):
     program = code_replace(program)
@@ -64,8 +62,6 @@ def run_simulation(program: str, state:dict,constraint: str, timeout:int, robot_
                           "--time-limit", str(max_seconds)],
                                  capture_output=True)
 
-
-
     try:
       if "UNSATISFIABLE" in str(out.stdout):
           return ("", "UNSAT")
@@ -92,12 +88,16 @@ def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/ro
         for line in f:
             completions.append(json.loads(line))
 
+    # clear debug dir
+    shutil.rmtree(debug_dir, ignore_errors=True)
+    assert not os.path.exists(debug_dir)
+    os.makedirs("debug")
+    
     evaluated_completions = []
-
 
     for i, example_completion in enumerate(completions):
         program = example_completion["completion"]
-        for j, test in enumerate(example_completion["tests"]):
+        for num_state, test in enumerate(example_completion["tests"]):
             evaluated_ex = {}
             # program, state dict, constraints
             state = eval(str(test["state"]))
@@ -107,7 +107,7 @@ def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/ro
                                             constraints,
                                             timeout=asp_timeout,
                                             robot_asp_logic=asp_file,
-                                            debug_file=f"{debug_dir}/debug_ex{i+1}_{j+1}.lp")
+                                            debug_file=f"{debug_dir}/line{i+1}_state{num_state+1}.lp")
 
             evaluated_ex["model"] = model
             evaluated_ex["is_sat"] = (is_sat == "SAT")
@@ -123,11 +123,9 @@ def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/ro
             order = ["is_sat", "name", "state", "completion", "model", "constraint"]
             # order = ["description", "is_sat", "name", "state", "completion", "model", "constraint"]
 
-
             list_of_tuples = [(key, evaluated_ex[key]) for key in order]
             ord_evaluated_ex = OrderedDict(list_of_tuples)
             evaluated_completions.append(ord_evaluated_ex)
-
 
             with open(eval_file, "a+") as f:
                 json.dump(ord_evaluated_ex, f)
@@ -137,17 +135,12 @@ def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/ro
 def main(args):
     evaluate_trace(args.completions_file, args.eval_file, args.asp_file, args.asp_timeout)
 
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('completions_file', type=str)
     parser.add_argument('eval_file', type=str)
     parser.add_argument('--asp-timeout', type=int, default=20)
     parser.add_argument('--asp-file', type=str, default="robot.lp")
-
-    shutil.rmtree(Path("debug"))
-    os.makedirs("debug", exist_ok=True)
 
     args = parser.parse_args()
     main(args)
