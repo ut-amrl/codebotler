@@ -1,5 +1,5 @@
 ---
-title: "RoboEval:"
+title: "SGTM:"
 subtitle: Deploying and Evaluating Language Models for Robot Program Generation
 authors: [Francesca Lucchetti, Zichao Hu, Sadanand Modak, Yash Saxena, Anders Freeman, Luisa Mao, Claire Schlesinger, Arjun Guha, Joydeep Biswas]
 layout: project
@@ -18,7 +18,10 @@ evaluation has been hindered by the lack of existing benchmarks. We contribute
 to address both these issues.
 
 # Overview
-![Overview](assets/images/RoboEvalFig1.png)
+<div>
+<img src="assets/images/RoboEvalFig1.png" style="height=100%"/>
+</div>
+<!-- ![Overview](assets/images/RoboEvalFig1.png) -->
 
 Add some text descriptions here
 # Demo
