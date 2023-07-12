@@ -19,7 +19,7 @@ to address both these issues.
 
 # Overview
 <div>
-<img src="assets/images/RoboEvalFig1.png"/>
+<img src="assets/images/RoboEvalFig1.png" style="width:100%"/>
 </div>
 
 Add some text descriptions here
