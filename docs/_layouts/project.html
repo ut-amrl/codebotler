@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Basic Page Needs
+  ------------------------------------ -->
+  <meta charset="utf-8">
+  <title>{{ page.title }}</title>
+
+  <!-- Mobile Specific Metas
+  ------------------------------------ -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <!-- bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  
+  <!-- FONT
+  ------------------------------------ -->
+  <link href='//fonts.googleapis.com/css?family=Lustria|Lato:400,700,400italic|Playfair+Display:700,400italic' rel='stylesheet' type='text/css'>
+
+  <!-- CSS
+  ------------------------------------ -->
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+  <link rel="stylesheet" href="{{ "/assets/css/style.css" | absolute_url }}">
+  <link rel="stylesheet" href="{{ "/assets/css/lazyYT.css" | absolute_url }}">
+
+  <!-- Favicon
+  ------------------------------------ -->
+  <link rel="icon" type="image/png" href="{{ "/assets/favicon.png" | relative_url }}">
+
+  <!-- Required for GetSimple Plugins
+  ------------------------------------ -->
+  <meta name="keywords" content="courses, computer science, robotics">
+
+</head>
+<body id="index">
+
+  <!-- Primary Page Layout
+  ------------------------------------ -->
+  <div id="container" class="container">
+    <div class="row">
+      <section class="twelve columns">
+        <h1 class="display-2 col-md-12 text-center">
+            <b>
+                {{ page.title }}
+            </b>
+        </h1>
+        <div class="col-md-12 text-center"> 
+            <ul class="list-inline">
+            <br>
+            {% for author in page.authors %}
+                <li class="list-inline-item">
+                    <h4 class="display-5"> {{ author }}, </h4>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+        
+        {{ content }}
+      </section>
+    </div>
+    <hr>
+  </div><!-- close container -->
+  <!-- End Document
+  ------------------------------------ -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="{{ "/assets/js/lazyYT.js" | absolute_url }}"></script>
+  <script>
+    $( document ).ready(function() {
+        $('.js-lazyYT').lazyYT();
+    });
+  </script>
+</body>
+</html>
+
