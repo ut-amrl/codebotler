@@ -11,24 +11,29 @@ alice_no :- replied("alice","no",_).
 bob_yes :- replied("bob","yes",_).
 bob_no :- replied("bob","no",_).
 
+% can't have contradictions
 :- alice_no, alice_yes.
 :- bob_no, bob_yes.
 :- not alice_no, not alice_yes.
 :- not bob_no, not bob_yes.
 
+% only go to locations with alice, bob, start
 :- t_go_to(X, T), @contains_any(X, "alice", "bob", "start_loc") = 0.
 
-
+% trivially require some actions
 :- not t_ask("alice",_,_,_).
 :- not t_ask("bob",_,_,_).
 :- not replied(_,_,_).
+
+% come back
 :- not at("robot","start_loc", timeout).
+
 
 meet(P) :- replied(P, "yes",T), t_say(X, T), 
         @contains_all(X, "meet", "lobby", "5 minutes/five minutes") = 1.
 
 report_joining(P, T) :- replied(P, "yes", _), at("robot", "start_loc", T), t_say(X, T),
-    @contains_all(X, P, "joining/participants/participate/join/come/coming", "lunch") = 1.
+    @contains_all(X, P, "joining/participants/participat/join/come/coming", "lunch") = 1.
 
 joining(P) :- report_joining(P, _).
 
