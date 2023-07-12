@@ -107,7 +107,7 @@ def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/ro
                                             constraints,
                                             timeout=asp_timeout,
                                             robot_asp_logic=asp_file,
-                                            debug_file=f"{debug_dir}/line{i+1}_state{num_state+1}.lp")
+                                            debug_file=f"{debug_dir}/gen{i}_state{num_state}.lp")
 
             evaluated_ex["model"] = model
             evaluated_ex["is_sat"] = (is_sat == "SAT")
