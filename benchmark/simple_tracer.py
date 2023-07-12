@@ -196,6 +196,7 @@ robot = Robot(state)\n{program}\n
     assert len(asp_trace) > 0, p
     return asp_trace
   else:
+    print("RUNTIME ERROR")
     asp_trace.append("runtime_error.")
     return asp_trace
 
