@@ -154,9 +154,6 @@ dependencies:
       - rsa==4.9
       - sympy==1.11.1
       - text-generation==0.6.0
-      - torch==2.0.1+cu118
-      - torchaudio==2.0.2+cu118
-      - torchvision==0.15.2+cu118
       - tqdm==4.65.0
       - triton==2.0.0
       - urllib3==1.26.16

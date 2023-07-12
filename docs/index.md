@@ -1,5 +1,5 @@
 ---
-title: "SGTM:"
+title: "CodeBotler:"
 subtitle: Deploying and Evaluating Language Models for Robot Program Generation
 authors: [Francesca Lucchetti, Zichao Hu, Sadanand Modak, Yash Saxena, Anders Freeman, Luisa Mao, Claire Schlesinger, Arjun Guha, Joydeep Biswas]
 layout: project
@@ -19,9 +19,8 @@ to address both these issues.
 
 # Overview
 <div>
-<img src="assets/images/RoboEvalFig1.png" style="height=100%"/>
+<img src="assets/images/RoboEvalFig1.png"/>
 </div>
-<!-- ![Overview](assets/images/RoboEvalFig1.png) -->
 
 Add some text descriptions here
 # Demo

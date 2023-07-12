@@ -18,10 +18,11 @@ CodeBotler consists of two key components:
 
 ## Requirements
 
-Create a conda environment using the following command:
+We provide a conda environment to run our code. Simply use the following command:
 ```shell
 conda env create -f environment.yml
 ```
+After installing the conda environment, please go to [pytorch's official website](https://pytorch.org/get-started/locally/) to install the pytorch corresponding to your cuda version (**Note: do not install the cpu version**). 
 
 **Language model options**
 * To use an OpenAI model, you will need an [OpenAI key](https://platform.openai.com/account/api-keys), either saved in a file named `.openai_api_key` and placed in `robot_commands/`, or in the `OPENAI_API_KEY` environment variable.
