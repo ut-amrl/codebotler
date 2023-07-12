@@ -24,7 +24,7 @@ movie_messenger_state_0 = {
         { "name" : "mark", "location" : "mark's office", "answers" : ["5pm"]},
     ],
     "objects": [],
-    "additional_constraints" : "",
+    "additional_constraints" : movie_messenger[1],
     "robot_location": "sally's office"
 }
 
@@ -60,7 +60,7 @@ stapler_supply_state_0 = {
         "objects": [{ "label": "stapler", "location": "printer room 1" }], 
         "interactive_agents": [], 
         "robot_location": "start_loc",
-        "additional_constraints" : ""
+        "additional_constraints" : stapler_supply[1]
         }
 
 stapler_supply_state_1 = {
@@ -68,7 +68,7 @@ stapler_supply_state_1 = {
         "objects": [{ "label": "stapler", "location": "living room" }], 
         "interactive_agents": [], 
         "robot_location": "start_loc",
-        "additional_constraints" : ""
+        "additional_constraints" : stapler_supply[2]
         }
 
 stapler_supply_state_2 = {
@@ -76,7 +76,7 @@ stapler_supply_state_2 = {
         "objects": [], 
         "interactive_agents": [], 
         "robot_location": "start_loc",
-        "additional_constraints" : ""
+        "additional_constraints" : stapler_supply[3]
         }
 
 lunch_break_state_0 = {
