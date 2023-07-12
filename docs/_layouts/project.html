@@ -41,9 +41,9 @@
   <div id="container" class="container">
     <div class="row">
       <section class="twelve columns">
-        <h1 class="display-2 col-md-12 text-center">
+        <h1 class="display-4 col-md-12 text-center">
             <b>
-                {{ page.title }}
+                {{ page.title }} {{ page.subtitle }}
             </b>
         </h1>
         <div class="col-md-12 text-center"> 
@@ -51,10 +51,28 @@
             <br>
             {% for author in page.authors %}
                 <li class="list-inline-item">
-                    <h4 class="display-5"> {{ author }}, </h4>
+                    <span style="font-size: large;">{{ author }},</span>
                 </li>
             {% endfor %}
             </ul>
+        </div>
+        <!-- hardcoded here: make it responsive later -->
+        <div class="row">
+          <div class="col-md-3"></div>
+          <div class="col-md-2 text-center">
+            <a href="">
+              <img src="assets/images/github.png" style="height: 60px"/>
+              <h5><strong>code</strong></h5>
+            </a>
+          </div>
+          <div class="col-md-2"></div>
+          <div class="col-md-2 text-center">
+            <a href="">
+              <img src="assets/images/paper_thumbnail.png" style="height: 60px"/>
+              <h5><strong>paper</strong></h5>
+            </a>
+          </div>
+          <div class="col-md-3"></div>
         </div>
         
         {{ content }}

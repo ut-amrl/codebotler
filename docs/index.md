@@ -1,23 +1,10 @@
 ---
-title: "RoboEval: a longer description here"
+title: "RoboEval:"
+subtitle: Deploying and Evaluating Language Models for Robot Program Generation
 authors: [Francesca Lucchetti, Zichao Hu, Sadanand Modak, Yash Saxena, Anders Freeman, Luisa Mao, Claire Schlesinger, Arjun Guha, Joydeep Biswas]
 layout: project
 order: 1
 ---
-
-<div class="row">
-<div class="col-md-3"></div>
-<div class="col-md-2 text-center">
-![code](assets/images/github.png)
-<h5><strong>code</strong></h5>
-</div>
-<div class="col-md-2"></div>
-<div class="col-md-2 text-center">
-![paper](assets/images/paper_thumbnail.png)
-<h5><strong>paper</strong></h5>
-</div>
-<div class="col-md-3"></div>
-</div>
 
 # Abstract
 Recent advancements in the capabilities of large language models (LLMs) have

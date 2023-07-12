@@ -5,3 +5,5 @@ __pycache__
 build/
 devel/
 debug/
+_site/
+_includes/
