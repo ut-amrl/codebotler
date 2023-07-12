@@ -19,6 +19,7 @@ def evaluate_data(df: pd.DataFrame, k: int):
     df["pass1"]  = df.apply(lambda row: estimator(row["n"], row["c"], 1), axis=1)
     df = df.drop(columns=["n", "c"])
     print(df)
+    return df
 
 def evaluate_data_2(df: pd.DataFrame, k: int):
     df = df[["name", "constraint", "completion", "is_sat"]]
@@ -35,6 +36,7 @@ def evaluate_data_2(df: pd.DataFrame, k: int):
     df = df.drop(columns=["c"])
 
     print(df)
+    return df
 
 def evaluate_data_2(df: pd.DataFrame, k: int):
     df = df[["name", "constraint", "completion", "is_sat"]]
@@ -51,6 +53,7 @@ def evaluate_data_2(df: pd.DataFrame, k: int):
     df = df.drop(columns=["c"])
 
     print(df)
+    return df
 
 def evaluate_data_3(df: pd.DataFrame, k: int):
     # State is unhashable, so we convert it to a string
@@ -65,17 +68,30 @@ def evaluate_data_3(df: pd.DataFrame, k: int):
     df = df.drop(columns=["c"])
 
     print(df)
+    return df
 
+def calculate_results_table(eval_df: pd.DataFrame):
+    df = eval_df.reset_index(level=[0,1])
+    mins = df.groupby(["name"])["pass1"].min().rename("min")
+    means = df.groupby(["name"])["pass1"].mean().rename("mean")
+    maxes = df.groupby(["name"])["pass1"].max().rename("max")
+    results = pd.concat([mins, maxes, means], axis=1)
+    results["+="] = results.apply(lambda row: max(row["max"] - row["mean"],
+                                                     row["mean"] - row["min"]), axis=1)
+    results = results.apply(lambda row: round(row, 3))
+    print(results)
+    return results
     
-
+    
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("file", type=Path, help="Path to the JSON file.")
     args = parser.parse_args()
-
+    
     df = pd.read_json(args.file, lines=True)
-    #evaluate_data(df, 1)
-    evaluate_data_3(df, 1)
+    df3 = evaluate_data_3(df, 1)
+    res = calculate_results_table(df3)
+    # print(mean)
 
 if __name__ == "__main__":
     main()
