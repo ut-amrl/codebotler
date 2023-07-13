@@ -3,11 +3,13 @@
 
 :- not at("robot", "start_loc", timeout).
 
-chocolate2 :- t_say(X, T), @contains_all(X, "chocolates/chocolate", "2/two") = 1, 
-                @contains_any(X, "gummy", "gummies", "caramel","caramels") = 0.
+chocolate2 :- t_say(X, T), at("robot","start_loc",T), 
+                @contains_all(X, "two chocolate/2 chocolate") = 1, 
+                @contains_all(X, "zero gumm/0 gumm", "zero caramel/0 caramel") = 1.
                 
-chocolate1_gummy1 :- t_say(X, T), @contains_any(X, "caramels", "caramel") = 0,
-                @contains_all(X, "one chocolate/1 chocolate", "1 gummy/one gummy") = 1.
+chocolate1_gummy1 :- t_say(X, T),  at("robot","start_loc",T), 
+                @contains_all(X, "zero caramel/0 caramel") = 1,
+                @contains_all(X, "one chocolate/1 chocolate", "one gumm/1 gumm") = 1.
 
 #external state(0).
 % 2 chocolates
