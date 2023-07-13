@@ -55,7 +55,7 @@ def evaluate_data_2(df: pd.DataFrame, k: int):
     print(df)
     return df
 
-def evaluate_data_3(df: pd.DataFrame, k: int):
+def evaluate_data_3(df: pd.DataFrame, k: int, print_data=True):
     # State is unhashable, so we convert it to a string
     df["state_str"] = df["state"].apply(lambda x: str(x))
     df = df[["name", "state_str", "constraint", "completion", "is_sat"]]
@@ -67,11 +67,12 @@ def evaluate_data_3(df: pd.DataFrame, k: int):
     df["pass1"]  = df.apply(lambda row: estimator(row["n"], row["c"], 1), axis=1)
     df = df.drop(columns=["c"])
 
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        print(df)
+    if print_data:
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+            print(df)
     return df
 
-def calculate_results_table(eval_df: pd.DataFrame):
+def calculate_results_table(eval_df: pd.DataFrame, print_table=True):
     def normalize(row):
         row["name"] = row["name"].split("-")[0]
         return row
@@ -92,7 +93,9 @@ def calculate_results_table(eval_df: pd.DataFrame):
     results["+-"] = results.apply(lambda row: max(row["max"] - row["mean"],
                                                      row["mean"] - row["min"]), axis=1)
     results = results.apply(lambda row: round(row, 3))
-    print(results)
+    results = results.reset_index(level=[0])
+    if print_table:
+        print(results)
     return results
     
     
