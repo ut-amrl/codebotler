@@ -1,6 +1,6 @@
 name: RoboEval
 markdown: kramdown
-url: https://amrl.cs.utexas.edu/roboeval
+url: https://amrl.cs.utexas.edu/codebotler
 kramdown:
  input: GFM
  auto_ids: true
