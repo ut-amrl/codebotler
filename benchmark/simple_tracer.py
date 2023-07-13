@@ -2,6 +2,10 @@ import typing
 import bounded_subprocess
 import sys
 
+'''
+Note: this prints to stdout to create trace (bounded subproc)
+'''
+
 def dict_to_state(state_dict):
     return State(
     locations= state_dict["locations"],
@@ -117,7 +121,7 @@ class Robot:
     print(f"t_go_to(\"{location}\",{self.trace_t}).", flush=True)
     self.trace_t += 1
     global state
-    assert location in self.state.locations, location
+    # assert location in self.state.locations, location
     # if location not in self.state.locations:
     #   self.asp_trace.append(":- .") # unsat
     self.state.robot_location = location
@@ -140,7 +144,6 @@ class Robot:
       if p.location == self.state.robot_location:
         # print(f"matched location {state.robot_location}")
         for a in p.answers:
-          # print(f"option: {a}")
           for o in options:
             if o == a:
               response = a
@@ -150,10 +153,8 @@ class Robot:
         # print(f"no match between {options} and {p.answers}")
         # No matching answer found.
         return options[0]
-        assert False
     # No matching person found at the location.
     return options[0]
-    assert False
 
   # Say the message out loud. Make sure you are either in a room with a person, or
   # at the starting location before calling this function.
@@ -164,14 +165,6 @@ class Robot:
     pass
 
 def run_program(program : str, state : State) -> list[str] :
-  # robot = Robot(state)
-  
-  # grounding = "say = robot.say\n" + \
-  #             "go_to = robot.go_to\n" + \
-  #             "ask = robot.ask\n" + \
-  #             "is_in_room = robot.is_in_room\n" + \
-  #             "get_all_rooms = robot.get_all_rooms\n" + \
-  #             "get_current_location = robot.get_current_location\n"
               
   p = f"""
 import sys
@@ -181,77 +174,75 @@ state_dict = {state}
 state = dict_to_state(state_dict)
 robot = Robot(state)\n{program}\n
 """
-  # print("=======================\nGrounded Program:\n=======================")
-  # print(p)
-  # print("=======================\nASP Trace:\n=======================")
   
-  ret = bounded_subprocess.run(["python", "-c", p], timeout_seconds=2)
+  ret = bounded_subprocess.run(["python", "-c", p], timeout_seconds=3)
   
   asp_trace = [i for i in ret.stdout.split("\n") if i != ""]
   if ret.exit_code == -1:
-    asp_trace.append("timed_out.\n")
-    print("TIMED_OUT:", ret.exit_code, ret.stderr)
-  
-  if ret.exit_code == 0:
-    assert len(asp_trace) > 0, p
+    asp_trace.append("python_trace_timed_out.\n")
+    print("PYTHON TIMED_OUT:", ret.exit_code)
+    return asp_trace
+  elif ret.exit_code == 0:
+    assert len(asp_trace) > 0, p+ "\n".join(asp_trace)
     return asp_trace
   else:
-    print("RUNTIME ERROR: ", ret.exit_code)
+    print("PYTHON RUNTIME ERROR: ", ret.exit_code)
     asp_error = ret.stderr.strip("\n").split("\n")[-1].strip()
-    asp_trace.append("""runtime_error(" """ + asp_error + """ ").\n""")
+    asp_trace.append("""python_trace_runtime_error(" """ + asp_error + """ ").""")
     return asp_trace
 
-program = """
-list_of_rooms = get_all_rooms()
-start_loc = get_current_location()
-candies = [\"Chocolate\", \"Gummies\", \"Licorice\"]
-candies_count = {candy : 0 for candy in candies}
-for room in list_of_rooms:
-  if \"office\" not in room:
-    continue
-  go_to(room)
-  if is_in_room(\"person\"):
-    response = ask(\"Person\", \"Which kind of candy would you like?\", candies)
-    candies_count[response] += 1
-go_to(start_loc)
-for candy, count in candies_count.items():
-  say(\"We need to buy \" + str(count) + \" \" + candy)
-"""
 
-def main():
-  state = State(
-    locations=["Arjun's office",
-                "Kitchen",
-                "Joydeep's office",
-                "Conference room"],
-    objects = [
-      Object(label = "pringles", location = "Kitchen" ),
-      Object(label = "black backpack", location = "Conference room"),
-      Object(label = "person", location = "Arjun's office"),
-      Object(label = "person", location = "Joydeep's office")
-      ],
-    interactive_agents = [
-      InteractiveAgent(name = "Arjun",
-                      location = "Arjun's office",
-                      answers = ["yes", "5", "Gummies"]),
-      InteractiveAgent(name = "Arjun",
-                      location = "Arjun's office",
-                      answers = ["no", "1"]),
-      InteractiveAgent(name = "Joydeep",
-                      location = "Conference room",
-                      answers = ["no", "Licorice"])
-    ],
-    robot_location = "Arjun's office"
-  )
-  program = "say(\"Hello, world!\")"
-  program = "r = 10\n"
-  print("=======================\nProgram:\n=======================")
-  print(program)
-  print("=======================\nState:\n=======================")
-  print(state)
-  asp_trace = run_program(program, state)
-  print("=======================\nASP Trace:\n=======================")
-  print(*asp_trace, sep="\n")
+# program = """
+# list_of_rooms = get_all_rooms()
+# start_loc = get_current_location()
+# candies = [\"Chocolate\", \"Gummies\", \"Licorice\"]
+# candies_count = {candy : 0 for candy in candies}
+# for room in list_of_rooms:
+#   if \"office\" not in room:
+#     continue
+#   go_to(room)
+#   if is_in_room(\"person\"):
+#     response = ask(\"Person\", \"Which kind of candy would you like?\", candies)
+#     candies_count[response] += 1
+# go_to(start_loc)
+# for candy, count in candies_count.items():
+#   say(\"We need to buy \" + str(count) + \" \" + candy)
+# """
 
-if __name__ == "__main__":
-  main()
+# def main():
+#   state = State(
+#     locations=["Arjun's office",
+#                 "Kitchen",
+#                 "Joydeep's office",
+#                 "Conference room"],
+#     objects = [
+#       Object(label = "pringles", location = "Kitchen" ),
+#       Object(label = "black backpack", location = "Conference room"),
+#       Object(label = "person", location = "Arjun's office"),
+#       Object(label = "person", location = "Joydeep's office")
+#       ],
+#     interactive_agents = [
+#       InteractiveAgent(name = "Arjun",
+#                       location = "Arjun's office",
+#                       answers = ["yes", "5", "Gummies"]),
+#       InteractiveAgent(name = "Arjun",
+#                       location = "Arjun's office",
+#                       answers = ["no", "1"]),
+#       InteractiveAgent(name = "Joydeep",
+#                       location = "Conference room",
+#                       answers = ["no", "Licorice"])
+#     ],
+#     robot_location = "Arjun's office"
+#   )
+#   program = "say(\"Hello, world!\")"
+#   program = "r = 10\n"
+#   print("=======================\nProgram:\n=======================")
+#   print(program)
+#   print("=======================\nState:\n=======================")
+#   print(state)
+#   asp_trace = run_program(program, state)
+#   print("=======================\nASP Trace:\n=======================")
+#   print(*asp_trace, sep="\n")
+
+# if __name__ == "__main__":
+#   main()

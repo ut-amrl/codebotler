@@ -8,6 +8,7 @@ import re
 from benchmark.evaluator.solve_utils import model_to_str
 from benchmark.simple_tracer import run_program, dict_to_state
 import shutil
+
 """
 Timeout is max number of time steps after which solver is killed.
 All prompted tasks should be designed to be completed
@@ -56,8 +57,7 @@ def run_simulation(program: str, state:dict,constraint: str, timeout:int, robot_
     # with open(debug_file, "r") as f:
     #     print("DEBUG:", f.read())
 
-    # run clingo robot.lp debug/debug_ex{i+1}.lp
-
+    # run clingo robot.lp debug.lp
     out = subprocess.run(["clingo", "-f", robot_asp_logic, "-f", debug_file,
                           "--time-limit", str(max_seconds)],
                                  capture_output=True)
@@ -65,20 +65,19 @@ def run_simulation(program: str, state:dict,constraint: str, timeout:int, robot_
     try:
       if "UNSATISFIABLE" in str(out.stdout):
           return ("", "UNSAT")
+      elif out.stderr is not None and "error" in str(out.stderr.decode("utf-8")).lower():
+          print("CLINGO RUNTIME ERROR")
+          with open(debug_file, "a") as f:
+              f.write("\nclingo_runtime_error.")
+          return ("", "UNSAT")
       else:
           model = re.search(r"Answer: 1(.*)SATISFIABLE", str(out.stdout)).group(1)
           return (model_to_str(model.strip("\n")), "SAT")
     except Exception as e:
-        if out.stderr:
-            print("=====================================")
-            print("Clingo error:")
-            print("=====================================")
-            print(out.stderr.decode("utf-8"))
-            print("=====================================")
-            raise Exception("Clingo error")
-        else:
-            print("Unknown clingo error")
-            raise e
+        print("=====================================")
+        print("Clingo error:")
+        print(out.stderr.decode("utf-8"))
+        raise e
 
 
 def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/robot.lp", asp_timeout=20, debug_dir="debug"):
@@ -112,7 +111,10 @@ def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/ro
             evaluated_ex["model"] = model
             evaluated_ex["is_sat"] = (is_sat == "SAT")
             print("example {}: sat is {}".format(i, evaluated_ex["is_sat"]))
-
+            
+            # write result to file for debugging
+            open(f"{debug_dir}/gen{i}_state{num_state}.lp", "a").write(f"\n% IS SAT: "+str(evaluated_ex["is_sat"]))
+            
             evaluated_ex["name"] = example_completion["name"]
             evaluated_ex["completion"] = program
             evaluated_ex["state"] = state

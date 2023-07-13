@@ -67,7 +67,8 @@ def evaluate_data_3(df: pd.DataFrame, k: int):
     df["pass1"]  = df.apply(lambda row: estimator(row["n"], row["c"], 1), axis=1)
     df = df.drop(columns=["c"])
 
-    print(df)
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        print(df)
     return df
 
 def calculate_results_table(eval_df: pd.DataFrame):
