@@ -12,9 +12,9 @@ chocolate1_gummy1 :- t_say(X, T), @contains_any(X, "caramels", "caramel") = 0,
 #external state(0).
 % 2 chocolates
 state_0.
-chocolate2.
+:- not chocolate2.
 
 #external state(1).
 % 1 chocolate, 1 gummy
 state_1.
-chocolate1_gummy1.
+:- not chocolate1_gummy1.

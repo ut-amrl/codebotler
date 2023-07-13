@@ -174,22 +174,25 @@ state_dict = {state}
 state = dict_to_state(state_dict)
 robot = Robot(state)\n{program}\n
 """
-  
-  ret = bounded_subprocess.run(["python", "-c", p], timeout_seconds=10)
+  sys.stdout.flush()
+  ret = bounded_subprocess.run(["python", "-c", p], timeout_seconds=3)
+  sys.stdout.flush()
   
   asp_trace = [i for i in ret.stdout.split("\n") if i != ""]
   if ret.exit_code == -1:
-    asp_trace.append("python_trace_timed_out_error.\n")
     print("PYTHON TIMED_OUT:", ret.exit_code)
-    return asp_trace
+    # crop last line of trace
+    return asp_trace[:-1] + ["python_timed_out."]
   elif ret.exit_code == 0:
+    
     assert len(asp_trace) > 0, p+ "\n".join(asp_trace)
+    print(asp_trace[-1])
     return asp_trace
   else:
     print("PYTHON RUNTIME ERROR: ", ret.exit_code)
-    asp_error = ret.stderr.strip("\n").split("\n")[-1].strip()
-    asp_trace.append("""python_trace_runtime_error(" """ + asp_error + """ ").""")
-    return asp_trace
+    py_error = ret.stderr.strip("\n").split("\n")[-1].strip()
+    # asp_trace.append("""python_runtime_error(" """ + py_error + """ ").""")
+    return ["""python_runtime_error(" """ + py_error + """ ")."""]
 
 
 # program = """
