@@ -89,7 +89,7 @@ def calculate_results_table(eval_df: pd.DataFrame):
 
     results = pd.concat([maxes, mins, prompt_means], axis=1)
     
-    results["+="] = results.apply(lambda row: max(row["max"] - row["mean"],
+    results["+-"] = results.apply(lambda row: max(row["max"] - row["mean"],
                                                      row["mean"] - row["min"]), axis=1)
     results = results.apply(lambda row: round(row, 3))
     print(results)
