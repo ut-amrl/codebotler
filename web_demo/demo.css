@@ -25,7 +25,7 @@ h1 {
 
 .content {
     display: grid;
-    grid-template-columns: 1.5fr 1fr 2fr 2fr 2fr 1.5fr;
+    grid-template-columns: 1.5fr 2fr 2fr 2fr 2fr 1.5fr;
     width: 100%;
     align-items: center;
     gap: 5px;
@@ -60,6 +60,10 @@ h1 {
     justify-content: center;
     padding-left: 0;
     text-align: left;
+}
+
+.code img {
+    width: 100%;
 }
 
 .link {
