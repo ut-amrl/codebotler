@@ -64,7 +64,7 @@ def generate(args):
 def evaluate(args):
   print(f"Evaluating completions from {args.generate_output}...")
   print(f"Benchmark file: {args.benchmark_file}")
-  evaluate_trace(args.generate_output, args.evaluate_output)
+  evaluate_trace(args.generate_output, args.evaluate_output, print_completions=args.print_completions)
   
 
 def main():
@@ -91,6 +91,7 @@ def main():
   parser.add_argument("--max-tokens", type=int, default=256)
   parser.add_argument("--top-p", type=float, default=0.95)
   parser.add_argument("--temperature", type=float, default=0.2)
+  parser.add_argument("--print-completions", action="store_true", help="Print completions to stdout")
 
   # For an automodel
   parser.add_argument("--batch-size", type=int, default=1)
