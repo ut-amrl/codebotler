@@ -33,8 +33,10 @@ halloween_list_state_0 = {
     "interactive_agents" : [
         # sally and choices"
         { "name" : "person", "location" : "sally's office", "answers" : ["chocolate"]},
+        { "name" : "", "location" : "sally's office", "answers" : ["chocolate"]}, #diff way of writing person
         # 2. mark and choices
         { "name" : "person", "location" : "mark's office", "answers" : ["chocolate"]},
+        { "name" : "", "location" : "mark's office", "answers" : ["chocolate"]}, #diff way of writing person
 
     ],
     "objects": [],
@@ -47,8 +49,10 @@ halloween_list_state_1 = {
     "interactive_agents" : [
         # sally and choices"
         { "name" : "person", "location" : "sally's office", "answers" : ["chocolate"]},
+        { "name" : "", "location" : "sally's office", "answers" : ["chocolate"]},
         # 2. mark and choices
         { "name" : "person", "location" : "mark's office", "answers" : ["gummy"]},
+        { "name" : "", "location" : "mark's office", "answers" : ["gummy"]},
     ],
     "objects": [],
     "robot_location": "start_loc",
