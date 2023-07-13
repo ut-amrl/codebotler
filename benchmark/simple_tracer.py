@@ -176,8 +176,7 @@ robot = Robot(state)\n{program}\n
 """
   sys.stdout.flush()
   ret = bounded_subprocess.run(["python", "-c", p], timeout_seconds=3)
-  sys.stdout.flush()
-  
+
   asp_trace = [i for i in ret.stdout.split("\n") if i != ""]
   if ret.exit_code == -1:
     print("PYTHON TIMED_OUT:", ret.exit_code)
@@ -186,7 +185,6 @@ robot = Robot(state)\n{program}\n
   elif ret.exit_code == 0:
     
     assert len(asp_trace) > 0, p+ "\n".join(asp_trace)
-    print(asp_trace[-1])
     return asp_trace
   else:
     print("PYTHON RUNTIME ERROR: ", ret.exit_code)
