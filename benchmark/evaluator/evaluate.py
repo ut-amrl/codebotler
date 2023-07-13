@@ -80,7 +80,7 @@ def run_simulation(program: str, state:dict,constraint: str, timeout:int, robot_
         raise e
 
 
-def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/robot.lp", asp_timeout=20, debug_dir="debug", print_completions=False):
+def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/robot.lp", asp_timeout=20, debug_dir="debug", print_completions=False, test_filter=None):
     completions = []
 
     with open(Path(completions_file), 'r') as f:
@@ -93,9 +93,14 @@ def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/ro
     os.makedirs(debug_dir)
     
     evaluated_completions = []
-
+    if test_filter is not None:
+        print("Filtering tests with regex: {}".format(test_filter))
     for i, example_completion in enumerate(completions):
         program = example_completion["completion"]
+        if test_filter is not None:
+            # Check if example_completion["name"] matches test_filter regex.
+            if not re.search(test_filter, example_completion["name"]):
+                continue
         if print_completions:
             print("\ncompletion {}:{}\n".format(i, program))
         for num_state, test in enumerate(example_completion["tests"]):
@@ -112,7 +117,7 @@ def evaluate_trace(completions_file, eval_file, asp_file="benchmark/evaluator/ro
 
             evaluated_ex["model"] = model
             evaluated_ex["is_sat"] = (is_sat == "SAT")
-            print("completion {}, state {}: sat is {}".format(i, num_state, evaluated_ex["is_sat"]))
+            print("completion {}, task {}, state {}: sat is {}".format(i, example_completion["name"], num_state, evaluated_ex["is_sat"]))
             
             # write result to file for debugging
             open(f"{debug_dir}/gen{i}_state{num_state}.lp", "a").write(f"\n% IS SAT: "+str(evaluated_ex["is_sat"]))
