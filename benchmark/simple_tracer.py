@@ -175,11 +175,11 @@ state = dict_to_state(state_dict)
 robot = Robot(state)\n{program}\n
 """
   
-  ret = bounded_subprocess.run(["python", "-c", p], timeout_seconds=3)
+  ret = bounded_subprocess.run(["python", "-c", p], timeout_seconds=10)
   
   asp_trace = [i for i in ret.stdout.split("\n") if i != ""]
   if ret.exit_code == -1:
-    asp_trace.append("python_trace_timed_out.\n")
+    asp_trace.append("python_trace_timed_out_error.\n")
     print("PYTHON TIMED_OUT:", ret.exit_code)
     return asp_trace
   elif ret.exit_code == 0:
