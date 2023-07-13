@@ -71,11 +71,23 @@ def evaluate_data_3(df: pd.DataFrame, k: int):
     return df
 
 def calculate_results_table(eval_df: pd.DataFrame):
+    def normalize(row):
+        row["name"] = row["name"].split("-")[0]
+        return row
+    
     df = eval_df.reset_index(level=[0,1])
-    mins = df.groupby(["name"])["pass1"].min().rename("min")
-    means = df.groupby(["name"])["pass1"].mean().rename("mean")
-    maxes = df.groupby(["name"])["pass1"].max().rename("max")
-    results = pd.concat([mins, maxes, means], axis=1)
+
+    state_means = df.groupby(["name"])["pass1"].mean().rename("state_mean").to_frame()
+    state_means.reset_index(level=[0], inplace=True)
+    
+    norm_state_means = state_means.apply(lambda row: normalize(row), axis=1)
+    
+    prompt_means = norm_state_means.groupby(["name"])["state_mean"].mean().rename("mean")
+    maxes = norm_state_means.groupby(["name"])["state_mean"].max().rename("max")
+    mins = norm_state_means.groupby(["name"])["state_mean"].min().rename("min")
+
+    results = pd.concat([maxes, mins, prompt_means], axis=1)
+    
     results["+="] = results.apply(lambda row: max(row["max"] - row["mean"],
                                                      row["mean"] - row["min"]), axis=1)
     results = results.apply(lambda row: round(row, 3))
