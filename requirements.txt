@@ -1,9 +1,0 @@
-pandas
-text_generation
-transformers
-google-generativeai
-openai
-websockets
-bounded_subprocess
-clingo
-bounded_subprocess
