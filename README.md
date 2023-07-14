@@ -16,6 +16,8 @@ CodeBotler consists of two key components:
 * [CodeBotler-Benchmark](#codebotler-benchmark-quick-start-guide): The code generation benchmark for evaluating large language
   models (LLMs) for service mobile robot task code generation.
 
+Project website: https://amrl.cs.utexas.edu/codebotler
+
 ## Requirements
 
 We provide a conda environment to run our code. Simply use the following command:
