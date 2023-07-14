@@ -40,11 +40,13 @@ jobs:
           use-only-tar-bz2: true  # IMPORTANT: This needs to be set for caching to work properly!
           auto-update-conda: true
           auto-activate-base: true
-          
+
       - name: Install dependencies
         run: |
           cd $GITHUB_WORKSPACE
           echo "begin: PATH=$PATH;"
+          conda info
+          conda -V
           conda env create -f environment.yml
           conda activate codebotler || true
           echo "after conda activate codebotler: PATH=$PATH;"
