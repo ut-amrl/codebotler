@@ -36,6 +36,7 @@ jobs:
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
+          miniconda-version: "latest"
           activate-environment: codebotler
           environment-file: $GITHUB_WORKSPACE/environment.yml
           python-version: 3.10
