@@ -20,20 +20,21 @@ Project website: https://amrl.cs.utexas.edu/codebotler
 
 ## Requirements
 
-We provide a conda environment to run our code. Simply use the following command:
+We provide a conda environment to run our code. To create and activate the environment:
 ```shell
 conda env create -f environment.yml
 conda activate codebotler
 ```
 After installing the conda environment, please go to [pytorch's official website](https://pytorch.org/get-started/locally/) to install the pytorch corresponding to your cuda version (**Note: do not install the cpu version**). 
 
-**Language model options**
+**Language Model Options**
 * To use an OpenAI model, you will need an [OpenAI key](https://platform.openai.com/account/api-keys), either saved in a file named `.openai_api_key` and placed in `robot_commands/`, or in the `OPENAI_API_KEY` environment variable.
 * To use a PaLM model, you will need a [Google Generative API key](https://developers.generativeai.google/tutorials/setup), either saved in a file named `.palm_api_key` and placed in `robot_commands/`, or in the `PALM_API_KEY` environment variable.
 * You can use any pretrained model compatible with the [HuggingFace AutoModel](https://huggingface.co/transformers/v3.5.1/model_doc/auto.html#automodelforcausallm) interface, including open-source models from the [HuggingFace repository](https://huggingface.co/models) such as [Starcoder](https://huggingface.co/bigcode/starcoder). Note that some models, including Starcoder, require you to agree to the HuggingFace terms of use, and you must be logged in using `huggingface-cli login`.
+* You can also use a [HuggingFace Inference Endpoint](https://huggingface.co/docs/inference-endpoints/index).
 
 
-## CodeBotler Deploy Quick-Start Guide
+## CodeBotler Deployment Quick-Start Guide
 
 To run the web interface for CodeBotler-Deploy using the default options (using OpenAI's
 `text-daVinci-003` model), run:
@@ -84,9 +85,7 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
     ```shell
     python3 roboeval.py --evaluate --generate-output benchmark/evaluator/starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
     ```
-
-    Finally, you can compute pass rates for every task:
-
+3. Finally, you can compute pass rates for every task:
     ```shell
     python3 pass_k.py starcoder_eval.jsonl
     ```
