@@ -33,8 +33,8 @@ jobs:
       - name: Install dependencies
         run: |
           cd $GITHUB_WORKSPACE
-          conda env create -f environment.yml
-          conda activate codebotler
+          $CONDA/bin/conda env create -f environment.yml
+          $CONDA/bin/conda activate codebotler
           pip3 install torch torchvision torchaudio
 
       - name: Catkin make
