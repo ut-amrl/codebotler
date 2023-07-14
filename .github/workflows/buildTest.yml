@@ -35,7 +35,7 @@ jobs:
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          miniconda-version: "latest"
+          miniconda-version: 23.3.1
           channels: bioconda, conda-forge, defaults
           use-only-tar-bz2: true  # IMPORTANT: This needs to be set for caching to work properly!
           auto-update-conda: true
