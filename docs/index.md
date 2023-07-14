@@ -22,8 +22,8 @@ purpose service robot programs from natural language, and
 to deploy such programs on general-purpose autonomous
 mobile robots. 
 
-**RoboEval** is a code completion benchmark that test for both correctness and robustness of LLM-generated robot programs. This proposed benchmark 1) evaluates the execution traces of programs in simulated environments, 2) checks
-whether the execution traces satisfy temporal logic properties, 3) contains various prompts and evaluate the resulting programs to evaluate for robustness
+**RoboEval** is a code completion benchmark that test for both correctness and robustness of LLM-generated robot programs. This proposed benchmark 1) evaluate the *execution traces* of programs; 2) checks whether the execution traces satisfy *temporal logic* properties that encode correctness for each task; 3) contains *various the prompts* and
+evaluate the resulting programs to evaluate for robustness
 
 <div>
 <img src="assets/images/RoboEvalFig1.jpg" style="width:100%"/>
