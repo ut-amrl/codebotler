@@ -9,11 +9,11 @@ It includes a benchmark for evaluating LLMs for code generation for service
 mobile robot tasks.
 
 CodeBotler consists of two key components:
-* [CodeBotler-Deploy](#codebotler-deploy-quick-start-guide): A web interface and server for deploying CodeBotler on a
+* [CodeBotler](#codebotler-deploy-quick-start-guide): A web interface and server for deploying CodeBotler on a
   general purpose service mobile robot. You can use this to try out the code
   generation capabilities of CodeBotler either as a standalone system without a
   robot, or actually deploy it on a real robot.
-* [CodeBotler-Benchmark](#codebotler-benchmark-quick-start-guide): The code generation benchmark for evaluating large language
+* [RoboEval](#roboeval-benchmark-quick-start-guide): The code generation benchmark for evaluating large language
   models (LLMs) for service mobile robot task code generation.
 
 Project website: https://amrl.cs.utexas.edu/codebotler
@@ -33,12 +33,12 @@ After installing the conda environment, please go to [pytorch's official website
 * You can use any pretrained model compatible with the [HuggingFace AutoModel](https://huggingface.co/transformers/v3.5.1/model_doc/auto.html#automodelforcausallm) interface, including open-source models from the [HuggingFace repository](https://huggingface.co/models) such as [Starcoder](https://huggingface.co/bigcode/starcoder). Note that some models, including Starcoder, require you to agree to the HuggingFace terms of use, and you must be logged in using `huggingface-cli login`.
 
 
-## CodeBotler-Deploy Quick-Start Guide
+## CodeBotler Deploy Quick-Start Guide
 
 To run the web interface for CodeBotler-Deploy using the default options (using OpenAI's
 `text-daVinci-003` model), run:
 ```shell
-OPENAI_API_KEY=YOURKEY python3 codebotler_deploy.py
+OPENAI_API_KEY=YOURKEY python3 codebotler.py
 ```
 This will start the server on `localhost:8080`. You can then open the interface
 by navigating to http://localhost:8080/ in your browser.
@@ -58,13 +58,13 @@ List of arguments:
 
 Instructions for deploying on real robots are included in [robot_interface/README.md](robot_interface/README.md).
 
-## CodeBotler-Benchmark Quick-Start Guide
+## RoboEval Benchmark Quick-Start Guide
 
 The instructions below demonstrate how to run the benchmark using the open-source [StarCoder](https://huggingface.co/bigcode/starcoder) model.
 
 1. Run code generation for the benchmark tasks using the following command:
     ```shell
-    python3 codebotler_benchmark.py --generate --model-type automodel --model-name "bigcode/starcoder" --generate-output starcoder_completions.jsonl
+    python3 roboeval.py --generate --model-type automodel --model-name "bigcode/starcoder" --generate-output starcoder_completions.jsonl
     ```
     This will generate the programs for the benchmark tasks and save them in
     an output file named `starcoder_completions.jsonl`. It assumes default values
@@ -72,7 +72,7 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
     programs for each task --- this will suffice for pass@1 evaluation.
 2. Evaluate the generated programs using the following command:
     ```shell
-    python3 codebotler_benchmark.py --evaluate --generate-output starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
+    python3 roboeval.py --evaluate --generate-output starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
     ```
     This will evaluate the generated programs from the previous step, and save
     all the evaluation results in an output file named `starcoder_eval.jsonl`.
@@ -82,7 +82,7 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
     For example, you can run:
 
     ```shell
-    python3 codebotler_benchmark.py --evaluate --generate-output benchmark/evaluator/starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
+    python3 roboeval.py --evaluate --generate-output benchmark/evaluator/starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
     ```
 
     Finally, you can compute pass rates for every task:
