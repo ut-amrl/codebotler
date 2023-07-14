@@ -33,7 +33,9 @@ jobs:
       - name: Install dependencies
         run: |
           cd $GITHUB_WORKSPACE
-          pip install -r requirements.txt
+          conda env create -f environment.yml
+          conda activate codebotler
+          pip3 install torch torchvision torchaudio
 
       - name: Catkin make
         shell: bash
