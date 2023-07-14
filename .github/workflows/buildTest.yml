@@ -33,36 +33,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-
-      # - uses: conda-incubator/setup-miniconda@v2
-      #   with:
-      #     miniconda-version: "latest"
-      #     activate-environment: codebotler
-      #     environment-file: $GITHUB_WORKSPACE/environment.yml
-      #     python-version: 3.10
-      #     auto-activate-base: false
-      # - run: |
-      #     conda info
-      #     conda list
-      #     pip3 install torch torchvision torchaudio
-
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          miniconda-version: "latest"
-          channels: bioconda, conda-forge, defaults
-          use-only-tar-bz2: true  # IMPORTANT: This needs to be set for caching to work properly!
-          auto-update-conda: true
-          auto-activate-base: true
       - name: Install dependencies
         run: |
           cd $GITHUB_WORKSPACE
-          echo "begin: PATH=$PATH;"
-          conda info
-          conda -V
-          conda env create -f environment.yml
-          conda activate codebotler || true
-          echo "after conda activate codebotler: PATH=$PATH;"
-          pip3 install torch torchvision torchaudio
+          pip install -r requirements.txt
 
       - name: Catkin make
         shell: bash
