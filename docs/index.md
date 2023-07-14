@@ -8,53 +8,40 @@ order: 1
 
 # Abstract
 Recent advancements in the capabilities of large language
-models (LLMs) have spurred interest in using them for gener-
-ating robot task policies from natural language task descrip-
-tions. Early results indicate that LLMs are indeed ca-
-pable of generating reasonable general-purpose service robot
+models (LLMs) have spurred interest in using them for generating robot task policies from natural language task 
+descriptions. Early results indicate that LLMs are indeed capable of generating reasonable general-purpose service robot
 programs. However, such initial promise has been tempered
-by results showing that 1) LLMs frequently generate impre-
-cise results that are not executable, and 2) large-scale testing
-and evaluation has been hindered by the lack of existing
-benchmarks. We contribute CODEBOTLER and ROBOEVAL
-to address the two issues respectively.
+by results showing that 1) LLMs frequently generate imprecise results that are not executable, 
+and 2) large-scale testing and evaluation has been hindered by the lack of existing
+benchmarks. We contribute **CodeBotler** and **RoboEval** to address the two issues respectively.
 
 # Overview
-<div>
-<img src="assets/images/RoboEvalFig1.jpg" style="width:100%"/>
-</div>
-CodeBotler is an open-source tool to generate general-
+
+**CodeBotler** is an open-source tool to generate general-
 purpose service robot programs from natural language, and
 to deploy such programs on general-purpose autonomous
 mobile robots. 
 
-RoboEval is a code completion benchmark that test for both correctness and robustness of LLM-generated robot programs. This proposed benchmark evaluates the execution
-traces of programs in simulated environments, heck
-whether the execution traces satisfy temporal logic properties, vary the
-prompts and evaluate the resulting programs to evaluate for
-robustness
+**RoboEval** is a code completion benchmark that test for both correctness and robustness of LLM-generated robot programs. This proposed benchmark 1) evaluates the execution traces of programs in simulated environments, 2) checks
+whether the execution traces satisfy temporal logic properties, 3) contains various prompts and evaluate the resulting programs to evaluate for robustness
 
+<div>
+<img src="assets/images/RoboEvalFig1.jpg" style="width:100%"/>
+</div>
 
-
-a) CODEBOTLER converts a) natural language task prompts to
-b) python programs and c) executes on a real robot. d) ROBOEVAL
-verifies results via LTL checking of simulation traces.
 
 
 # Preliminary RoboEval Results
-<div class="row">
-<div class="col-md-6 text-center">
+<div>
+We have released benchmarks on 5 different tasks:
+- **HalloweenList**: Go to every office, and if there is anyone there, ask if they'd like a chocolate, caramel, or gummy. Come back and tell me how many of each we need to buy.
+- **LunchBreak**: Ask if Alice and Bob in their offices are up for lunch. If yes, tell them that we'll meet in the lobby in 5 minutes. Come back and tell me who all are joining for lunch.
+- **StaplerSupply**: Check every printer room for a stapler, and come back and tell me which ones do not have a stapler.
+- **MovieMessenger**: Ask Sally in her office if she wants to go to the cinema with Mark. Go to Mark's office and tell him Sally's answer. If Sally says yes, ask Mark whether he wants to leave at 4PM, 5PM, or 6PM - then go tell Sally what time Mark is leaving.
+- **ElevatorTour**: Go to the elevator. Wait until someone shows up and ask them if they are here for the tour. If yes, welcome them to the university, ask them to follow you, and take them to the main conference room. If not, wait for the next person. When you get to the conference room, say you have arrived at the conference room and also say enjoy your visit here!
+
 <img src="assets/images/results_v3.png" style="width:100%"/>
 </div>
-<div class="col-md-6">
-We have released benchmarks on 5 different tasks:
-- HalloweenList: 
-- LunchBreak: Ask if Alice and Bob in their offices are up for lunch. If yes, tell them that we'll meet in the lobby in 5 minutes. Come back and tell me who all are joining for lunch.
-- StaplerSupply:
-- MovieMessenger:
-- ElevatorTour:
 
-</div>
-</div>
 
 # CodeBotler Demo
