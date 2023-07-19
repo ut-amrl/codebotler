@@ -7,7 +7,7 @@ order: 1
 ---
 
 # Abstract
-Recent advancements in the capabilities of large language models (LLMs) have spurred interest in using them for generating robot task programs from natural language task descriptions. Early results indicate that LLMs are indeed capable of generating reasonable robot programs. However, such initial promise has been tempered by results showing that 1) LLMs frequently generate imprecise results that are not executable, and 2) large-scale testing and evaluation has been hindered by the lack of existing benchmarks. We contribute **CodeBotler** and **RoboEval** to address the two issues respectively. CodeBotler is an open-source tool to generate general-purpose service robot programs from natural language, and to deploy such programs on general-purpose autonomous mobile robots. The RoboEval benchmark consists of multiple service robot tasks with multiple prompts per task, multiple prompt variations per task, and temporal checks to test generated programs for correctness. 
+Recent advancements in large language models (LLMs) have spurred interest in using them for generating robot programs from natural language, with promising initial results.  We investigate the use of LLMs to generate programs for service mobile robots leveraging mobility, perception, and human interaction skills, and where accurate sequencing and ordering of actions is crucial for success.  We contribute **CodeBotler**, an open-source tool to program service mobile robots from natural language, and **RoboEval**, a benchmark to evaluate the correctness and robustness of generated programs. CodeBotler performs program generation via few-shot prompting of LLMs with an embedded domain-specific language (eDSL) in Python, and leverages skill abstractions to deploy generated programs on any general-purpose mobile robot.  RoboEval evaluates the correctness of generated programs by checking execution traces starting with multiple initial states, and checking whether the traces satisfy temporal logic properties that encode correctness for each task.  RoboEval also includes multiple prompts per task to test for the robustness of program generation. 
 
 # Overview
 
@@ -18,7 +18,7 @@ system for executing generated programs on any general-purpose mobile robot. By
 embedding the eDSL in Python, CodeBotler drastically reduces the number of
 syntax and run-time errors of generated code. 
 
-**RoboEval** is a code completion benchmark that test for both correctness and robustness of LLM-generated robot programs. This proposed benchmark 1) evaluates the *execution traces* of programs; 2) checks whether the execution traces satisfy *temporal logic* properties that encode correctness for each task; and 3) *varies the prompts* for each task to test for robustness of generated programs.
+**RoboEval** is a code completion benchmark that tests for both correctness and robustness of LLM-generated robot programs. This proposed benchmark 1) evaluates the *execution traces* of programs; 2) checks whether the execution traces satisfy *temporal logic* properties that encode correctness for each task; and 3) *varies the prompts* for each task to test for robustness of generated programs.
 
 <div style="justify-content: center; align-items: center; display: flex;">
 <img src="assets/images/RoboEvalFig1.jpg" style="width:100%; max-width:500px; height:auto;"/>
@@ -30,16 +30,26 @@ CodeBotler converts a) natural language task prompts to b) python programs lever
 
 
 
-# Preliminary RoboEval Results
+# RoboEval
 <div>
-We have released benchmarks on 5 different tasks:
-- **HalloweenList**: Go to every office, and if there is anyone there, ask if they'd like a chocolate, caramel, or gummy. Come back and tell me how many of each we need to buy.
-- **LunchBreak**: Ask if Alice and Bob in their offices are up for lunch. If yes, tell them that we'll meet in the lobby in 5 minutes. Come back and tell me who all are joining for lunch.
-- **StaplerSupply**: Check every printer room for a stapler, and come back and tell me which ones do not have a stapler.
-- **MovieMessenger**: Ask Sally in her office if she wants to go to the cinema with Mark. Go to Mark's office and tell him Sally's answer. If Sally says yes, ask Mark whether he wants to leave at 4PM, 5PM, or 6PM - then go tell Sally what time Mark is leaving.
-- **ElevatorTour**: Go to the elevator. Wait until someone shows up and ask them if they are here for the tour. If yes, welcome them to the university, ask them to follow you, and take them to the main conference room. If not, wait for the next person. When you get to the conference room, say you have arrived at the conference room and also say enjoy your visit here!
 
+**RoboEval Benchmark**   
+The preliminary RoboEval benchmark consists of 5 tasks:
+- `HalloweenList`: Go to every office, and if there is anyone there, ask if they'd like a chocolate, caramel, or gummy. Come back and tell me how many of each we need to buy.
+- `LunchBreak`: Ask if Alice and Bob in their offices are up for lunch. If yes, tell them that we'll meet in the lobby in 5 minutes. Come back and tell me who all are joining for lunch.
+- `StaplerSupply`: Check every printer room for a stapler, and come back and tell me which ones do not have a stapler.
+- `MovieMessenger`: Ask Sally in her office if she wants to go to the cinema with Mark. Go to Mark's office and tell him Sally's answer. If Sally says yes, ask Mark whether he wants to leave at 4PM, 5PM, or 6PM - then go tell Sally what time Mark is leaving.
+- `ElevatorTour`: Go to the elevator. Wait until someone shows up and ask them if they are here for the tour. If yes, welcome them to the university, ask them to follow you, and take them to the main conference room. If not, wait for the next person. When you get to the conference room, say you have arrived at the conference room and also say enjoy your visit here!
 
+**Prompt Variations**   
+RoboEval also includes __multiple prompts__ per task, to test for robustness. Here are the prompts for the `HalloweenList` task:
+- `HalloweenList-0`: Go to every office, and if there is anyone there, ask if they'd like a chocolate, caramel, or gummy. Come back and tell me how many of each we need to buy.
+- `HalloweenList-1`: Go to every office, and if there is a person there, ask them if they'd like a chocolate, caramel, or gummy. Come back and tell me how many of each we need to buy.
+- `HalloweenList-2`: Check with every occupied office to see if the occupant would like a chocolate, caramel, or gummy. Let me know how many of each we need to buy.
+- `HalloweenList-3`: Find every occupied office and ask their occupants whether they would like a chocolate, caramel, or gummy. Let me know how many of each we need to buy.
+- `HalloweenList-4`: Go to every office with a person, and ask them if they would like a chocolate, caramel, or gummy, then come back and tell me how many of each people asked for.
+
+**Preliminary RoboEval Results**   
 <div style="justify-content: center; align-items: center; display: flex;">
 <img src="assets/images/results_v3.png" style="width:100%; max-width:500px; height:auto;"/>
 </div>
