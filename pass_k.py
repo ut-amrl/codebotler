@@ -87,6 +87,9 @@ def calculate_results_table(eval_df: pd.DataFrame, print_table=True):
     prompt_means = norm_state_means.groupby(["name"])["state_mean"].mean().rename("mean")
     maxes = norm_state_means.groupby(["name"])["state_mean"].max().rename("max")
     mins = norm_state_means.groupby(["name"])["state_mean"].min().rename("min")
+    all_tasks_mean = prompt_means.mean()
+    all_tasks_min = mins.mean()
+    all_tasks_max = maxes.mean()
 
     results = pd.concat([maxes, mins, prompt_means], axis=1)
     
@@ -94,6 +97,8 @@ def calculate_results_table(eval_df: pd.DataFrame, print_table=True):
                                                      row["mean"] - row["min"]), axis=1)
     results = results.apply(lambda row: round(row, 3))
     results = results.reset_index(level=[0])
+    # Add a new row for the overall mean to the results table
+    results.loc[len(results)] = ["All Tasks", all_tasks_max, all_tasks_min, all_tasks_mean, all_tasks_mean]
     if print_table:
         print(results)
     return results
