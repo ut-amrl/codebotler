@@ -232,7 +232,7 @@ class AutoModel:
         self.tokenizer = AutoTokenizer.from_pretrained(
             path, trust_remote_code=True, padding_side="left"
         )
-        if ("starchat" in path) or ("starcoder" in path) or ("santacoder" in path):
+        if ("starchat" in path) or ("starcoder" in path) or ("santacoder" in path) or ("xgen" in path):
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
     def generate_batch(
