@@ -7,7 +7,7 @@ order: 1
 ---
 
 # Abstract
-Recent advancements in large language models (LLMs) have spurred interest in using them for generating robot programs from natural language, with promising initial results.  We investigate the use of LLMs to generate programs for service mobile robots leveraging mobility, perception, and human interaction skills, and where accurate sequencing and ordering of actions is crucial for success.  We contribute **CodeBotler**, an open-source tool to program service mobile robots from natural language, and **RoboEval**, a benchmark to evaluate the correctness and robustness of generated programs. CodeBotler performs program generation via few-shot prompting of LLMs with an embedded domain-specific language (eDSL) in Python, and leverages skill abstractions to deploy generated programs on any general-purpose mobile robot.  RoboEval evaluates the correctness of generated programs by checking execution traces starting with multiple initial states, and checking whether the traces satisfy temporal logic properties that encode correctness for each task.  RoboEval also includes multiple prompts per task to test for the robustness of program generation. 
+Recent advancements in large language models (LLMs) have spurred interest in using them for generating robot programs from natural language, with promising initial results.  We investigate the use of LLMs to generate programs for service mobile robots leveraging mobility, perception, and human interaction skills, and where accurate sequencing and ordering of actions is crucial for success.  We contribute **CodeBotler**, an open-source tool to program service mobile robots from natural language, and **RoboEval**, a benchmark to evaluate the correctness and robustness of generated programs. CodeBotler performs program generation via few-shot prompting of LLMs with an embedded domain-specific language (eDSL) in Python, and leverages skill abstractions to deploy generated programs on any general-purpose mobile robot.  RoboEval evaluates the correctness of generated programs by first generating execution traces starting with multiple world initial states, and then checking whether each of the traces satisfy temporal logic properties that encode correctness for each task.  RoboEval also includes multiple prompts per task to test for robustness of program generation. 
 
 # Overview
 
@@ -17,7 +17,7 @@ skills in the eDSL, we release CodeBotler, a robot-agnostic deployment
 system for executing generated programs on any general-purpose mobile robot. By
 embedding the eDSL in Python, CodeBotler drastically reduces the number of
 syntax and run-time errors of generated code. 
-The list of robot skills abstracted in the eDSL are:
+The list of robot skills abstracted in the eDSL is shown below:
 
 <div style="justify-content: center; align-items: center; display: flex;">
 <img src="assets/images/robot_skills.png" style="width:100%; max-width:500px; height:auto;"/>
@@ -30,7 +30,7 @@ The list of robot skills abstracted in the eDSL are:
 </div>
 
 <div style="justify-content: center; align-items: center; display: flex;">
-CodeBotler converts a) natural language task prompts to b) python programs leveraging robot skill abstraction, and c) executes the programs on a real robot. d) RoboEval verifies results via LTL checking of simulation traces.
+CodeBotler converts a) natural language task prompts into b) python programs leveraging robot skill abstraction, and c) executes the programs on a real robot. d) RoboEval verifies results via LTL checking of simulation traces.
 </div>
 
 

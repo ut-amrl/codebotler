@@ -54,7 +54,12 @@
             <br>
             {% for author in page.authors %}
                 <li class="list-inline-item">
-                    <span style="font-size: large;">{{ author }},</span>
+                    <!-- don't print comma for last author -->
+                    {% if forloop.last %}
+                        <span style="font-size: large;">{{ author }}</span>
+                    {% else %}
+                        <span style="font-size: large;">{{ author }},</span>
+                    {% endif %}
                 </li>
             {% endfor %}
             </ul>
