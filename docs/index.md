@@ -1,7 +1,7 @@
 ---
 title: "CodeBotler + RoboEval"
 subtitle: Deploying and Evaluating LLMs to Program Service Mobile Robots
-authors: [Francesca Lucchetti, Zichao Hu, Anders Freeman, Sadanand Modak, Yash Saxena, Luisa Mao, Claire Schlesinger, Arjun Guha, Joydeep Biswas]
+authors: [Francesca Lucchetti<sup>1</sup>, Zichao Hu<sup>2</sup>, Anders Freeman<sup>3</sup>, Sadanand Modak<sup>2</sup>, Yash Saxena<sup>2</sup>, Luisa Mao<sup>2</sup>, Claire Schlesinger<sup>1</sup>, Arjun Guha<sup>1</sup>, Joydeep Biswas<sup>2</sup> ]
 layout: project
 order: 1
 ---
