@@ -94,6 +94,9 @@ class PaLMModel:
         palm.configure(api_key=api_key)
         self.model = model
 
+    def model_type(self):
+        return "palm"
+
     def generate(
         self,
         prompts: list,
@@ -102,18 +105,16 @@ class PaLMModel:
         top_p: float,
         max_tokens: int):
         for prompt in prompts:
-            completion = self.palm.generate_text(
-                model=self.model,
-                prompt=prompt,
-                temperature=temperature,
-                stop_sequences=stop_sequences,
-                top_p=top_p,
-                max_output_tokens=max_tokens,
+            yield self.generate_one(
+                prompt,
+                stop_sequences,
+                temperature,
+                top_p,
+                max_tokens
             )
             # Preview is rate-limited to 30/minute, so we sleep for 2 seconds.
             # https://developers.generativeai.google/models/language#model_attributes
             time.sleep(2)
-            yield completion.result
 
     def generate_one(
         self,
@@ -163,6 +164,9 @@ class OpenAIModel:
             self.openai.api_version = api_version
         self.openai.api_key = api_key
 
+    def model_type(self):
+        return "openai"
+
     def generate(
         self,
         prompts: list,
@@ -172,26 +176,19 @@ class OpenAIModel:
         max_tokens: int):
         assert len(stop_sequences) <= 4, "OpenAI API only supports up to 4 stop sequences."
         for prompt in prompts:
-            kwargs = {
-                "prompt": prompt,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "top_p": top_p,
-                "stop": stop_sequences
-            }
-            if self.engine is not None:
-                kwargs["engine"] = self.engine
-            elif self.model is not None:
-                kwargs["model"] = self.model
             while True:
                 try:
-                    results = self.openai.Completion.create(**kwargs)
+                    yield self.generate_one(
+                        prompt,
+                        stop_sequences,
+                        temperature,
+                        top_p,
+                        max_tokens
+                    )
                     break
                 except self.openai.error.RateLimitError:
                     print("Rate limited...")
                     time.sleep(5)
-            completion = results["choices"][0]["text"]
-            yield completion
 
     def generate_one(
         self,
@@ -218,6 +215,9 @@ class TextGenerationModel:
     def __init__(self, url, max_workers):
         self.client = Client(url, timeout=60)
         self.max_workers = max_workers
+
+    def model_type(self):
+        return "hf-textgen"
 
     def generate_one(
         self,
@@ -271,6 +271,9 @@ class AutoModel:
         )
         if ("starchat" in path) or ("starcoder" in path) or ("santacoder" in path) or ("xgen" in path):
             self.tokenizer.pad_token = self.tokenizer.eos_token
+
+    def model_type(self):
+        return "automodel"
 
     def generate_batch(
         self,
