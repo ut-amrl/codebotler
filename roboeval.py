@@ -45,7 +45,7 @@ def main():
   parser.add_argument("--generate-output", type=Path)
   parser.add_argument("--evaluate-output", type=Path)
 
-  parser.add_argument("--model-type", choices=["openai", "openai-chat" "palm", "automodel", "hf-textgen"], default="openai")
+  parser.add_argument("--model-type", choices=["openai", "openai-chat", "palm", "automodel", "hf-textgen"], default="openai")
   parser.add_argument('--model-name', type=str, help='Model name', default='text-davinci-003')
   parser.add_argument('--prompt-prefix', type=Path, help='Prompt prefix', default='code_generation/prompt_prefix.py')
   parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix', default='code_generation/prompt_suffix.py')
