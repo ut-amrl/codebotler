@@ -1,9 +1,11 @@
 import os
-import threading
-import json
-from code_generation.completions import AutoModel, PaLMModel, OpenAIModel, TextGenerationModel
-from code_generation.completions import load_model, completions, read_df
-from benchmark.evaluator.evaluate import evaluate_trace
+import zipfile
+
+from models.model_factory import load_model
+
+from code_generation.completions import completions
+from benchmark.simple_tracer import evaluate_trace
+from misc.utils import read_benchmark, read_completions
 
 prompt_prefix = ""
 prompt_suffix = ""
@@ -13,7 +15,7 @@ def generate(args):
   prompt_suffix = args.prompt_suffix.read_text()
   model = load_model(args)
   stop_sequences = ["\ndef", "\nclass", "print(", "import "]
-  prompts = read_df(args.benchmark_file)
+  prompts = read_benchmark(args.benchmark_file, args.benchmark_filter)
   completions(
       model,
       stop_sequences,
@@ -26,13 +28,23 @@ def generate(args):
       args.generate_output,
       args.num_completions,
   )
+  if args.zip_path:
+    print(f"Zipping from {args.generate_output} to {args.zip_path}...")
+    with zipfile.ZipFile(args.zip_path, "w") as zip_file:
+      for file in args.generate_output.glob("*"):
+        zip_file.write(file, arcname=file.name)
 
 def evaluate(args):
   print(f"Evaluating completions from {args.generate_output}...")
   print(f"Benchmark file: {args.benchmark_file}")
-  evaluate_trace(args.generate_output, args.evaluate_output, print_completions=args.print_completions, test_filter=args.test_filter)
+  if args.unzip_path:
+    print(f"Unzipping from {args.unzip_path} to {args.generate_output}...")
+    with zipfile.ZipFile(args.unzip_path, "r") as zip_file:
+      zip_file.extractall(args.generate_output)
+  completions = read_completions(args.generate_output, args.completion_filter)
+  benchmarks = read_benchmark(args.benchmark_file, args.benchmark_filter)
+  evaluate_trace(completions, benchmarks, args.evaluate_output, args.simulation_timeout)
   
-
 def main():
   global prompt_prefix, prompt_suffix
   import argparse
@@ -43,22 +55,28 @@ def main():
   parser.add_argument("--evaluate", action="store_true")
 
   parser.add_argument("--generate-output", type=Path)
+  parser.add_argument("--zip-path", type=Path)
   parser.add_argument("--evaluate-output", type=Path)
+  parser.add_argument("--unzip-path", type=Path)
 
-  parser.add_argument("--model-type", choices=["openai", "openai-chat", "palm", "automodel", "hf-textgen"], default="openai")
+  parser.add_argument("--model-type", choices=["openai", "openai-chat", "palm", "automodel", "hf-textgen", "llama"], default="openai")
   parser.add_argument('--model-name', type=str, help='Model name', default='text-davinci-003')
+  parser.add_argument('--tgi-server-url', type=str, help='Text Generation Inference Client URL', default='http://127.0.0.1:8080')
   parser.add_argument('--prompt-prefix', type=Path, help='Prompt prefix', default='code_generation/prompt_prefix.py')
   parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix', default='code_generation/prompt_suffix.py')
   parser.add_argument('--max-workers', type=int, help='Maximum number of workers', default=1)
 
-  parser.add_argument('--benchmark-file', type=Path, help='Benchmark file', default='benchmark/benchmark.jsonl')
+  parser.add_argument('--benchmark-file', type=Path, help='Benchmark file', default='benchmark/tasks/')
 
   parser.add_argument("--num-completions", type=int, default=20)
-  parser.add_argument("--max-tokens", type=int, default=256)
+  parser.add_argument("--max-tokens", type=int, default=512)
   parser.add_argument("--top-p", type=float, default=0.95)
   parser.add_argument("--temperature", type=float, default=0.2)
   parser.add_argument("--print-completions", action="store_true", help="Print completions to stdout")
+  parser.add_argument("--simulation-timeout", type=int, default=1, help="Timeout for simulation in seconds.")
   parser.add_argument("--test-filter", type=str, help="Regex to filter tests to run.")
+  parser.add_argument("--benchmark-filter", type=str, default="*", help="Regex to filter which benchmark to run.")
+  parser.add_argument("--completion-filter", type=str, default="*", help="Regex to filter which completion to run.")
 
   # For an automodel
   parser.add_argument("--batch-size", type=int, default=1)
@@ -78,8 +96,6 @@ def main():
     generate(args)
   elif args.evaluate:
     evaluate(args)
-
-
 
 if __name__ == "__main__":
   main()

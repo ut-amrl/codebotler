@@ -7,3 +7,8 @@ devel/
 debug/
 _site/
 _includes/
+completions/
+eval/
+test.py
+evaluation_script/*.png
+evaluation_script/*.pgf

@@ -15,6 +15,8 @@ add_action_files(
   GoTo.action
   IsInRoom.action
   Say.action
+  Pick.action
+  Place.action
 )
 
 generate_messages(
