@@ -670,3 +670,26 @@ body {
 	}
   
   /* END FRONT PAGE STYLES */
+
+.carousel-control-prev,
+.carousel-control-next {
+	background-color: rgba(0, 0, 0, 0.5); /* Dark with 50% transparency */
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	cursor: pointer;
+}
+
+.my-hr {
+	color: grey; /* Color of the line */
+	background-color: grey; /* Background color of the line */
+	height: 1px; /* Thickness of the line */
+	border: none; /* Removes the default border */
+	width: 100%; /* Width of the line */
+	margin: 3px auto; /* Centering the line and adding space around it */
+}
+
+.video-description{
+	font-size: 12px;
+	font-style: italic;
+}

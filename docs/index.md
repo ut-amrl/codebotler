@@ -5,93 +5,53 @@ layout: project
 order: 1
 ---
 
-<!-- <div id="carouselExampleControls" class="carousel slide" data-ride="carousel" data-interval="false">
-  <div class="carousel-inner">
-    <div class="carousel-item active">
-      <div class="row">
-          <div class="col-md-9">
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=1Cj_tCNcEckeWKGEWv7esY0S3n7RFRKPQ" type="video/mp4"></source>
-            </video>
-          </div>
-          <div class="col-md-3">
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=1hKHaXNZoxF5bVX8XSayu90UNovSWEXNp" type="video/mp4"></source>
-            </video>
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=1WeAfAoI6ceC9gLAaA7V_mDndYgpFMUFq" type="video/mp4"></source>
-            </video>
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=1SRFiJEq6y-wFhCDNNe3A0yEfJeHd_Hj4" type="video/mp4"></source>
-            </video>
-          </div>
-        </div>
-    </div>
-    <div class="carousel-item">
-        <div class="row">
-          <div class="col-md-9">
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=1VEATT18cjUU9zXxs2ySadYiI4Nx1QRXD" type="video/mp4"></source>
-            </video>
-          </div>
-          <div class="col-md-3">
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=10kWmhERc3PkGKlvOIbhfPJSvnz10prCY" type="video/mp4"></source>
-            </video>
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=17CkKLdcsTH0bt5cKukj3-vtAGKIkxDRS" type="video/mp4"></source>
-            </video>
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=1RwsqgaWHFy8_IeOeRxtmOsctcwW_7ahE" type="video/mp4"></source>
-            </video>
-          </div>
-        </div>
-    </div>
-    <div class="carousel-item ">
-      <div class="row">
-          <div class="col-md-9">
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=1yuTAAzfKkGm9E5uLsjdM2Wk1ay-4Za5o" type="video/mp4"></source>
-            </video>
-          </div>
-          <div class="col-md-3">
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=1MQHng-a7f0uYLjgUCBZbJ7rwyvsRX1aT" type="video/mp4"></source>
-            </video>
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=1MHGam1Tp3yecic3bGSZNFEtDq6UhheZN" type="video/mp4"></source>
-            </video>
-            <video autoplay muted loop>
-              <source src="https://drive.google.com/uc?export=view&id=1QSTQ7CDOBKerhXyRcUqBMFcHoEEYovj0" type="video/mp4"></source>
-            </video>
-          </div>
-        </div>
-    </div>
-  </div>
-  <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
-    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-    <span class="sr-only">Previous</span>
+<div class="text-center">
+  <a type="button" class="btn btn-outline-secondary" style="margin:20pt; height:40px;" href="https://github.com/ut-amrl/codebotler">
+    <h5>
+      <img src="assets/images/github.png" style="height:30px;"/> Code
+    </h5>
   </a>
-  <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
-    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-    <span class="sr-only">Next</span>
+
+  <a role="button" class="btn btn-outline-secondary" style="margin:20pt; height:40px;" href="www.example.com">
+    <h5>
+      <img src="assets/images/paper_thumbnail.png" style="height:30px;"/> Paper
+    </h5>
   </a>
-</div> -->
+</div>
+
 <div style="text-align:center">
   <video autoplay muted loop>
     <source src="https://drive.google.com/uc?export=view&id=1QcZ9tN1_fJ-D8bD7VGf4I0aFTSOVXjk3" type="video/mp4"></source>
   </video>
 </div>
 
-## Abstract
+# Abstract
 
-Recent advancements in large language models (LLMs) have spurred interest in using them for generating robot programs from natural language, with promising initial results.  We investigate the use of LLMs to generate programs for service mobile robots leveraging mobility, perception, and human interaction skills, and where *accurate sequencing and ordering* of actions is crucial for success. We contribute **CodeBotler**, an open-source robot-agnostic tool to program service mobile robots from natural language, and **RoboEval**, a benchmark for evaluating LLMs’ capabilities of generating programs to complete service robot tasks. **CodeBotler** performs program generation via few-shot prompting of LLMs with an embedded domain-specific language (eDSL) in Python, and leverages skill abstractions to deploy generated programs on any general-purpose mobile robot. **RoboEval** evaluates the correctness of generated programs by checking execution traces starting with multiple initial states, and checking whether the traces satisfy temporal logic properties that encode correctness for each task. **RoboEval** also includes multiple prompts per task to test for the robustness of program generation. We evaluate several popular state-of-the-art LLMs with the **RoboEval** benchmark, and perform a thorough analysis of the modes of failures, resulting in a taxonomy that highlights common pitfalls of LLMs at generating robot programs. 
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500&display=swap');
+.curly-font {
+    font-family: 'Space Grotesk', cursive;
+}
+</style>
+
+Recent advancements in large language models (LLMs) have spurred interest in using them for generating robot programs from natural language, with promising initial results.  We investigate the use of LLMs to generate programs for service mobile robots leveraging mobility, perception, and human interaction skills, and where *accurate sequencing and ordering* of actions is crucial for success. We contribute <span class="curly-font">CodeBotler</span>
+ , an open-source robot-agnostic tool to program service mobile robots from natural language, and <span class="curly-font">RoboEval</span>, a benchmark for evaluating LLMs’ capabilities of generating programs to complete service robot tasks. <span class="curly-font">CodeBotler</span> performs program generation via few-shot prompting of LLMs with an embedded domain-specific language (eDSL) in Python, and leverages skill abstractions to deploy generated programs on any general-purpose mobile robot. <span class="curly-font">RoboEval</span> evaluates the correctness of generated programs by checking execution traces starting with multiple initial states, and checking whether the traces satisfy temporal logic properties that encode correctness for each task. <span class="curly-font">RoboEval</span> also includes multiple prompts per task to test for the robustness of program generation. We evaluate several popular state-of-the-art LLMs with the <span class="curly-font">RoboEval</span> benchmark, and perform a thorough analysis of the modes of failures, resulting in a taxonomy that highlights common pitfalls of LLMs at generating robot programs. 
 
 
 
 
-## RoboEval Benchmark Tasks
+# Benchmark Evaluation 
+ We investigate the capabilities and limitations of five popular state-of-the-art LLMs for generating service mobile robot LMPs:
 
+- **[GPT4](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo)** (`gpt-4-0613`): A proprietary LLM from OpenAI capable of general language tasks, including code generation.
+- **[GPT3.5](https://platform.openai.com/docs/models/gpt-3-5)** (`text-davinci-003`): A proprietary LLM from OpenAI capable of general language tasks, including code generation.
+- **[PaLM 2](https://developers.generativeai.google/models/language)** (`text-bison-001`): A proprietary LLM from Google with multiple capabilities, including code generation.
+- **[CodeLlama](https://huggingface.co/codellama/CodeLlama-34b-Python-hf)** (`codellama/CodeLlama-34b-Python-hf`): An open-access version of Llama 2 from Meta specialized on code generations.
+- **[StarCoder](https://huggingface.co/bigcode/starcoder)** (`bigcode/starcoder`): An open-source 15.5B parameter LLM trained on 80+ programming languages from [The Stack](https://huggingface.co/datasets/bigcode/the-stack).
+
+These LLMs are evaluated on the <span class="curly-font">RoboEval</span> benchmark which consists of 16 tasks, each with 5 prompt paraphrases, totaling 80 different prompts. For each prompt, we generate 50 program completions and calculate the pass@1 score. Below, we present the details of the <span class="curly-font">RoboEval</span> benchmark tasks.
+
+## <span class="curly-font">RoboEval</span> Benchmark Tasks
 <div>
   <button type="button" class="btn btn-outline-secondary active" id="CS" onclick="showText('CS')">CountSavory</button>
   <button type="button" class="btn btn-outline-secondary" id="ET" onclick="showText('ET')">Elevator Tour</button>
@@ -116,98 +76,203 @@ Recent advancements in large language models (LLMs) have spurred interest in usi
     <th colspan="4" class="text-center">Task Details</th>
   </thead>
   <tr>
-      <th style="width: 10%;">Prompt</th>
+      <th style="width: 10%;">Prompts</th>
       <td colspan="3" style="text-align: left;">
         <div>
-          <code id="code1" class="language-plaintext highlighter-rouge">CountSavory-1</code>:
-          <span id="prompt1">
-            Go to every office, and if there is someone there, ask them whether they'd like a cupcake, ham sandwich, donut, or beef jerky. Come back and tell me how many people chose a savory option.
-          </span>
+          <code id="code1" class="language-plaintext highlighter-rouge"></code>:
+          <span id="prompt1"></span>
         </div>
         <div>
-          <code id="code2" class="language-plaintext highlighter-rouge">CountSavory-2</code>:
-          <span id="prompt2">
-            Visit all offices. If anyone is present; ask them to choose from the options of cupcake, ham sandwich, donut, or beef jerky. Let me know how many people selected a savory option when you return.
-          </span>
+          <code id="code2" class="language-plaintext highlighter-rouge"></code>:
+          <span id="prompt2"></span>
         </div>
         <div>
-          <code id="code3" class="language-plaintext highlighter-rouge">CountSavory-3</code>:
-          <span id="prompt3">
-            Go through each office; if someone is there, ask about their preference among cupcake, donut, beef jerky, or ham sandwich. Report the number of individuals who opted for a savory item after returning.
-          </span>
+          <code id="code3" class="language-plaintext highlighter-rouge"></code>:
+          <span id="prompt3"></span>
         </div>
         <div>
-          <code id="code4" class="language-plaintext highlighter-rouge">CountSavory-4</code>:
-          <span id="prompt4">
-            Go visit each office. If there is a person in the office, inquire about their liking for cupcake, ham sandwich, beef jerky, or donut. Come back and tell me of the count of people who went for a savory option.
-          </span>
+          <code id="code4" class="language-plaintext highlighter-rouge"></code>:
+          <span id="prompt4"></span>
         </div>
         <div>
-          <code id="code5" class="language-plaintext highlighter-rouge">CountSavory-5</code>:
-          <span id="prompt5">
-            Go to every office, and if there is someone there, ask them whether they'd like a beef jerky, cupcake, ham sandwich, or donut. Come back and tell me how many people preferred a savory option. 
-          </span>
+          <code id="code5" class="language-plaintext highlighter-rouge"></code>:
+          <span id="prompt5"></span>
         </div>
       </td>
   </tr>
   <tr>
-      <th style="width: 10%;">Property</th>
+      <th style="width: 10%;">Properties</th>
       <td id="property"></td>
-      <th style="width: 30%;">Number of World State</th>
-      <td style="width: 10%;">4</td>
+      <th style="width: 20%;">Number of World States</th>
+      <td id="statenum" style="width: 5%;"></td>
   </tr>
+
 </table>
+
+
+<div class="row">
+  <div class="col-md-6" >
+  <div class="video-container">
+    <video id="task-video" autoplay muted loop >
+      <source src="https://drive.google.com/uc?export=view&id=1UI5geAxiFlY7tftUe_xVEHiPwkcsALon" type="video/mp4"></source>
+    </video>
+  </div> 
+  </div>
+  <div class="col-md-6">
+    <div id="heatmap"></div>
+  </div>
+  <div class="col-md-12 text-center">
+    <a id="benchmark-url" class="btn btn-dark btn-lg" role="button">
+      View Code
+    </a>
+  </div>
+</div>
 <script src="assets/js/benchmark_tasks.js"></script>
+<hr>
 
 
 
 
-## RoboEval Evaluation Results 
-We evaluate the correctness and robustness of generate programs for the 16 tasks
-in RoboEval using the following LLMs:
-- **[GPT4](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo)** (`gpt-4-0613`): A proprietary LLM from OpenAI capable of general language tasks, including code generation.
-- **[GPT3.5](https://platform.openai.com/docs/models/gpt-3-5)** (`text-davinci-003`): A proprietary LLM from OpenAI capable of general language tasks, including code generation.
-- **[PaLM 2](https://developers.generativeai.google/models/language)** (`text-bison-001`): A proprietary LLM from Google with multiple capabilities, including code generation.
-- **[CodeLlama](https://huggingface.co/codellama/CodeLlama-34b-Python-hf)** (`codellama/CodeLlama-34b-Python-hf`): An open-access LLM from Meta capable of general language tasks, including code generation.
-- **[StarCoder](https://huggingface.co/bigcode/starcoder)** (`bigcode/starcoder`): An open-source 15.5B parameter LLM trained on 80+ programming languages from [The Stack](https://huggingface.co/datasets/bigcode/the-stack).
+## Causes of Program Failures
 
-We generate 50 program completions for every prompt per task per LLM for evaluation, for a total of 16x5x50=4000 completions per LLM.
-We evaluate the pass@1 rates for every prompt, and report the mean pass@1 rate for each task (over all prompt varations per task), along with the min and max pass@1 rates over all prompts for the same task. The results are then aggregated over all tasks by computing the mean, average min, and average max pass@1 rates over all tasks.
+<div>
+  <button type="button" class="btn btn-outline-secondary active" id="overall-error" onclick="show_overall_error()">Overall Error Breakdown</button>
+  <button type="button" class="btn btn-outline-secondary" id="python-error" onclick="show_python_error()">Python Error Breakdown</button>
+  <button type="button" class="btn btn-outline-secondary" id="execution-error" onclick="show_execution_error()">Robot Execution Error Breakdown</button>
+  <button type="button" class="btn btn-outline-secondary" id="completion-error" onclick="show_completion_error()">Task Completion Error Breakdown</button>
+</div>
 
-<div id="carouselExampleControls2" class="carousel slide" data-ride="carousel">
+<div id="error_breakdown"></div>
+<script src="assets/js/error_breakdown.js"></script>
+
+<hr>
+# <span class="curly-font">CodeBotler</span> Demo
+<div id="carouselExampleControls" class="carousel slide" data-ride="carousel" data-interval=10000>
   <div class="carousel-inner">
     <div class="carousel-item active">
-      <img class="d-block w-100" src="https://drive.google.com/uc?export=view&id=1UW0fG9NK6kkfPySN_SeHb8-oa9LOdefr" alt="Second slide">
+      <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6 text-center">
+          <video autoplay muted loop>
+            <source src="https://drive.google.com/uc?export=view&id=1Cj_tCNcEckeWKGEWv7esY0S3n7RFRKPQ" type="video/mp4"></source>
+          </video>
+        </div>
+        <div class="col-md-3"></div>
+      </div>
+      <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+            <source src="https://drive.google.com/uc?export=view&id=1kcaZn5TXr1vVgvlSDnO6tkwJ0kJ3JW_6" type="video/mp4"></source>
+          </video>
+          <span class="video-description">1. Go to the elevator</span>
+          <hr class="my-hr">
+          <video autoplay muted loop >
+            <source src="https://drive.google.com/uc?export=view&id=1NuuYdWrhgicB5zAF-1hpDuA8-n3synJT" type="video/mp4"></source>
+          </video>
+          <span class="video-description">3. Take the attendee to the conference room</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+            <source src="https://drive.google.com/uc?export=view&id=13ejDVNvVOz3yDkJKor9XrlB0ZPv18b9z" type="video/mp4"></source>
+          </video>
+          <span class="video-description">2. Ask if they are here for the conference</span>
+          <hr class="my-hr">
+          <video autoplay muted loop>
+            <source src="https://drive.google.com/uc?export=view&id=1inW7zaS58trdxUYhmXwTfT6xiJtJC7np" type="video/mp4"></source>
+          </video>
+          <span class="video-description">4. Let the attendee know you have arrived</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-2"></div>
+      </div>
     </div>
     <div class="carousel-item">
-      <img class="d-block w-100" src="https://drive.google.com/uc?export=view&id=1Ul9haGyWYg0HOTo7owdQSpaA5e5T2bFS" alt="Second slide">
+      <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6 text-center">
+          <video autoplay muted loop>
+            <source src="https://drive.google.com/uc?export=view&id=1VEATT18cjUU9zXxs2ySadYiI4Nx1QRXD" type="video/mp4"></source>
+          </video>
+        </div>
+        <div class="col-md-3"></div>
+      </div>
+      <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+              <source src="https://drive.google.com/uc?export=view&id=1u839o3RkhzSVvzn05hs1pmYUmPZ9ovxQ" type="video/mp4"></source>
+            </video>
+            <span class="video-description">1. Go to the art studio</span>
+          <hr class="my-hr">
+          <video autoplay muted loop>
+              <source src="https://drive.google.com/uc?export=view&id=18qNXgPf8gXxsjG1X_ThFULTc3J87VOlr" type="video/mp4"></source>
+            </video>
+            <span class="video-description">3. Check the sofa area and find the backpack</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+              <source src="https://drive.google.com/uc?export=view&id=1hM3DVC64PLIeXdjxk8swHD87nGHl26jb" type="video/mp4"></source>
+            </video>
+            <span class="video-description">2. Check the rest area</span>
+          <hr class="my-hr">
+          <video autoplay muted loop>
+              <source src="https://drive.google.com/uc?export=view&id=1cZkaCSXeFtyns5XPjlEHgyQA5GFJ6KPe" type="video/mp4"></source>
+            </video>
+            <span class="video-description">4. Come back and tell where the backpack is</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-2"></div>
+      </div>
     </div>
     <div class="carousel-item">
-      <img class="d-block w-100" src="https://drive.google.com/uc?export=view&id=17unjIZ0xGH2OrzkteTgwRppgQ4hsA1kc" alt="Second slide">
+      <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6 text-center">
+          <video autoplay muted loop>
+            <source src="https://drive.google.com/uc?export=view&id=1yuTAAzfKkGm9E5uLsjdM2Wk1ay-4Za5o" type="video/mp4"></source>
+          </video>
+        </div>
+        <div class="col-md-3"></div>
+      </div>
+      <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+              <source src="https://drive.google.com/uc?export=view&id=1mJwklsuw3fLRy6wAf1PNu1K7XtK0J5NN" type="video/mp4"></source>
+            </video>
+            <span class="video-description">1. Go to Zarko's office</span>
+          <hr class="my-hr">
+          <video autoplay muted loop>
+              <source src="https://drive.google.com/uc?export=view&id=101i2EBUfFl6TnD4UJywFWZlzzNqqVKBn" type="video/mp4"></source>
+            </video>
+            <span class="video-description">3. Come back to the starting location</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+              <source src="https://drive.google.com/uc?export=view&id=18Wwmuelt_aPZzUDRk71IPYJqhkBbBUr-" type="video/mp4"></source>
+            </video>
+            <span class="video-description">2. Ask which ingredients Zarko does not have</span>
+          <hr class="my-hr">
+          <video autoplay muted loop>
+              <source src="https://drive.google.com/uc?export=view&id=1JSwVuSTkxKrwpBeFpvIouEfxSSDMHVKC" type="video/mp4"></source>
+            </video>
+            <span class="video-description">4. Say what Zarko does not have</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-2"></div>
+      </div>
     </div>
   </div>
-  <a class="carousel-control-prev" href="#carouselExampleControls2" role="button" data-slide="prev">
+  <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
     <span class="sr-only">Previous</span>
   </a>
-  <a class="carousel-control-next" href="#carouselExampleControls2" role="button" data-slide="next">
+  <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
     <span class="carousel-control-next-icon" aria-hidden="true"></span>
     <span class="sr-only">Next</span>
   </a>
 </div>
-
-<!-- <div style="justify-content: center; align-items: center; display: flex;">
-<img src="https://drive.google.com/uc?export=view&id=1UW0fG9NK6kkfPySN_SeHb8-oa9LOdefr" style="width:100%; max-width:500px; height:auto;"/>
-</div>
-
-We draw the following conclusions from the results:
-- None of the programs generated by GPT3.5 and PaLM 2 had any Python errors, and only 25/500 programs (5% completions) generated by StarCoder resulted in run-time errors.
-- Over all tasks, GPT3.5 performed the best, with an average pass@1 rate of 64.7%, followed by PaLM 2 (pass@1 rate of 59.7%), and StarCoder (pass@1 rate of 44.6%).
-- Varying the prompt for each task resulted in significant changes in pass@1 rates for all LLMs. For example, the pass@1 rate for the `StaplerSupply` task varied from near-0 pass@1 rate to near-100% pass@1 rate for all LLMs, depending on the prompt.
-
-<div style="justify-content: center; align-items: center; display: flex;">
-<img src="assets/images/results_v3.png" style="width:100%; max-width:500px; height:auto;"/>
-</div>
-<div style="justify-content: center; align-items: center; display: flex;">
-pass@1 results for PaLM (`text-bison-001`), StarCoder, and GPT3.5 (`text-davinci-003`) - errorbars show variations resulting from rephrasing task prompts.
-</div> -->

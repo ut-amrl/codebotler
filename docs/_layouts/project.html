@@ -30,6 +30,9 @@
   <link rel="stylesheet" href="{{ "/assets/css/style.css" | absolute_url }}">
   <link rel="stylesheet" href="{{ "/assets/css/lazyYT.css" | absolute_url }}">
 
+  <!-- plotly -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
   <!-- Favicon
   ------------------------------------ -->
   <link rel="icon" type="image/png" href="{{ "/assets/favicon.png" | relative_url }}">
@@ -53,7 +56,7 @@
             <b> {{ page.subtitle }} </b>
         </h3>
         <div class="col-md-12 text-center"> 
-            <ul class="list-inline">
+            <ul class="list-inline" style="padding-left: 50pt; padding-right: 50pt;">
             <br>
             {% for author in page.authors %}
                 <li class="list-inline-item">
@@ -70,26 +73,7 @@
         <div class="col-md-12 text-center"> 
           <sup>1</sup>The University of Texas at Austin, <sup>2</sup>Northeastern University, <sup>3</sup>Wellesley College
         </div>
-        <br>
-        <!-- hardcoded here: make it responsive later -->
-        <div class="row">
-          <div class="col-md-3"></div>
-          <div class="col-md-2 text-center">
-            <a href="https://github.com/ut-amrl/codebotler">
-              <img src="assets/images/github.png" style="height: 60px"/>
-              <h5><strong>code</strong></h5>
-            </a>
-          </div>
-          <div class="col-md-2"></div>
-          <div class="col-md-2 text-center">
-            <a href="https://raw.githubusercontent.com/ut-amrl/codebotler/main/docs/assets/extended_abstract.pdf">
-              <img src="assets/images/paper_thumbnail.png" style="height: 60px"/>
-              <h5><strong>extended abstract</strong></h5>
-            </a>
-          </div>
-          <div class="col-md-3"></div>
-        </div>
-
+       
         
       
         
