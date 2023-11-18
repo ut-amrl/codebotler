@@ -44,8 +44,8 @@ List of arguments:
 * `--ip`: The IP address to host the server on (default is `localhost`).
 * `--port`: The port to host the server on (default is `8080`).
 * `--ws-port`: The port to host the websocket server on (default is `8190`).
-* `--model-type`: The type of model to use. It is either `openai` for [OpenAI](https://platform.openai.com) (default),
-  `palm` for [PaLM](https://developers.generativeai.google/)), or `automodel`
+* `--model-type`: The type of model to use. It is either `openai-chat` (default) and `openai` for [OpenAI](https://platform.openai.com),
+  `palm` for [PaLM](https://developers.generativeai.google/), or `automodel`
   for
   [AutoModel](https://huggingface.co/transformers/model_doc/auto.html#automodel).
 * `--model-name`: The name of the model to use. Recommended options are
@@ -61,17 +61,18 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
 
 1. Run code generation for the benchmark tasks using the following command:
     ```shell
-    python3 roboeval.py --generate --model-type automodel --model-name "bigcode/starcoder" --generate-output starcoder_completions.jsonl
+    python3 roboeval.py --generate --generate-output completions/starcoder \
+        --model-type automodel --model-name "bigcode/starcoder" 
     ```
-    This will generate the programs for the benchmark tasks and save them in
-    an output file named `starcoder_completions.jsonl`. It assumes default values
+    This will generate the programs for the benchmark tasks and save them as a Python file in
+    an output directory `completions/starcoder`. It assumes default values
     for temperature (0.2), top-p (0.9), and num-completions (20), to generate 20
     programs for each task --- this will suffice for pass@1 evaluation.
 
     If you would rather not re-run inference, we have included saved output from every model in the `completions/` directory as a zip file. You can simply run.
     ```shell
     cd completions
-    unzip -d {Program-Completion} {Program-Completion}.zip
+    unzip -d <MODEL_NAME> <MODEL_NAME>.zip
     ```
     For example, you can run:
 
@@ -81,22 +82,24 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
     ```
 2. Evaluate the generated programs using the following command:
     ```shell
-    python3 roboeval.py --evaluate --generate-output {Your-Path-Program-Completion-Directory} --evaluate-output {Your-Path-Evaluation-Result-File-Name}
+    python3 roboeval.py --evaluate --generate-output <Path-To-Program-Completion-Directory> --evaluate-output <Path-To-Evaluation-Result-File-Name>
     ```
     For example:
     ```shell
-    python3 roboeval.py --evaluate --generate-output completions/gpt4/ --evaluate-output benchmark/evaluations/gpt4_fix --simulation-timeout 16 
+    python3 roboeval.py --evaluate --generate-output completions/gpt4/ --evaluate-output benchmark/evaluations/gpt4
     ```
 
     This will evaluate the generated programs from the previous step, and save
-    all the evaluation results in an python file.
+    all the evaluation results in an python file. 
 
+    If you would rather not re-run evaluation, we have included saved evaluation output from every model in the `benchmark/evaluations` directory.
 
     
-3. Finally, you can compute pass rates for every task:
+3. Finally, you can compute pass@1 score for every task:
     ```shell
-    python3 pass_k.py starcoder_eval.jsonl
+    python3 evaluate_pass1.py --llm codellama --tasks all
     ```
-
-Detailed instructions for running the benchmark are included in
-[benchmark/README.md](benchmark/README.md).
+    or 
+     ```shell
+    python3 evaluate_pass1.py --llm codellama --tasks CountSavory WeatherPoll
+    ```

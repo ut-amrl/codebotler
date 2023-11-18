@@ -14,7 +14,7 @@ MODEL_DATA_LOCATION=$3
 PORT=$4
 GPUS=$5
 
-docker run --gpus $GPUS \
+podman run --gpus $GPUS \
         --shm-size 1g \
         -p $PORT:80 \
         --restart=no \
@@ -22,7 +22,6 @@ docker run --gpus $GPUS \
         -v $MODEL_DATA_LOCATION:/data \
         -e HUGGING_FACE_HUB_TOKEN=$HF_TOKEN \
         -d \
-        --name hf-tgi-server-starcoder \
         ghcr.io/huggingface/text-generation-inference:1.0.3 \
                 --model-id $MODEL_NAME \
                 --max-input-length 4000 \
