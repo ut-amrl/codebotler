@@ -1,83 +1,310 @@
 ---
-title: "CodeBotler + RoboEval"
+title: CodeBotler + RoboEval 
 subtitle: Deploying and Evaluating LLMs to Program Service Mobile Robots
-authors: [Francesca Lucchetti<sup>1</sup>, Zichao Hu<sup>2</sup>, Anders Freeman<sup>3</sup>, Sadanand Modak<sup>2</sup>, Yash Saxena<sup>2</sup>, Luisa Mao<sup>2</sup>, Claire Schlesinger<sup>1</sup>, Arjun Guha<sup>1</sup>, Joydeep Biswas<sup>2</sup> ]
+authors: [Zichao Hu<sup>1</sup>, Francesca Lucchetti<sup>2</sup>, Claire Schlesinger<sup>2</sup>, Yash Saxena<sup>1</sup>, Anders Freeman<sup>3</sup>, Sadanand Modak<sup>1</sup>, Arjun Guha<sup>2</sup>, Joydeep Biswas<sup>1</sup> ]
 layout: project
 order: 1
 ---
 
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500&display=swap');
+.curly-font {
+    font-family: 'Space Grotesk', cursive;
+    color: orange;
+}
+</style>
+
+<div class="text-center">
+  <a type="button" class="btn btn-outline-secondary" style="margin:20pt; height:40px;" href="https://github.com/ut-amrl/codebotler">
+    <h5>
+      <img src="assets/images/github.png" style="height:30px;"/> Code
+    </h5>
+  </a>
+
+  <a role="button" class="btn btn-outline-secondary" style="margin:20pt; height:40px;" href="www.example.com">
+    <h5>
+      <img src="assets/images/paper_thumbnail.png" style="height:30px;"/> Paper
+    </h5>
+  </a>
+</div>
+
+<div style="text-align:center">
+  <video autoplay muted loop>
+    <source src="assets/website_videos/CodeBotler_Animation_Only_compressed.mp4" type="video/mp4"></source>
+  </video>
+</div>
+
+### <span class="curly-font">CodeBotler</span> is an open-source tool to generate robot programs from natural language using LLMs, and to enable robot-agnostic deployment of such programs. <span class="curly-font">RoboEval</span> is a benchmark to evaluate LLM-generated robot programs for service mobile robots.
+
+<hr>
+
 # Abstract
-Recent advancements in large language models (LLMs) have spurred interest in using them for generating robot programs from natural language, with promising initial results.  We investigate the use of LLMs to generate programs for service mobile robots leveraging mobility, perception, and human interaction skills, and where accurate sequencing and ordering of actions is crucial for success.  We contribute **CodeBotler**, an open-source tool to program service mobile robots from natural language, and **RoboEval**, a benchmark to evaluate the correctness and robustness of generated programs. CodeBotler performs program generation via few-shot prompting of LLMs with an embedded domain-specific language (eDSL) in Python, and leverages skill abstractions to deploy generated programs on any general-purpose mobile robot.  RoboEval evaluates the correctness of generated programs by first generating execution traces starting with multiple world initial states, and then checking whether each of the traces satisfy temporal logic properties that encode correctness for each task.  RoboEval also includes multiple prompts per task to test for robustness of program generation. 
 
-# Overview
 
-**CodeBotler** is an open-source tool to generate general-purpose service robot programs from natural language, and to deploy such programs on general-purpose autonomous mobile robots. It performs program generation with an _embedded domain-specific language_ (eDSL) in a programming
-language that LLMs are already adept in: Python. By abstracting robot
-skills in the eDSL, we release CodeBotler, a robot-agnostic deployment
-system for executing generated programs on any general-purpose mobile robot. By
-embedding the eDSL in Python, CodeBotler drastically reduces the number of
-syntax and run-time errors of generated code. 
-The list of robot skills abstracted in the eDSL is shown below:
 
-<div style="justify-content: center; align-items: center; display: flex;">
-<img src="assets/images/robot_skills.png" style="width:100%; max-width:500px; height:auto;"/>
+Recent advancements in large language models (LLMs) have spurred interest in using them for generating robot programs from natural language, with promising initial results.  We investigate the use of LLMs to generate programs for service mobile robots leveraging mobility, perception, and human interaction skills, and where *accurate sequencing and ordering* of actions is crucial for success. We contribute <span class="curly-font">CodeBotler</span>
+ , an open-source robot-agnostic tool to program service mobile robots from natural language, and <span class="curly-font">RoboEval</span>, a benchmark for evaluating LLMs’ capabilities of generating programs to complete service robot tasks. <span class="curly-font">CodeBotler</span> performs program generation via few-shot prompting of LLMs with an embedded domain-specific language (eDSL) in Python, and leverages skill abstractions to deploy generated programs on any general-purpose mobile robot. <span class="curly-font">RoboEval</span> evaluates the correctness of generated programs by checking execution traces starting with multiple initial states, and checking whether the traces satisfy temporal logic properties that encode correctness for each task. <span class="curly-font">RoboEval</span> also includes multiple prompts per task to test for the robustness of program generation. We evaluate several popular state-of-the-art LLMs with the <span class="curly-font">RoboEval</span> benchmark, and perform a thorough analysis of the modes of failures, resulting in a taxonomy that highlights common pitfalls of LLMs at generating robot programs. 
+
+<hr>
+
+# <span class="curly-font">CodeBotler</span> Demo
+<div id="carouselExampleControls" class="carousel slide" data-ride="carousel" data-interval=10000>
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6 text-center">
+          <video autoplay muted loop>
+            <source src="assets/website_videos/code_elevatortour.mp4" type="video/mp4"></source>
+            <!-- <source src="https://drive.google.com/uc?export=view&id=1Cj_tCNcEckeWKGEWv7esY0S3n7RFRKPQ" type="video/mp4"></source> -->
+          </video>
+        </div>
+        <div class="col-md-3"></div>
+      </div>
+      <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+            <source src="assets/website_videos/elevator_tour/goto_and_wait_compressed.mp4" type="video/mp4"></source>
+            <!-- <source src="https://drive.google.com/uc?export=view&id=1kcaZn5TXr1vVgvlSDnO6tkwJ0kJ3JW_6" type="video/mp4"></source> -->
+          </video>
+          <span class="video-description">1. Go to the elevator</span>
+          <hr class="my-hr">
+          <video autoplay muted loop >
+            <source src="assets/website_videos/elevator_tour/welcome_compressed.mp4" type="video/mp4"></source>
+            <!-- <source src="https://drive.google.com/uc?export=view&id=1NuuYdWrhgicB5zAF-1hpDuA8-n3synJT" type="video/mp4"></source> -->
+          </video>
+          <span class="video-description">3. Take the attendee to the conference room</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+            <source src="assets/website_videos/elevator_tour/ask_compressed.mp4" type="video/mp4"></source>
+            <!-- <source src="https://drive.google.com/uc?export=view&id=13ejDVNvVOz3yDkJKor9XrlB0ZPv18b9z" type="video/mp4"></source> -->
+          </video>
+          <span class="video-description">2. Ask if they are here for the conference</span>
+          <hr class="my-hr">
+          <video autoplay muted loop>
+            <source src="assets/website_videos/elevator_tour/has_arrived_compressed.mp4" type="video/mp4"></source>
+            <!-- <source src="https://drive.google.com/uc?export=view&id=1inW7zaS58trdxUYhmXwTfT6xiJtJC7np" type="video/mp4"></source> -->
+          </video>
+          <span class="video-description">4. Let the attendee know you have arrived</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-2"></div>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6 text-center">
+          <video autoplay muted loop>
+            <source src="assets/website_videos/code_findbackpack.mp4" type="video/mp4"></source>
+            <!-- <source src="https://drive.google.com/uc?export=view&id=1VEATT18cjUU9zXxs2ySadYiI4Nx1QRXD" type="video/mp4"></source> -->
+          </video>
+        </div>
+        <div class="col-md-3"></div>
+      </div>
+      <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+              <source src="assets/website_videos/findbackpack/goto_compressed.mp4" type="video/mp4"></source>
+              <!-- <source src="https://drive.google.com/uc?export=view&id=1u839o3RkhzSVvzn05hs1pmYUmPZ9ovxQ" type="video/mp4"></source> -->
+            </video>
+            <span class="video-description">1. Go to the art studio</span>
+          <hr class="my-hr">
+          <video autoplay muted loop>
+              <source src="assets/website_videos/findbackpack/find_loc2_compressed.mp4" type="video/mp4"></source>
+              <!-- <source src="https://drive.google.com/uc?export=view&id=18qNXgPf8gXxsjG1X_ThFULTc3J87VOlr" type="video/mp4"></source> -->
+            </video>
+            <span class="video-description">3. Check the sofa area and find the backpack</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+              <source src="assets/website_videos/findbackpack/find_loc1_compressed.mp4" type="video/mp4"></source>
+              <!-- <source src="https://drive.google.com/uc?export=view&id=1hM3DVC64PLIeXdjxk8swHD87nGHl26jb" type="video/mp4"></source> -->
+            </video>
+            <span class="video-description">2. Check the rest area</span>
+          <hr class="my-hr">
+          <video autoplay muted loop>
+              <source src="assets/website_videos/findbackpack/come_back_compressed.mp4" type="video/mp4"></source>
+              <!-- <source src="https://drive.google.com/uc?export=view&id=1cZkaCSXeFtyns5XPjlEHgyQA5GFJ6KPe" type="video/mp4"></source> -->
+            </video>
+            <span class="video-description">4. Come back and tell where the backpack is</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-2"></div>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6 text-center">
+          <video autoplay muted loop>
+            <source src="assets/website_videos/code_grilledcheese.mp4" type="video/mp4"></source>
+            <!-- <source src="https://drive.google.com/uc?export=view&id=1yuTAAzfKkGm9E5uLsjdM2Wk1ay-4Za5o" type="video/mp4"></source> -->
+          </video>
+        </div>
+        <div class="col-md-3"></div>
+      </div>
+      <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+              <source src="assets/website_videos/grilledcheese/goto_compressed.mp4" type="video/mp4"></source>
+              <!-- <source src="https://drive.google.com/uc?export=view&id=1mJwklsuw3fLRy6wAf1PNu1K7XtK0J5NN" type="video/mp4"></source> -->
+            </video>
+            <span class="video-description">1. Go to Zarko's office</span>
+          <hr class="my-hr">
+          <video autoplay muted loop>
+              <source src="assets/website_videos/grilledcheese/go_back_compressed.mp4" type="video/mp4"></source>
+              <!-- <source src="https://drive.google.com/uc?export=view&id=101i2EBUfFl6TnD4UJywFWZlzzNqqVKBn" type="video/mp4"></source> -->
+            </video>
+            <span class="video-description">3. Come back to the starting location</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-4">
+          <video autoplay muted loop>
+              <source src="assets/website_videos/grilledcheese/ask_compressed.mp4" type="video/mp4"></source>
+              <!-- <source src="https://drive.google.com/uc?export=view&id=18Wwmuelt_aPZzUDRk71IPYJqhkBbBUr-" type="video/mp4"></source> -->
+            </video>
+            <span class="video-description">2. Ask which ingredients Zarko does not have</span>
+          <hr class="my-hr">
+          <video autoplay muted loop>
+              <source src="assets/website_videos/grilledcheese/say_compressed.mp4" type="video/mp4"></source>
+              <!-- <source src="https://drive.google.com/uc?export=view&id=1JSwVuSTkxKrwpBeFpvIouEfxSSDMHVKC" type="video/mp4"></source> -->
+            </video>
+            <span class="video-description">4. Say what Zarko does not have</span>
+          <hr class="my-hr">
+        </div>
+        <div class="col-md-2"></div>
+      </div>
+    </div>
+  </div>
+  <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
 </div>
 
-**RoboEval** is a code completion benchmark that tests for both correctness and robustness of LLM-generated robot programs. This proposed benchmark 1) evaluates the *execution traces* of programs; 2) checks whether the execution traces satisfy *temporal logic* properties that encode correctness for each task; and 3) *varies the prompts* for each task to test for robustness of generated programs.
+<hr>
 
-<div style="justify-content: center; align-items: center; display: flex;">
-<img src="assets/images/RoboEvalFig1.jpg" style="width:100%; max-width:500px; height:auto;"/>
+# <span class="curly-font">CodeBotler</span> Robot Skills and <span class="curly-font">RoboEval</span> Temporal Checks
+<span class="curly-font">CodeBotler</span> leverages an embedded domain-specific language (eDSL) in Python to abstract 8 commonly available service robot skills shown in (a). Given a user task description, <span class="curly-font">CodeBotler</span> constructs a service robot program. <span class="curly-font">RoboEval</span> is a benchmark that contains a suite of 16 different user tasks, each with 5 prompt paraphrases, totalling 80 different prompts. To evaluate a service robot program generated from the benchmark tasks, <span class="curly-font">RoboEval</span> contains a symbolic simulator and a temporal trace evaluator. The symbolic simulator executes the program and outputs a trace of robot skills. Then the temporal trace evaluator uses the <span class="curly-font">RoboEval</span> Temporal Logic (RTL) specifications to evaluate the correctness of the program. The definition of the RTL is shown below in (b).
+
+<div class="text-center">
+  <img src="assets/images/Skill_and_RTL.png" />
 </div>
 
-<div style="justify-content: center; align-items: center; display: flex;">
-CodeBotler converts a) natural language task prompts into b) python programs leveraging robot skill abstraction, and c) executes the programs on a real robot. d) RoboEval verifies results via LTL checking of simulation traces.
-</div>
+<hr>
 
 
+# <span class="curly-font">RoboEval</span> Benchmark Tasks and Evaluations
+We investigate the capabilities and limitations of five popular state-of-the-art LLMs for generating service mobile robot LMPs:
 
-# RoboEval
-<div>
-
-**RoboEval Benchmark**   
-The preliminary RoboEval benchmark consists of 5 tasks:
-- `HalloweenList`: Go to every office, and if there is anyone there, ask if they'd like a chocolate, caramel, or gummy. Come back and tell me how many of each we need to buy.
-- `LunchBreak`: Ask if Alice and Bob in their offices are up for lunch. If yes, tell them that we'll meet in the lobby in 5 minutes. Come back and tell me who all are joining for lunch.
-- `StaplerSupply`: Check every printer room for a stapler, and come back and tell me which ones do not have a stapler.
-- `MovieMessenger`: Ask Sally in her office if she wants to go to the cinema with Mark. Go to Mark's office and tell him Sally's answer. If Sally says yes, ask Mark whether he wants to leave at 4PM, 5PM, or 6PM - then go tell Sally what time Mark is leaving.
-- `ElevatorTour`: Go to the elevator. Wait until someone shows up and ask them if they are here for the tour. If yes, welcome them to the university, ask them to follow you, and take them to the main conference room. If not, wait for the next person. When you get to the conference room, say you have arrived at the conference room and also say enjoy your visit here!
-
-**Prompt Variations**   
-RoboEval also includes __multiple prompts__ per task, to test for robustness. Here are the prompts for the `HalloweenList` task:
-- `HalloweenList-0`: Go to every office, and if there is anyone there, ask if they'd like a chocolate, caramel, or gummy. Come back and tell me how many of each we need to buy.
-- `HalloweenList-1`: Go to every office, and if there is a person there, ask them if they'd like a chocolate, caramel, or gummy. Come back and tell me how many of each we need to buy.
-- `HalloweenList-2`: Check with every occupied office to see if the occupant would like a chocolate, caramel, or gummy. Let me know how many of each we need to buy.
-- `HalloweenList-3`: Find every occupied office and ask their occupants whether they would like a chocolate, caramel, or gummy. Let me know how many of each we need to buy.
-- `HalloweenList-4`: Go to every office with a person, and ask them if they would like a chocolate, caramel, or gummy, then come back and tell me how many of each people asked for.
-
-The preliminary RoboEval benchmark thus consists of 25 prompts in total (5 tasks
-x 5 prompts per task), with temporal checks for each task, and multiple initial world
-states for checking correctness against each task.
-
-**Preliminary RoboEval Results**   
-We evaluated the correctness and robustness of generated programs for the 5 tasks
-in RoboEval using the following LLMs:
-- **[StarCoder](https://huggingface.co/bigcode/starcoder)** (`bigcode/starcoder`):
-  An open-source 15.5B parameter LLM trained on 80+ programming languages from [The Stack](https://huggingface.co/datasets/bigcode/the-stack).
-- **[PaLM 2](https://developers.generativeai.google/models/language)** (`text-bison-001`): A proprietary LLM from Google with multiple capabilities, including code generation.
+- **[GPT4](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo)** (`gpt-4-0613`): A proprietary LLM from OpenAI capable of general language tasks, including code generation.
 - **[GPT3.5](https://platform.openai.com/docs/models/gpt-3-5)** (`text-davinci-003`): A proprietary LLM from OpenAI capable of general language tasks, including code generation.
+- **[PaLM 2](https://developers.generativeai.google/models/language)** (`text-bison-001`): A proprietary LLM from Google with multiple capabilities, including code generation.
+- **[CodeLlama](https://huggingface.co/codellama/CodeLlama-34b-Python-hf)** (`codellama/CodeLlama-34b-Python-hf`): An open-access version of Llama 2 from Meta specialized on code generations.
+- **[StarCoder](https://huggingface.co/bigcode/starcoder)** (`bigcode/starcoder`): An open-source 15.5B parameter LLM trained on 80+ programming languages from [The Stack](https://huggingface.co/datasets/bigcode/the-stack).
 
-We generated 20 program completions per task per LLM for evaluation, for a total of 5x5x20=500 completions per LLM.
-We evaluated the pass@1 rates for every prompt, and report the mean pass@1 rate for each task (over all prompt varations per task), along with the min and max pass@1 rates over all prompts for the same task. The results are then aggregated over all tasks by computing the mean, average min, and average max pass@1 rates over all tasks.
-We draw the following conclusions from the results:
-- None of the programs generated by GPT3.5 and PaLM 2 had any Python errors, and only 25/500 programs (5% completions) generated by StarCoder resulted in run-time errors.
-- Over all tasks, GPT3.5 performed the best, with an average pass@1 rate of 64.7%, followed by PaLM 2 (pass@1 rate of 59.7%), and StarCoder (pass@1 rate of 44.6%).
-- Varying the prompt for each task resulted in significant changes in pass@1 rates for all LLMs. For example, the pass@1 rate for the `StaplerSupply` task varied from near-0 pass@1 rate to near-100% pass@1 rate for all LLMs, depending on the prompt.
+These LLMs are evaluated on the <span class="curly-font">RoboEval</span> benchmark which consists of 16 user tasks, each with 5 prompt paraphrases, totaling 80 different prompts. For each prompt, we generate 50 program completions and calculate the pass@1 score. Below, we present the details of each user task and the pass@1 score of each LLM over every prompt.
 
-<div style="justify-content: center; align-items: center; display: flex;">
-<img src="assets/images/results_v3.png" style="width:100%; max-width:500px; height:auto;"/>
+<div>
+  <button type="button" class="btn btn-outline-secondary active" id="CS" onclick="showText('CS')">CountSavory</button>
+  <button type="button" class="btn btn-outline-secondary" id="ET" onclick="showText('ET')">Elevator Tour</button>
+  <button type="button" class="btn btn-outline-secondary" id="FB" onclick="showText('FB')">Find Backpack</button>
+  <button type="button" class="btn btn-outline-secondary" id="GD" onclick="showText('GD')">Get Drink</button>
+  <button type="button" class="btn btn-outline-secondary" id="GC" onclick="showText('GC')">Grilled Cheese</button>
+  <button type="button" class="btn btn-outline-secondary" id="HL" onclick="showText('HL')">Halloween List</button>
+  <button type="button" class="btn btn-outline-secondary" id="HS" onclick="showText('HS')">Halloween Shopping</button>
+  <button type="button" class="btn btn-outline-secondary" id="LB" onclick="showText('LB')">Lunch Break</button>
+  <button type="button" class="btn btn-outline-secondary" id="LT" onclick="showText('LT')">Lunch Time</button>
+  <button type="button" class="btn btn-outline-secondary" id="MD" onclick="showText('MD')">Mail Delivery</button>
+  <button type="button" class="btn btn-outline-secondary" id="MM" onclick="showText('MM')">Movie Messenger</button>
+  <button type="button" class="btn btn-outline-secondary" id="SG" onclick="showText('SG')">Say Good Day</button>
+  <button type="button" class="btn btn-outline-secondary" id="ST" onclick="showText('ST')">Set Temperature</button>
+  <button type="button" class="btn btn-outline-secondary" id="SD" onclick="showText('SD')">Stapler Delivery</button>
+  <button type="button" class="btn btn-outline-secondary" id="SS" onclick="showText('SS')">Stapler Supply</button>
+  <button type="button" class="btn btn-outline-secondary" id="WP" onclick="showText('WP')">Weather Poll</button>
 </div>
-<div style="justify-content: center; align-items: center; display: flex;">
-pass@1 results for PaLM (`text-bison-001`), StarCoder, and GPT3.5 (`text-davinci-003`) - errorbars show variations resulting from rephrasing task prompts.
+
+<table class="table table-hover">
+  <thead class="thead-dark">
+    <th colspan="4" class="text-center">Task Details</th>
+  </thead>
+  <tr>
+      <th style="width: 10%;">Prompts</th>
+      <td colspan="3" style="text-align: left;">
+        <div>
+          <code id="code1" class="language-plaintext highlighter-rouge"></code>:
+          <span id="prompt1"></span>
+        </div>
+        <div>
+          <code id="code2" class="language-plaintext highlighter-rouge"></code>:
+          <span id="prompt2"></span>
+        </div>
+        <div>
+          <code id="code3" class="language-plaintext highlighter-rouge"></code>:
+          <span id="prompt3"></span>
+        </div>
+        <div>
+          <code id="code4" class="language-plaintext highlighter-rouge"></code>:
+          <span id="prompt4"></span>
+        </div>
+        <div>
+          <code id="code5" class="language-plaintext highlighter-rouge"></code>:
+          <span id="prompt5"></span>
+        </div>
+      </td>
+  </tr>
+  <tr>
+      <th style="width: 10%;">Properties</th>
+      <td id="property"></td>
+      <th style="width: 20%;">Number of World States</th>
+      <td id="statenum" style="width: 5%;"></td>
+  </tr>
+
+</table>
+
+
+<div class="row">
+  <div class="col-md-6" >
+  <div class="video-container">
+    <video id="task-video" autoplay muted loop >
+      <source src="assets/website_videos/task_table/task_cs.mp4" type="video/mp4"></source>
+    </video>
+  </div> 
+  </div>
+  <div class="col-md-6">
+    <div id="heatmap"></div>
+  </div>
+  <div class="col-md-12 text-center">
+    <a id="benchmark-url" class="btn btn-dark btn-lg" role="button">
+      View Code
+    </a>
+  </div>
+</div>
+<script src="assets/js/benchmark_tasks.js"></script>
+<hr>
+
+
+## Causes of Program Failures
+
+<div>
+  <button type="button" class="btn btn-outline-secondary active" id="overall-error" onclick="show_overall_error()">Overall Error Breakdown</button>
+  <button type="button" class="btn btn-outline-secondary" id="python-error" onclick="show_python_error()">Python Error Breakdown</button>
+  <button type="button" class="btn btn-outline-secondary" id="execution-error" onclick="show_execution_error()">Robot Execution Error Breakdown</button>
+  <button type="button" class="btn btn-outline-secondary" id="completion-error" onclick="show_completion_error()">Task Completion Error Breakdown</button>
 </div>
 
-# CodeBotler Demo
+<div id="error_breakdown"></div>
+<script src="assets/js/error_breakdown.js"></script>
+
+

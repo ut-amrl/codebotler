@@ -1,12 +1,13 @@
+<!-- not finished -->
 # Benchmark and Robot Simulator
 
-The benchmark tasks are stored in `benchmark.jsonl`. The benchmark works by running a simulation of the LLM-generated code using ASP.
-
-The simulation is checked with ASP temporal constraints for each task. A readable version of constraints can be found in `evaluator/constraints`. An ASP solver (Clingo) is used to determine whether the simulation trace satisfies the constraints.
+The benchmark tasks are stored in `benchmarks/{TASKNAME}.py`. The benchmark contains the *prompt*, *initial world states*, and *RTL-specific tests w.r.t the initial world states*.
 
 ## Walkthrough
 
-- `evaluator/robot.lp` contains the ASP rules governing state changes in our simulated world.
-- `simple_tracer.py` contains a script for turning python generated code into a trace of ASP instructions to feed to the simulation.
-- `evaluator/evaluate.py` is called by the top-level RoboEval script and runs the simulation.
-- `evaluator/solve_utils.py` contains a class of helper python functions that can be called in ASP.
+- `simple_tracer.py` contains a script for turning python generated code into a trace of the custom-defined *domain specific language* (DSL).
+- `rtl.py` contains the implementation of roboeval temporal logic and provides a few examples
+- `simulator.py` contains the implementation of the symbolic simulator
+
+## Evaluations
+- `evaluations/` directory contains all evaluation results from each LLM's generations 

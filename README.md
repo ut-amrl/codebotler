@@ -2,19 +2,15 @@
 
 [![Build Status](https://github.com/ut-amrl/robot_commands/actions/workflows/buildTest.yml/badge.svg)](https://github.com/ut-amrl/robot_commands/actions)
 
-CodeBotler is a system that converts natural language task descriptions into
-task-specific programs that can be executed by general-purpose service mobile
-robots.
-It includes a benchmark for evaluating LLMs for code generation for service
-mobile robot tasks.
+![CodeBotler Web Interface](docs/assets/images/et_gif.gif)
 
-CodeBotler consists of two key components:
-* [CodeBotler](#codebotler-deploy-quick-start-guide): A web interface and server for deploying CodeBotler on a
-  general purpose service mobile robot. You can use this to try out the code
-  generation capabilities of CodeBotler either as a standalone system without a
-  robot, or actually deploy it on a real robot.
-* [RoboEval](#roboeval-benchmark-quick-start-guide): The code generation benchmark for evaluating large language
-  models (LLMs) for service mobile robot task code generation.
+CodeBotler is a system that converts natural language task descriptions into robot-agnostic programs that can be executed by general-purpose service mobile robots. It includes a benchmark (RoboEval) designed for evaluating Large Language Models (LLMs) in the context of code generation for mobile robot service tasks.
+
+This project consists of two key components:
+* [CodeBotler](#codebotler-deploy-quick-start-guide): This system features a web interface designed for generating general-purpose service mobile robot programs, along with a ROS (Robot Operating System) Action client for deploying these programs on a robot. It offers the flexibility to explore the code generation capabilities of CodeBotler in two ways: as a standalone system without a robot, as illustrated in the figure above, or by actual deployment on a real robot.
+
+
+* [RoboEval](#roboeval-benchmark-quick-start-guide): This benchmark for code generation features a suite of 16 user task descriptions, each with 5 paraphrases of the prompt. It includes a symbolic simulator and a temporal trace evaluator, specifically designed to assess Large Language Models (LLMs) in their ability to generate code for service mobile robot tasks.
 
 Project website: https://amrl.cs.utexas.edu/codebotler
 
@@ -48,12 +44,12 @@ List of arguments:
 * `--ip`: The IP address to host the server on (default is `localhost`).
 * `--port`: The port to host the server on (default is `8080`).
 * `--ws-port`: The port to host the websocket server on (default is `8190`).
-* `--model-type`: The type of model to use. It is either `openai` for [OpenAI](https://platform.openai.com) (default),
-  `palm` for [PaLM](https://developers.generativeai.google/)), or `automodel`
+* `--model-type`: The type of model to use. It is either `openai-chat` (default) and `openai` for [OpenAI](https://platform.openai.com),
+  `palm` for [PaLM](https://developers.generativeai.google/), or `automodel`
   for
   [AutoModel](https://huggingface.co/transformers/model_doc/auto.html#automodel).
 * `--model-name`: The name of the model to use. Recommended options are
-  `text-daVinci-003` for OpenAI (default), `models/text-bison-001` for PaLM, and
+  `gpt-4` for GPT-4 (default), `text-daVinci-003` for GPT-3.5, `models/text-bison-001` for PaLM, and
   `bigcode/starcoder` for AutoModel.
 * `--robot`: Flag to indicate if the robot is available (default is `False`).
 
@@ -65,30 +61,45 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
 
 1. Run code generation for the benchmark tasks using the following command:
     ```shell
-    python3 roboeval.py --generate --model-type automodel --model-name "bigcode/starcoder" --generate-output starcoder_completions.jsonl
+    python3 roboeval.py --generate --generate-output completions/starcoder \
+        --model-type automodel --model-name "bigcode/starcoder" 
     ```
-    This will generate the programs for the benchmark tasks and save them in
-    an output file named `starcoder_completions.jsonl`. It assumes default values
+    This will generate the programs for the benchmark tasks and save them as a Python file in
+    an output directory `completions/starcoder`. It assumes default values
     for temperature (0.2), top-p (0.9), and num-completions (20), to generate 20
     programs for each task --- this will suffice for pass@1 evaluation.
-2. Evaluate the generated programs using the following command:
+
+    If you would rather not re-run inference, we have included saved output from every model in the `completions/` directory as a zip file. You can simply run.
     ```shell
-    python3 roboeval.py --evaluate --generate-output starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
+    cd completions
+    unzip -d <MODEL_NAME> <MODEL_NAME>.zip
     ```
-    This will evaluate the generated programs from the previous step, and save
-    all the evaluation results in an output file named `starcoder_eval.jsonl`.
-
-
-    If you would rather not re-run inference, we have included saved output from every model in the `benchmark/evaluator` directory.
     For example, you can run:
 
     ```shell
-    python3 roboeval.py --evaluate --generate-output benchmark/evaluator/starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
+    cd completions
+    unzip -d gpt4 gpt4.zip
     ```
-3. Finally, you can compute pass rates for every task:
+2. Evaluate the generated programs using the following command:
     ```shell
-    python3 pass_k.py starcoder_eval.jsonl
+    python3 roboeval.py --evaluate --generate-output <Path-To-Program-Completion-Directory> --evaluate-output <Path-To-Evaluation-Result-File-Name>
+    ```
+    For example:
+    ```shell
+    python3 roboeval.py --evaluate --generate-output completions/gpt4/ --evaluate-output benchmark/evaluations/gpt4
     ```
 
-Detailed instructions for running the benchmark are included in
-[benchmark/README.md](benchmark/README.md).
+    This will evaluate the generated programs from the previous step, and save
+    all the evaluation results in an python file. 
+
+    If you would rather not re-run evaluation, we have included saved evaluation output from every model in the `benchmark/evaluations` directory.
+
+    
+3. Finally, you can compute pass@1 score for every task:
+    ```shell
+    python3 evaluate_pass1.py --llm codellama --tasks all
+    ```
+    or 
+     ```shell
+    python3 evaluate_pass1.py --llm codellama --tasks CountSavory WeatherPoll
+    ```

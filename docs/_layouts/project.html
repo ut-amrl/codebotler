@@ -15,7 +15,10 @@
 
   <!-- bootstrap -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
   <!-- FONT
   ------------------------------------ -->
   <link href='//fonts.googleapis.com/css?family=Lustria|Lato:400,700,400italic|Playfair+Display:700,400italic' rel='stylesheet' type='text/css'>
@@ -27,13 +30,16 @@
   <link rel="stylesheet" href="{{ "/assets/css/style.css" | absolute_url }}">
   <link rel="stylesheet" href="{{ "/assets/css/lazyYT.css" | absolute_url }}">
 
+  <!-- plotly -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
   <!-- Favicon
   ------------------------------------ -->
   <link rel="icon" type="image/png" href="{{ "/assets/favicon.png" | relative_url }}">
 
   <!-- Required for GetSimple Plugins
   ------------------------------------ -->
-  <meta name="keywords" content="computer science, robotics, language, benchmarks, evaluation, paper, iros2023">
+  <meta name="keywords" content="computer science, robotics, language, benchmarks, evaluation, large language model, LLM">
 
 </head>
 <body id="index">
@@ -46,11 +52,11 @@
         <h1 class="display-4 col-md-12 text-center">
             <b> {{ page.title }} </b>
         </h1>
-        <h3 class="display-6 col-md-12 text-center">
+        <h2 class="display-5 col-md-12 text-center" style="margin-top: 0px;">
             <b> {{ page.subtitle }} </b>
-        </h3>
+        </h2>
         <div class="col-md-12 text-center"> 
-            <ul class="list-inline">
+            <ul class="list-inline" style="padding-left: 50pt; padding-right: 50pt;">
             <br>
             {% for author in page.authors %}
                 <li class="list-inline-item">
@@ -65,83 +71,56 @@
             </ul>
         </div>
         <div class="col-md-12 text-center"> 
-        <sup>1</sup>Northeastern University, <sup>2</sup>The University of Texas at Austin, <sup>3</sup>Wellesley College
+          <sup>1</sup>The University of Texas at Austin, <sup>2</sup>Northeastern University, <sup>3</sup>Wellesley College
         </div>
-        <br>
-        <!-- hardcoded here: make it responsive later -->
-        <div class="row">
-          <div class="col-md-3"></div>
-          <div class="col-md-2 text-center">
-            <a href="https://github.com/ut-amrl/codebotler">
-              <img src="assets/images/github.png" style="height: 60px"/>
-              <h5><strong>code</strong></h5>
-            </a>
-          </div>
-          <div class="col-md-2"></div>
-          <div class="col-md-2 text-center">
-            <a href="https://raw.githubusercontent.com/ut-amrl/codebotler/main/docs/assets/extended_abstract.pdf">
-              <img src="assets/images/paper_thumbnail.png" style="height: 60px"/>
-              <h5><strong>extended abstract</strong></h5>
-            </a>
-          </div>
-          <div class="col-md-3"></div>
-        </div>
+       
+        
+      
+        
+               <!-- --------------------------Row------------------------------ -->
+
+      
+              <!-- --------------------------Row------------------------------ -->
+              <!-- <div class="row">
+                <div class="col-md-7">
+                  <div class="text">
+                    <h2>WelcomeTour</h2>
+                    <p>Go to the elevator and wait for someone to show up. Ask them if they are here for the tour. If yes, say Welcome to UTCS and ask them to follow you and take them to the conference room. If no,
+                      wait for the next person. When you get to the conference room, say you have arrived and also say have a
+                      good visit. Come back.</p>
+                      <img src="assets/tasks/2/code.png" alt="Python code">
+                      <a href="https://youtu.be/Z572nFGyRgw" target="_blank">Full Video</a>
+                  </div>
+                </div>
+                <div class="col-md-5">
+                  <video src="assets/tasks/2/clip1.mp4" playsinline autoplay loop muted></video>
+                  <video src="assets/tasks/2/clip2.mp4" playsinline autoplay loop muted></video>
+                  <video src="assets/tasks/2/clip3.mp4" playsinline autoplay loop muted></video>
+                </div>
+              </div> -->
+      
+              <!-- --------------------------Row------------------------------ -->
+              <!-- <div class="row">
+                  <div class="col-md-7">
+                    <div class="text">
+                      <h2>GrilledCheese</h2>
+                      <p>Go to Zarko's office. Compile a list of ingredients to prepare grilled cheese. For each ingredient of the grilled cheese, asks him what he has. Come back and tell me!</p>
+                        <img src="assets/tasks/3/code.png" alt="Python code">
+                        <a href="https://www.youtube.com/watch?v=Omayn8KgoMk" target="_blank">Full Video</a>
+                    </div>
+                  </div>
+                  <div class="col-md-5">
+                    <video src="assets/tasks/3/clip1.mp4" playsinline autoplay loop muted></video>
+                    <video src="assets/tasks/3/clip2.mp4" playsinline autoplay loop muted></video>
+                    <video src="assets/tasks/3/clip3.mp4" playsinline autoplay loop muted></video>
+                  </div>
+              </div> -->
+      
         
         {{ content }}
-        
-        <!-- --------------------------Row------------------------------ -->
-        <div class="row">
-          <div class="col-md-7">
-            <div class="text">
-              <h2>FindBackpack</h2>
-              <p>Find which area in the fine art studio I left my backpack. Come back and tell me if you found it,
-                  and if you did, then where.</p>
-                <img src="assets/tasks/1/code.png" alt="Python code">
-                <a href="https://youtu.be/w4ewTUGJr_A" target="_blank">Full Video</a>
-            </div>
-          </div>
-          <div class="col-md-5">
-            <video src="assets/tasks/1/clip1.mp4" playsinline autoplay loop muted></video>
-            <video src="assets/tasks/1/clip2.mp4" playsinline autoplay loop muted></video>
-            <video src="assets/tasks/1/clip3.mp4" playsinline autoplay loop muted></video>
-          </div>
-        </div>
+     
 
-        <!-- --------------------------Row------------------------------ -->
-        <div class="row">
-          <div class="col-md-7">
-            <div class="text">
-              <h2>WelcomeTour</h2>
-              <p>Go to the elevator and wait for someone to show up. Ask them if they are here for the tour. If yes, say Welcome to UTCS and ask them to follow you and take them to the conference room. If no,
-                wait for the next person. When you get to the conference room, say you have arrived and also say have a
-                good visit. Come back.</p>
-                <img src="assets/tasks/2/code.png" alt="Python code">
-                <a href="https://youtu.be/Z572nFGyRgw" target="_blank">Full Video</a>
-            </div>
-          </div>
-          <div class="col-md-5">
-            <video src="assets/tasks/2/clip1.mp4" playsinline autoplay loop muted></video>
-            <video src="assets/tasks/2/clip2.mp4" playsinline autoplay loop muted></video>
-            <video src="assets/tasks/2/clip3.mp4" playsinline autoplay loop muted></video>
-          </div>
-        </div>
-
-        <!-- --------------------------Row------------------------------ -->
-        <div class="row">
-            <div class="col-md-7">
-              <div class="text">
-                <h2>GrilledCheese</h2>
-                <p>Go to Zarko's office. Compile a list of ingredients to prepare grilled cheese. For each ingredient of the grilled cheese, asks him what he has. Come back and tell me!</p>
-                  <img src="assets/tasks/3/code.png" alt="Python code">
-                  <a href="https://www.youtube.com/watch?v=Omayn8KgoMk" target="_blank">Full Video</a>
-              </div>
-            </div>
-            <div class="col-md-5">
-              <video src="assets/tasks/3/clip1.mp4" playsinline autoplay loop muted></video>
-              <video src="assets/tasks/3/clip2.mp4" playsinline autoplay loop muted></video>
-              <video src="assets/tasks/3/clip3.mp4" playsinline autoplay loop muted></video>
-            </div>
-        </div>
+ 
       </section>
     </div>
     <hr>
