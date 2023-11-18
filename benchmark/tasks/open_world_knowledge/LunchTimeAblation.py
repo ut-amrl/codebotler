@@ -1,7 +1,7 @@
 import sys
 
 sys.path.append("../..")
-from benchmark.roboeval_dsl import *
+from benchmark.rtl import *
 from benchmark.simulator import State
 from misc.benchmark_utils import (
     contain_words,

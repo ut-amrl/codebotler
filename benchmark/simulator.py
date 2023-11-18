@@ -1,4 +1,4 @@
-from benchmark.roboeval_dsl import SPECIAL_DELIM
+from benchmark.rtl import SPECIAL_DELIM
 from typing import List
 import re
 import numpy as np

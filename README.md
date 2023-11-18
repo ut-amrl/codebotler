@@ -49,7 +49,7 @@ List of arguments:
   for
   [AutoModel](https://huggingface.co/transformers/model_doc/auto.html#automodel).
 * `--model-name`: The name of the model to use. Recommended options are
-  `text-daVinci-003` for OpenAI (default), `models/text-bison-001` for PaLM, and
+  `gpt-4` for GPT-4 (default), `text-daVinci-003` for GPT-3.5, `models/text-bison-001` for PaLM, and
   `bigcode/starcoder` for AutoModel.
 * `--robot`: Flag to indicate if the robot is available (default is `False`).
 
@@ -67,20 +67,32 @@ The instructions below demonstrate how to run the benchmark using the open-sourc
     an output file named `starcoder_completions.jsonl`. It assumes default values
     for temperature (0.2), top-p (0.9), and num-completions (20), to generate 20
     programs for each task --- this will suffice for pass@1 evaluation.
-2. Evaluate the generated programs using the following command:
+
+    If you would rather not re-run inference, we have included saved output from every model in the `completions/` directory as a zip file. You can simply run.
     ```shell
-    python3 roboeval.py --evaluate --generate-output starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
+    cd completions
+    unzip -d {Program-Completion} {Program-Completion}.zip
     ```
-    This will evaluate the generated programs from the previous step, and save
-    all the evaluation results in an output file named `starcoder_eval.jsonl`.
-
-
-    If you would rather not re-run inference, we have included saved output from every model in the `benchmark/evaluator` directory.
     For example, you can run:
 
     ```shell
-    python3 roboeval.py --evaluate --generate-output benchmark/evaluator/starcoder_completions.jsonl --evaluate-output starcoder_eval.jsonl
+    cd completions
+    unzip -d gpt4 gpt4.zip
     ```
+2. Evaluate the generated programs using the following command:
+    ```shell
+    python3 roboeval.py --evaluate --generate-output {Your-Path-Program-Completion-Directory} --evaluate-output {Your-Path-Evaluation-Result-File-Name}
+    ```
+    For example:
+    ```shell
+    python3 roboeval.py --evaluate --generate-output completions/gpt4/ --evaluate-output benchmark/evaluations/gpt4_fix --simulation-timeout 16 
+    ```
+
+    This will evaluate the generated programs from the previous step, and save
+    all the evaluation results in an python file.
+
+
+    
 3. Finally, you can compute pass rates for every task:
     ```shell
     python3 pass_k.py starcoder_eval.jsonl

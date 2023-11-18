@@ -2,7 +2,7 @@ import typing
 
 from misc.bounded_subprocess import run as bounded_run
 import sys
-from benchmark.roboeval_dsl import TraceElement, SPECIAL_DELIM
+from benchmark.rtl import TraceElement, SPECIAL_DELIM
 from typing import List
 import re
 from misc.utils import (
