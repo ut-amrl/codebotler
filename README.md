@@ -2,19 +2,16 @@
 
 [![Build Status](https://github.com/ut-amrl/robot_commands/actions/workflows/buildTest.yml/badge.svg)](https://github.com/ut-amrl/robot_commands/actions)
 
-CodeBotler is a system that converts natural language task descriptions into
-task-specific programs that can be executed by general-purpose service mobile
-robots.
-It includes a benchmark for evaluating LLMs for code generation for service
-mobile robot tasks.
+![CodeBotler Web Interface](docs/assets/images/et_gif.gif)
 
-CodeBotler consists of two key components:
-* [CodeBotler](#codebotler-deploy-quick-start-guide): A web interface and server for deploying CodeBotler on a
-  general purpose service mobile robot. You can use this to try out the code
-  generation capabilities of CodeBotler either as a standalone system without a
-  robot, or actually deploy it on a real robot.
-* [RoboEval](#roboeval-benchmark-quick-start-guide): The code generation benchmark for evaluating large language
-  models (LLMs) for service mobile robot task code generation.
+CodeBotler is a system that converts natural language task descriptions into robot-agnostic programs that can be executed by general-purpose service mobile robots.
+RoboEval is a benchmark designed for evaluating Large Language Models (LLMs) in the context of code generation for mobile robot service tasks.
+
+This project consists of two key components:
+* [CodeBotler](#codebotler-deploy-quick-start-guide): This system features a web interface designed for generating general-purpose service mobile robot programs, along with a ROS (Robot Operating System) Action client for deploying these programs on a robot. It offers the flexibility to explore the code generation capabilities of CodeBotler in two ways: as a standalone system without a robot, as illustrated in the figure above, or by actual deployment on a real robot.
+
+
+* [RoboEval](#roboeval-benchmark-quick-start-guide): This benchmark for code generation features a suite of 16 user task descriptions, each with 5 paraphrases of the prompt. It includes a symbolic simulator and a temporal trace evaluator, specifically designed to assess Large Language Models (LLMs) in their ability to generate code for service mobile robot tasks.
 
 Project website: https://amrl.cs.utexas.edu/codebotler
 
