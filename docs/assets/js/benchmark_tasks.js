@@ -182,37 +182,54 @@ showText("CS")
 function handle_video(buttonId){
     
     if(buttonId === "CS") {
-        src = "https://drive.google.com/uc?export=view&id=1UI5geAxiFlY7tftUe_xVEHiPwkcsALon";
+        src = "assets/website_videos/task_table/task_cs.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1UI5geAxiFlY7tftUe_xVEHiPwkcsALon";
     } else if(buttonId === "ET") {
-        src = "https://drive.google.com/uc?export=view&id=1SlZTnc0sXgYDh1WusK_vTOcGT9H-6zHC";
+        src = "assets/website_videos/task_table/task_et.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1SlZTnc0sXgYDh1WusK_vTOcGT9H-6zHC";
     } else if(buttonId === "FB") {
-        src = "https://drive.google.com/uc?export=view&id=1OaIny7X8YRE4f8fK3jFoV2jpQLVwzF-U";
+        src = "assets/website_videos/task_table/task_fb.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1OaIny7X8YRE4f8fK3jFoV2jpQLVwzF-U";
     } else if(buttonId === "GD") {
-        src = "https://drive.google.com/uc?export=view&id=1IODJC2tCsCact_LRNo2-w5gOSARRB-Hk";
+        src = "assets/website_videos/task_table/task_gd.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1IODJC2tCsCact_LRNo2-w5gOSARRB-Hk";
     } else if(buttonId === "GC") {
-        src = "https://drive.google.com/uc?export=view&id=1efJzSWL-WMK1EsVQ2KUEUPmwoK4cNNng";
+        src = "assets/website_videos/task_table/task_gc.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1efJzSWL-WMK1EsVQ2KUEUPmwoK4cNNng";
     } else if(buttonId === "HL") {
-        src = "https://drive.google.com/uc?export=view&id=10b6AXg_sdW9uQJXSKzvtMxnVvoJyfk-L";
+        src = "assets/website_videos/task_table/task_hl.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=10b6AXg_sdW9uQJXSKzvtMxnVvoJyfk-L";
     } else if(buttonId === "HS") {
-        src = "https://drive.google.com/uc?export=view&id=1WjZAwQzGqPL70fO2eiW4vpULM6_ilLIF";
+        src = "assets/website_videos/task_table/task_hs.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1WjZAwQzGqPL70fO2eiW4vpULM6_ilLIF";
     } else if(buttonId === "LB") {
-        src = "https://drive.google.com/uc?export=view&id=1x6opuyMJo5SzA0vf0Mf354HFxCTbFWfr";
+        src = "assets/website_videos/task_table/task_lb.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1x6opuyMJo5SzA0vf0Mf354HFxCTbFWfr";
     } else if(buttonId === "LT") {
-        src = "https://drive.google.com/uc?export=view&id=1ywu4-BZxdPYQ2sARJtNX8SyPQWg70EqO";
+        src = "assets/website_videos/task_table/task_lt.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1ywu4-BZxdPYQ2sARJtNX8SyPQWg70EqO";
     } else if(buttonId === "MD") {
-        src = "https://drive.google.com/uc?export=view&id=1EZnexZBLDfW5ODGyfly_8n7V7t93B0vn";
+        src = "assets/website_videos/task_table/task_md.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1EZnexZBLDfW5ODGyfly_8n7V7t93B0vn";
     } else if(buttonId === "MM") {
-        src = "https://drive.google.com/uc?export=view&id=1BLqCN2oa2QXnOGV3x1imP0bYGHSMtKQP";
+        src = "assets/website_videos/task_table/task_mm.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1BLqCN2oa2QXnOGV3x1imP0bYGHSMtKQP";
     } else if(buttonId === "SG") {
-        src = "https://drive.google.com/uc?export=view&id=1aliA3CMHdHF2dQMG1w-HupNwBuWXfEdu";
+        src = "assets/website_videos/task_table/task_sg.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1aliA3CMHdHF2dQMG1w-HupNwBuWXfEdu";
     } else if(buttonId === "ST") {
-        src = "https://drive.google.com/uc?export=view&id=1W9E_AHQ7_4I433wJHGDYWRwZSsvi9nm-";
+        src = "assets/website_videos/task_table/task_st.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1W9E_AHQ7_4I433wJHGDYWRwZSsvi9nm-";
     } else if(buttonId === "SD") {
-    src = "https://drive.google.com/uc?export=view&id=1sKql9hTIVsGOiMjSDqgatwVJLpoJVKp-";
+    src = "assets/website_videos/task_table/task_sd.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1sKql9hTIVsGOiMjSDqgatwVJLpoJVKp-";
     } else if(buttonId === "SS") {
-        src = "https://drive.google.com/uc?export=view&id=1QSpM7q7cVyxZI5DCalk-ZN65TNARxDsq";
+        src = "assets/website_videos/task_table/task_ss.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1QSpM7q7cVyxZI5DCalk-ZN65TNARxDsq";
     } else if(buttonId === "WP") {
-        src = "https://drive.google.com/uc?export=view&id=1YhhUiYpTT0suXTg6_LjNcmZfYgcpWbq0";
+        src = "assets/website_videos/task_table/task_wp.mp4"
+        // src = "https://drive.google.com/uc?export=view&id=1YhhUiYpTT0suXTg6_LjNcmZfYgcpWbq0";
+
     }
 
     var videoPlayer = document.getElementById('task-video');
@@ -332,8 +349,9 @@ function plot_heatmap(zData){
         }
     };
     var config = {
-        responsive: true
-    };
+        responsive: true,
+        displayModeBar: false // This will hide the mode bar
+    };    
 
     // Manually set text colors based on calculated contrast
     var data = [heatmapTrace];
