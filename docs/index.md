@@ -21,7 +21,7 @@ order: 1
     </h5>
   </a>
 
-  <a role="button" class="btn btn-outline-secondary" style="margin:20pt; height:40px;" href="www.example.com">
+  <a role="button" class="btn btn-outline-secondary" style="margin:20pt; height:40px;" href="https://arxiv.org/abs/2311.11183">
     <h5>
       <img src="assets/images/paper_thumbnail.png" style="height:30px;"/> Paper
     </h5>
@@ -308,3 +308,14 @@ These LLMs are evaluated on the <span class="curly-font">RoboEval</span> benchma
 <script src="assets/js/error_breakdown.js"></script>
 
 
+#### Citation
+```shell
+@misc{hu2023deploying,
+      title={Deploying and Evaluating LLMs to Program Service Mobile Robots}, 
+      author={Zichao Hu and Francesca Lucchetti and Claire Schlesinger and Yash Saxena and Anders Freeman and Sadanand Modak and Arjun Guha and Joydeep Biswas},
+      year={2023},
+      eprint={2311.11183},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO}
+}
+```
