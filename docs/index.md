@@ -287,7 +287,7 @@ These LLMs are evaluated on the <span class="curly-font">RoboEval</span> benchma
   </div>
   <div class="col-md-12 text-center">
     <a id="benchmark-url" class="btn btn-dark btn-lg" role="button">
-      View Code
+      View RTL Specifications
     </a>
   </div>
 </div>

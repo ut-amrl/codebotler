@@ -301,8 +301,8 @@ function show_completion_error(){
     var data = [trace1, trace2, trace3, trace4, trace5, trace6, trace7, trace8];
     var layout = {
         barmode: 'stack', // Enable stacking
-        xaxis: { title: 'Robot Execution Error Breakdown' },
-        yaxis: { title: 'Fraction of Total Robot Execution Errors (%)' }
+        xaxis: { title: 'Task Completion Error Breakdown' },
+        yaxis: { title: 'Fraction of Total Task Completion Errors (%)' }
     };
     Plotly.newPlot('error_breakdown', data, layout);
 }
