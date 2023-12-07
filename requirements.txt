@@ -1,9 +1,6 @@
-pandas
-text_generation
-transformers
-google-generativeai
-openai
-websockets
-bounded_subprocess
-clingo
-bounded_subprocess
+pandas==2.0.3
+text_generation==0.6.1
+transformers==4.31.0
+google-generativeai==0.1.0
+openai==0.27.8
+websockets==12.0

@@ -18,8 +18,9 @@ Project website: https://amrl.cs.utexas.edu/codebotler
 
 We provide a conda environment to run our code. To create and activate the environment:
 ```shell
-conda env create -f environment.yml
+conda create -n codebotler python=3.10
 conda activate codebotler
+pip install -r requirements.txt
 ```
 After installing the conda environment, please go to [pytorch's official website](https://pytorch.org/get-started/locally/) to install the pytorch corresponding to your cuda version (**Note: do not install the cpu version**). 
 
