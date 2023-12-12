@@ -30,13 +30,26 @@ After installing the conda environment, please go to [pytorch's official website
 * You can use any pretrained model compatible with the [HuggingFace AutoModel](https://huggingface.co/transformers/v3.5.1/model_doc/auto.html#automodelforcausallm) interface, including open-source models from the [HuggingFace repository](https://huggingface.co/models) such as [Starcoder](https://huggingface.co/bigcode/starcoder). Note that some models, including Starcoder, require you to agree to the HuggingFace terms of use, and you must be logged in using `huggingface-cli login`.
 * You can also use a [HuggingFace Inference Endpoint](https://huggingface.co/docs/inference-endpoints/index).
 
+## CodeBotler Deployment Quick-Start Guide (ROS 2 Beta)
+Pull the docker image for ROS 2 Humble environment:
+```bash
+docker pull zichaoatut/codebotler-ros2-humble:v1.0
+```
+Make sure you are at the root of this project, and then run docker
+```bash
+bash run_docker.sh
+```
+Finally run
+```shell
+python3 codebotler_ros2.py
+```
 
 ## CodeBotler Deployment Quick-Start Guide
 
 To run the web interface for CodeBotler-Deploy using the default options (using OpenAI's
 `text-daVinci-003` model), run:
 ```shell
-OPENAI_API_KEY=YOURKEY python3 codebotler.py
+python3 codebotler.py
 ```
 This will start the server on `localhost:8080`. You can then open the interface
 by navigating to http://localhost:8080/ in your browser.
