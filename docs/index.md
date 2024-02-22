@@ -1,6 +1,7 @@
 ---
 title: CodeBotler + RoboEval 
 subtitle: Deploying and Evaluating LLMs to Program Service Mobile Robots
+journal: Accepted at IEEE Robotics and Automation Letters (RA-L)
 authors: [Zichao Hu<sup>1</sup>, Francesca Lucchetti<sup>2</sup>, Claire Schlesinger<sup>2</sup>, Yash Saxena<sup>1</sup>, Anders Freeman<sup>3</sup>, Sadanand Modak<sup>1</sup>, Arjun Guha<sup>2</sup>, Joydeep Biswas<sup>1</sup> ]
 layout: project
 order: 1
