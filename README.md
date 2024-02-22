@@ -34,9 +34,9 @@ After installing the conda environment, please go to [pytorch's official website
 ## CodeBotler Deployment Quick-Start Guide
 
 To run the web interface for CodeBotler-Deploy using the default options (using OpenAI's
-`text-daVinci-003` model), run:
+`gpt-4` model), run:
 ```shell
-OPENAI_API_KEY=YOURKEY python3 codebotler.py
+python3 codebotler.py
 ```
 This will start the server on `localhost:8080`. You can then open the interface
 by navigating to http://localhost:8080/ in your browser.

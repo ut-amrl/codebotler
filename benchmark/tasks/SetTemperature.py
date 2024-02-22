@@ -17,11 +17,11 @@ prompts = [
 
 # construct state
 state0 = State().addLocation("arjun's office").addLocation("joydeep's office").addLocation("start_loc") \
-        .addAgent(".*", "arjun's office", [r"warm"]).addAgent(".*", "joydeep's office", [r"cold"]) \
+        .addAgent(".*", "arjun's office", [r"warm", r".*"]).addAgent(".*", "joydeep's office", [r"cold", r".*"]) \
         .addRobotLocation("start_loc")
 
 state1 = State().addLocation("arjun's office").addLocation("joydeep's office").addLocation("start_loc") \
-        .addAgent(".*", "arjun's office", [r"cold"]).addAgent(".*", "joydeep's office", [r"warm"]) \
+        .addAgent(".*", "arjun's office", [r"cold", r".*"]).addAgent(".*", "joydeep's office", [r"warm", r".*"]) \
         .addRobotLocation("start_loc")
 
 # helper checks

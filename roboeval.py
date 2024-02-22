@@ -14,7 +14,11 @@ def generate(args):
   prompt_prefix = args.prompt_prefix.read_text()
   prompt_suffix = args.prompt_suffix.read_text()
   model = load_model(args)
-  stop_sequences = ["\ndef", "\nclass", "print(", "import "]
+  stop_sequences = ["\n#", "\ndef", "\nclass", "```"]
+  if args.model_type == "openai-chat":
+    prompt_prefix = ""
+    prompt_suffix = ""
+    stop_sequences = ["\n#", "\nclass", "```"]
   prompts = read_benchmark(args.benchmark_file, args.benchmark_filter)
   completions(
       model,
@@ -59,9 +63,10 @@ def main():
   parser.add_argument("--evaluate-output", type=Path)
   parser.add_argument("--unzip-path", type=Path)
 
-  parser.add_argument("--model-type", choices=["openai", "openai-chat", "palm", "automodel", "hf-textgen", "llama"], default="openai")
-  parser.add_argument('--model-name', type=str, help='Model name', default='text-davinci-003')
-  parser.add_argument('--tgi-server-url', type=str, help='Text Generation Inference Client URL', default='http://127.0.0.1:8080')
+  parser.add_argument("--model-type", choices=["openai", "openai-chat", "palm", "automodel", "hf-textgen"], default="openai-chat")
+  parser.add_argument('--model-name', type=str, help='Model name', default='gpt-4')
+  parser.add_argument('--tgi-server-url', type=str, help='Text Generation Inference Client URL', default='http://127.0.0.1:8082')
+  parser.add_argument('--chat-prompt-prefix', type=Path, help='Prompt prefix for GPT chat completion only', default='code_generation/openai_chat_completion_prefix.py')
   parser.add_argument('--prompt-prefix', type=Path, help='Prompt prefix', default='code_generation/prompt_prefix.py')
   parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix', default='code_generation/prompt_suffix.py')
   parser.add_argument('--max-workers', type=int, help='Maximum number of workers', default=1)

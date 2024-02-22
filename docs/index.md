@@ -310,12 +310,15 @@ These LLMs are evaluated on the <span class="curly-font">RoboEval</span> benchma
 
 #### Citation
 ```shell
-@misc{hu2023deploying,
-      title={Deploying and Evaluating LLMs to Program Service Mobile Robots}, 
-      author={Zichao Hu and Francesca Lucchetti and Claire Schlesinger and Yash Saxena and Anders Freeman and Sadanand Modak and Arjun Guha and Joydeep Biswas},
-      year={2023},
-      eprint={2311.11183},
-      archivePrefix={arXiv},
-      primaryClass={cs.RO}
+@ARTICLE{10416558,
+  author={Hu, Zichao and Lucchetti, Francesca and Schlesinger, Claire and Saxena, Yash and Freeman, Anders and Modak, Sadanand and Guha, Arjun and Biswas, Joydeep},
+  journal={IEEE Robotics and Automation Letters}, 
+  title={Deploying and Evaluating LLMs to Program Service Mobile Robots}, 
+  year={2024},
+  volume={9},
+  number={3},
+  pages={2853-2860},
+  keywords={Robots;Task analysis;Benchmark testing;Natural languages;Python;Mobile robots;Service robots;Software tools for benchmarking and reproducibility;software tools for robot programming;social HRI;human-centered robotics;service robotics},
+  doi={10.1109/LRA.2024.3360020}
 }
 ```
