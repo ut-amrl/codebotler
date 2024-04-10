@@ -17,19 +17,19 @@ prompts = [
 
 # construct state
 state0 = State().addLocation("arjun's office").addLocation("joydeep's office").addLocation("start_loc") \
-        .addAgent(".*", "arjun's office", [r"warm", r".*"]).addAgent(".*", "joydeep's office", [r"cold", r".*"]) \
+        .addAgent(".*", "arjun's office", [r"wa"]).addAgent(".*", "joydeep's office", [r"co"]) \
         .addRobotLocation("start_loc")
 
 state1 = State().addLocation("arjun's office").addLocation("joydeep's office").addLocation("start_loc") \
-        .addAgent(".*", "arjun's office", [r"cold", r".*"]).addAgent(".*", "joydeep's office", [r"warm", r".*"]) \
+        .addAgent(".*", "arjun's office", [r"co"]).addAgent(".*", "joydeep's office", [r"wa"]) \
         .addRobotLocation("start_loc")
 
 # helper checks
 def say_con(trace: Trace, status: str, VERBOSE: bool = False) -> bool:
-    if status == "warm":
+    if status == "wa": # warmer
         # 73-99 degrees allowable
         say_pattern = r"\b(?:[8][0-9]|7[3-9])\b" 
-    elif status == "cold":
+    elif status == "co": # colder or cooler
         # 40-71 degrees allowable
         say_pattern = r"\b(?:[5-6][0-9]|7[01])\b" 
     
@@ -37,7 +37,6 @@ def say_con(trace: Trace, status: str, VERBOSE: bool = False) -> bool:
     
     go_back_to_start = trace.Precedes(GoTo(r"arjun's office"), GoTo("start_loc"))
     say = trace.AfterFirst(GoTo(exclude_start_loc)).ActAtFirst("start_loc", Say(say_pattern))
-
     if VERBOSE:
         print_debug(f"go_back_to_start status {status}", go_back_to_start, [label_IT])
         print_debug(f"say_constraint status {status}", say, [label_S, label_AL])
@@ -70,8 +69,8 @@ def test0(trace_elements : List[TraceElement], VERBOSE: bool = False) -> bool:
     # arjun says warmer
     trace = Trace(trace_elements)
     generic = generic_con(trace, VERBOSE)
-    ask = ask_con(trace, "warm", VERBOSE)
-    say = say_con(trace, "warm", VERBOSE=VERBOSE)
+    ask = ask_con(trace, "wa", VERBOSE)
+    say = say_con(trace, "wa", VERBOSE=VERBOSE)
 
     return generic and ask and say
 
@@ -79,8 +78,8 @@ def test1(trace_elements : List[TraceElement], VERBOSE: bool = False) -> bool:
     # arjun says colder
     trace = Trace(trace_elements)
     generic = generic_con(trace, VERBOSE)
-    ask = ask_con(trace, "cold", VERBOSE)
-    say = say_con(trace, "cold", VERBOSE=VERBOSE)
+    ask = ask_con(trace, "co", VERBOSE)
+    say = say_con(trace, "co", VERBOSE=VERBOSE)
 
     return generic and ask and say
 
