@@ -33,12 +33,12 @@ state2 = State().addLocation("sally's office").addLocation("mark's office").addL
 def answer_no_con(trace: Trace, VERBOSE: bool = False) -> bool:
     new_trace = trace.AfterFirst(GoTo("mark's office")).AfterFirst(Say(contain_words(["no"])))
 
-    not_ask_say = not new_trace.Exists(Ask(r".*", r".*")) and not new_trace.Exists(Say(r".*"))
+    not_ask = not new_trace.Exists(Ask(r".*", r".*")) 
     
     if VERBOSE:
-        print_debug("not_ask_say", not_ask_say, [label_A, label_AL])
+        print_debug("not_ask", not_ask, [label_A, label_AL])
 
-    return not_ask_say
+    return not_ask
 
 def answer_yes_con(trace: Trace, time: List[str], VERBOSE: bool = False) -> bool:
     ask_mark = trace.ActAtFirst(r"mark's office", Ask(contain_words(time), r".*")) or \
