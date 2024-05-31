@@ -56,8 +56,7 @@ def answer_yes(trace: Trace, VERBOSE: bool = False) -> bool:
     exclude_elevator = contain_words_and_exlude_words([], ["elevator"])
     conf_after_elevator = not trace.AfterFirst(GoTo("elevator")).BeforeFirst(GoTo("conference")).Exists(GoTo(exclude_elevator))
     
-    say_at_conf = trace.ActAtFirst("conference", Say(contain_words(["arrive"]))) and \
-                  trace.ActAtFirst("conference", Say(contain_words(["enjoy"])))
+    say_at_conf = trace.ActAtFirst("conference", Say(contain_words(["arr"])))
     
 
     if VERBOSE:

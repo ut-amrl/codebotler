@@ -34,7 +34,7 @@ state2 = State().addLocation("printer room 1").addLocation("printer room 2").add
 # helper checks
 def say_con(trace: Trace, room_num: Union[int, str], VERBOSE: bool = False) -> bool:
     #say printer room room_num does not have a stapler.
-    contained_say = [str(room_num), "not|.*no|.*don't|.*doesn't"]
+    contained_say = [str(room_num), "not|.*no|.*don't|.*doesn't|.*without"]
     
     say_pattern = contain_words(contained_say)
 

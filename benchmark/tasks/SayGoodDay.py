@@ -50,7 +50,11 @@ def say_con(trace: Trace, agent_name: str, VERBOSE: bool = False) -> bool:
     return say and check_before_say
 
 def not_say_con(trace: Trace, loc: str, VERBOSE: bool = False) -> bool:
-    return not trace.ActAtFirst(loc, Say(r".*"))
+    contained_word1 = ["good"]
+    pattern1 = contain_words(contained_word1)
+    contained_word2 = ["day"]
+    pattern2 = contain_words(contained_word2)
+    return not trace.ActAtFirst(loc, Say(pattern1)) and not trace.ActAtFirst(loc, Say(pattern2))
 
 def generic_con(trace: Trace, VERBOSE: bool = False) -> bool:
     go_to_lab = trace.Exists(GoTo(r"sam's lab")) and trace.Exists(GoTo(r"amy's lab"))
