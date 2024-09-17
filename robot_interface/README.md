@@ -6,28 +6,17 @@ You can use this example script as a template to implement the action servers fo
 
 ## Build
 To build the action messages and the CodeBotler client:
-1. Navigate to the `robot_interface` subdirectory and run `catkin_make`:
-    ```bash
-    cd robot_interface
-    catkin_make
-    ```
-1. Source the Catkin workspace setup script:
-    ```bash
-    source devel/setup.bash
-    ```
-1. Optionally, add the Catkin workspace setup script to your `~/.bashrc` file to automatically source the setup script when opening a new terminal.
-    ```bash
-    echo "source $(pwd)/devel/setup.bash" >> ~/.bashrc
-    ```
+- navigate to the `robot_interface` subdirectory and run `./setup_robot.sh`
+- add `devel/setup.bash` source command to your `.bashrc` file (just after the source command for your ROS distribution)
 
 ## Usage
 The robot-specific action server must be launched before running the deployment interface.
-1. Launch your robot action server. To launch the example server:
+1. Launch your robot action server. For example, for the spot amrl server:
     ```bash
-    python3 robot_interface/src/robot_server_example.py
+    ./codebotler_amrl_impl/start_all.sh  # basically roslaunch codebotler_amrl_impl start_all.launch
     ```
 1. Launch the deployment script on the robot:
     ```bash
-    python3 codebotler_deploy.py --robot --ip <robot_ip>
+    python3 codebotler.py --robot --ip <robot_ip>   # e.g., for spot: python3 codebotler.py --robot --ip 10.1.0.3
     ```
 1. Open `http://<robot_ip>:8080/` in your browser to access the deployment interface.
