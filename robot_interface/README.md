@@ -26,8 +26,8 @@ The robot-specific action server must be launched before running the deployment 
     ```bash
     python3 robot_interface/src/robot_server_example.py
     ```
-1. Launch the deployment script on the robot:
+1. Launch the codebotler script on the robot:
     ```bash
-    python3 codebotler_deploy.py --robot --ip <robot_ip>
+    python3 codebotler.py --robot --ip <robot_ip>
     ```
 1. Open `http://<robot_ip>:8080/` in your browser to access the deployment interface.
