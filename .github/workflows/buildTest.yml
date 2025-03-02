@@ -62,6 +62,7 @@ jobs:
           screen -s bash -mdS roscore roscore
           sleep 2
           cd $GITHUB_WORKSPACE
+          conda init
           conda activate codebotler
           timeout --preserve-status 5 python robot_interface/src/robot_server_example.py
 
@@ -73,7 +74,8 @@ jobs:
           screen -s bash -mdS roscore roscore
           sleep 2
           cd $GITHUB_WORKSPACE
-          screen -s bash -mdS robot_server conda activate codebotler && python robot_interface/src/robot_server_example.py
+          screen -s bash -mdS robot_server conda init && conda activate codebotler && python robot_interface/src/robot_server_example.py
           export OPENAI_API_KEY=FAKE_KEY
+          conda init
           conda activate codebotler
           timeout --preserve-status -s SIGINT 5 python codebotler.py --robot --ip 0.0.0.0
