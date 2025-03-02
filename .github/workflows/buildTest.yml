@@ -55,10 +55,6 @@ jobs:
           catkin_make
 
       - name: Run robot server interface
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          python-version: 3.12.8
-          auto-activate-base: false
         shell: bash
         run: |
           source /opt/ros/noetic/setup.bash
@@ -70,10 +66,6 @@ jobs:
           timeout --preserve-status 5 python robot_interface/src/robot_server_example.py
 
       - name: Run deployment interface with robot server
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          python-version: 3.12.8
-          auto-activate-base: false
         shell: bash
         run: |
           source /opt/ros/noetic/setup.bash
