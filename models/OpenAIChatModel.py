@@ -5,9 +5,8 @@ from openai import OpenAI  # new client-based API
 
 class OpenAIChatModel:
     def __init__(self, model: str = None, api_key: str = "", prefix_path: str = ""):
-        print("Using OpenAI model:", model)
+        print("Using OpenAI Chat model:", model)
         self.model = model
-        # Instantiate a client rather than using the module-level functions:
         self.client = OpenAI(api_key=api_key)
         self.structured_prefix = None
 
@@ -42,6 +41,7 @@ class OpenAIChatModel:
             stop=stop_sequences,
             max_completion_tokens=max_tokens
         )
+        print(f"Tokens used: input={response.usage.prompt_tokens}, output={response.usage.completion_tokens}, completion_details={response.usage.completion_tokens_details}, prompt_details={response.usage.prompt_tokens_details}")
         return response.choices[0].message.content.strip()
 
     def generate_one_with_prob(self, prompt: str, stop_sequences: List[str],
