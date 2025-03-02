@@ -62,7 +62,7 @@ jobs:
           screen -s bash -mdS roscore roscore
           sleep 2
           cd $GITHUB_WORKSPACE
-          conda init
+          source "$(conda info --base)/etc/profile.d/conda.sh"
           conda activate codebotler
           timeout --preserve-status 5 python robot_interface/src/robot_server_example.py
 
