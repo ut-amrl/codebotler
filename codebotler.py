@@ -116,15 +116,14 @@ async def ws_main(websocket, path, args):
   except websockets.exceptions.ConnectionClosed:
     pass
 
+async def start_ws_server(args):
+  async with websockets.serve(lambda ws, path="": ws_main(ws, path, args), args.ip, args.ws_port):
+    print(f"WebSocket server started at ws://{args.ip}:{args.ws_port}")
+    await asyncio.Future()  # Keeps the server running indefinitely.
+
 def start_completion_callback(args):
-  global asyncio_loop, ws_server
-  # Create an asyncio event loop
-  asyncio_loop = asyncio.new_event_loop()
-  asyncio.set_event_loop(asyncio_loop)
-  start_server = websockets.serve(lambda ws, path: ws_main(ws, path, args), args.ip, args.ws_port)
   try:
-    ws_server = asyncio_loop.run_until_complete(start_server)
-    asyncio_loop.run_forever()
+    asyncio.run(start_ws_server(args))
   except Exception as e:
     print("Websocket error: " + str(e))
     shutdown(None, None)

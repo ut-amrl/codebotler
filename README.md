@@ -18,7 +18,7 @@ Project website: https://amrl.cs.utexas.edu/codebotler
 
 We provide a conda environment to run our code. To create and activate the environment:
 ```shell
-conda create -n codebotler python=3.10
+conda create -n codebotler python=3.12.8 pip
 conda activate codebotler
 pip install -r requirements.txt
 ```
