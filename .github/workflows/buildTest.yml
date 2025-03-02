@@ -33,11 +33,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
           
-      - name: Set up conda environment
-      - uses: conda-incubator/setup-miniconda@v3
+      - name: Install conda
+        uses: conda-incubator/setup-miniconda@v3
         with:
+          auto-update-conda: true
           python-version: 3.12.8
           auto-activate-base: false
+
+      - name: Set up conda environment
         run: |
           cd $GITHUB_WORKSPACE
           conda create -n codebotler python=3.12.8 pip
