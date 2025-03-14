@@ -1,3 +1,10 @@
+# Update Logs
+1. support VLLM
+```bash 
+python roboeval_vllm -m {hf_model_name}
+```
+Results will be saved under `eval_results/` by defaults.
+
 # CodeBotler Overview
 
 [![Build Status](https://github.com/ut-amrl/robot_commands/actions/workflows/buildTest.yml/badge.svg)](https://github.com/ut-amrl/robot_commands/actions)

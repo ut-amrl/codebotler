@@ -12,3 +12,4 @@ eval/
 test.py
 evaluation_script/*.png
 evaluation_script/*.pgf
+eval_results/
