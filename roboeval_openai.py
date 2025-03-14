@@ -1,8 +1,8 @@
 
-from misc.utils import read_benchmark, load_module
-from benchmark.simple_tracer import evaluate_task
-from models.OpenAIChatModel import OpenAIChatModel
-from misc.llm_generation_utils import post_process_vllm_generation
+from roboeval.misc.utils import read_benchmark, load_module
+from roboeval.benchmark.simple_tracer import evaluate_task
+from roboeval.models.OpenAIChatModel import OpenAIChatModel
+from roboeval.misc.llm_generation_utils import post_process_vllm_generation
 
 import os
 import argparse
@@ -14,7 +14,7 @@ import json
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 def update_prompt(prompt):
-    messages = load_module("", "code_generation/openai_chat_completion_prefix.py").__dict__["messages"]
+    messages = load_module("", "roboeval/code_generation/openai_chat_completion_prefix.py").__dict__["messages"]
     for msg in messages:
         if msg["role"] == "user":
             msg["content"] = "# Instruction: " + msg["content"]
@@ -95,27 +95,20 @@ def generate_evaluate(args):
         json.dump(program_results, f)
     results = evaluate(tasknames, programs, args.benchmark_file)
     save_results(results)
-    
-    if args.save_program:
-        program_results = {}
-        for i, program in enumerate(programs):
-            program_results[tasknames[int(i//5)] + f"_{i}"] = program
-        with open(f"{args.save_dir}/{args.save_name}/programs.json", "w") as f:
-            json.dump(program_results, f)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model_name", type=str, default="gpt-4o-mini")
+    parser.add_argument("--model_name", type=str, default="gpt-4o-mini")
     parser.add_argument("-sd", "--save_dir", type=str, default="eval_results")
     parser.add_argument("-sn", "--save_name", type=str, default="result.csv")
-    parser.add_argument('--benchmark-file', type=Path, help='Benchmark file', default='benchmark/tasks')
-    parser.add_argument("-sp", "--save_program", action="store_true")
+    parser.add_argument('--benchmark-file', type=Path, help='Benchmark file', default='roboeval/benchmark/tasks')
 
     parser.add_argument("--num_completions", type=int, default=20)
     parser.add_argument("--max_tokens", type=int, default=512)
     parser.add_argument("--top_p", type=float, default=0.95)
     parser.add_argument("--temperature", type=float, default=0.2)
     
+        
     args = parser.parse_args()
     BENCHMARK_TASKS = read_benchmark(args.benchmark_file, "*")
     PROMPT_VARIATION = 5

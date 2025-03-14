@@ -1,8 +1,8 @@
 
-from misc.utils import read_benchmark, load_module
-from benchmark.simple_tracer import evaluate_task
-from misc.llm_generation_utils import post_process_vllm_generation
-
+from roboeval.misc.utils import read_benchmark, load_module
+from roboeval.benchmark.simple_tracer import evaluate_task
+from roboeval.misc.llm_generation_utils import post_process_vllm_generation
+from roboeval.models.model_factory import load_model
 import os
 import argparse
 from vllm import LLM, SamplingParams
@@ -16,15 +16,15 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 def update_prompt(prompt, tokenizer):
     if args.use_llama3_inst:
-        messages = load_module("", "code_generation/openai_chat_completion_prefix.py").__dict__["messages"]
+        messages = load_module("", "roboeval/code_generation/openai_chat_completion_prefix.py").__dict__["messages"]
         for msg in messages:
             if msg["role"] == "user":
                 msg["content"] = "# Instruction: " + msg["content"]
         messages += [{"role": "user", "content": "# Instruction: " + prompt}]
         prompt = tokenizer.apply_chat_template(messages, tokenize=False)
     else:
-        prefix = Path("code_generation/prompt_prefix.py").read_text()
-        suffix = Path("code_generation/prompt_suffix.py").read_text()
+        prefix = Path("roboeval/code_generation/prompt_prefix.py").read_text()
+        suffix = Path("roboeval/code_generation/prompt_suffix.py").read_text()
         prompt = prefix + prompt + suffix 
     return prompt
 
@@ -73,10 +73,10 @@ def save_results(results):
             else:
                 pass1_result[key] = value
 
-    os.makedirs(os.path.join(args.save_dir, args.save_name, "pass1"), exist_ok=True)
-    os.makedirs(os.path.join(args.save_dir, args.save_name, "error_breakdown"), exist_ok=True)
-    pass1_save_path = os.path.join(args.save_dir, args.save_name, "pass1", "result.csv")
-    error_breakdown_save_path = os.path.join(args.save_dir, args.save_name, "error_breakdown", "result.csv")
+    os.makedirs(os.path.join(args.save_dir, "pass1"), exist_ok=True)
+    os.makedirs(os.path.join(args.save_dir, "error_breakdown"), exist_ok=True)
+    pass1_save_path = os.path.join(args.save_dir, "pass1", args.save_name)
+    error_breakdown_save_path = os.path.join(args.save_dir, "error_breakdown", args.save_name)
     pd.DataFrame(pass1_result.items(), columns=["name", "pass_1"]).to_csv(pass1_save_path, index=False)
     pd.DataFrame(error_breakdown.items(), columns=["name", "error_count"]).to_csv(error_breakdown_save_path, index=False)
 
@@ -96,28 +96,24 @@ def evaluate(tasknames, programs, benchmark_file):
 def generate_evaluate(args):
     tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
     prompts, tasknames, sampling_params = get_all_generation(args, tokenizer)
-    llm = LLM(model=args.model_name_or_path,
-              tensor_parallel_size=args.tensor_parallel_size,
-              gpu_memory_utilization=args.gpu_memory_utilization)
+    llm = load_model(args)
     
     outputs = llm.generate(prompts, sampling_params)
     programs = post_process_vllm_generation(outputs)
     results = evaluate(tasknames, programs, args.benchmark_file)
     save_results(results)
-    if args.save_program:
-        program_results = {}
-        for i, program in enumerate(programs):
-            program_results[tasknames[int(i//5)] + f"_{i}"] = program
-        with open(f"{args.save_dir}/{args.save_name}/programs.json", "w") as f:
-            json.dump(program_results, f)
+    program_results = {}
+    for i, program in enumerate(programs):
+        program_results[tasknames[int(i//5)] + f"_{i}"] = program
+    with open(f"{args.save_dir}/programs.json", "w") as f:
+        json.dump(program_results, f)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model_name_or_path", type=str)
     parser.add_argument("-sd", "--save_dir", type=str, default="eval_results")
-    parser.add_argument("-sn", "--save_name", type=str, default="vllm")
-    parser.add_argument('--benchmark-file', type=Path, help='Benchmark file', default='benchmark/tasks')
-    parser.add_argument("-sp", "--save_program", action="store_true")
+    parser.add_argument("-sn", "--save_name", type=str, default="result.csv")
+    parser.add_argument('--benchmark-file', type=Path, help='Benchmark file', default='roboeval/benchmark/tasks')
 
     parser.add_argument("--num_completions", type=int, default=20)
     parser.add_argument("--max_tokens", type=int, default=512)
