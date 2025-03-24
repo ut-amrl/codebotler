@@ -11,7 +11,7 @@ def compute_pass1(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dir", type=str)
+    parser.add_argument("--dir", type=str, default='eval_results')
 
     args = parser.parse_args()
     compute_pass1(args) 

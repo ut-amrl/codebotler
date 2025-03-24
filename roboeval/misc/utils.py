@@ -38,6 +38,8 @@ def read_benchmark(p: Path, read_regex: str):
     print("benchmark python files: ", python_files)
     benchmarks = []
     for idx, f in enumerate(python_files):
+        if "__init__" in f:
+            continue
         program = load_module("p{}".format(idx), f)
         benchmark = {
             "name": program.name,

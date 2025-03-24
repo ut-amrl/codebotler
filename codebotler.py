@@ -10,12 +10,13 @@ import json
 import signal
 import time
 import sys
-
-from models.model_factory import load_model
-from models.OpenAIChatModel import OpenAIChatModel
-
-
+from pathlib import Path
 import threading
+from vllm import SamplingParams
+
+from roboeval.misc.llm_generation_utils import post_process_vllm_generation, post_process_program
+from roboeval.models.model_factory import load_model
+from roboeval.misc.utils import load_module
 
 ros_available = False
 robot_available = False
@@ -33,8 +34,6 @@ server_thread = None
 model = None
 asyncio_loop = None
 ws_server = None
-prompt_prefix = ""
-prompt_suffix = ""
 
 def serve_interface_html(args):
   global httpd
@@ -56,25 +55,49 @@ def serve_interface_html(args):
     print("HTTP server error: " + str(e))
     shutdown(None, None)
 
+def build_prompts(args, prompt):
+  if args.model_type == "openai":
+    messages = load_module("", args.chat_prompt_prefix).__dict__["messages"]
+    for msg in messages:
+        if msg["role"] == "user":
+            msg["content"] = "# Instruction: " + msg["content"]
+    messages += [{"role": "user", "content": "# Instruction: " + prompt}]
+    prompt = messages
+  else:
+    prefix = Path(args.prompt_prefix).read_text()
+    suffix = Path(args.prompt_suffix).read_text()
+    prompt = prefix + prompt + suffix 
+  return [prompt]
+
 def generate_code(prompt, args):
-  global model, prompt_prefix, prompt_suffix, code_timeout
+  global model, code_timeout
+  stop_params = {"stop": ["\n#", "\ndef", "```", "import"]}
+  prompts = build_prompts(args, prompt)
   start_time = time.time()
-  stop_sequences = ["\n#", "\nclass", "```"]
-  if args.model_type != "openai-chat":
-    prompt = prompt_prefix + prompt + prompt_suffix
-    stop_sequences += ["\ndef"]
-  code = model.generate_one(prompt=prompt,
-                            stop_sequences=stop_sequences,
-                            temperature=args.temperature,
-                            top_p=args.top_p,
-                            max_tokens=args.max_tokens)
+  
+  if args.model_type == "vllm":
+      sampling_params = SamplingParams(
+          temperature=args.temperature,
+          max_tokens=args.max_tokens,
+          top_p=args.top_p,
+          **stop_params
+      )
+      outputs = model.generate(prompts, sampling_params)
+      programs = post_process_vllm_generation(outputs)
+  elif args.model_type == "gemini":
+      unprocessed_programs = model.generate(prompts, **stop_params, temperature=args.temperature, top_p=args.top_p, max_tokens=args.max_tokens)
+      programs = []
+      for program in unprocessed_programs:
+          program = post_process_program(program)
+          programs.append(program)
+  elif args.model_type == "openai":
+      programs = model.generate(prompts, **stop_params, temperature=args.temperature, top_p=args.top_p, max_tokens=args.max_tokens)
+  else:
+      raise ValueError(f"To Be Implemented: {args.model_type}")
   end_time = time.time()
   print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
-  if type(model) is not OpenAIChatModel:
-      code = (prompt_suffix + code).strip()
-  elif not code.startswith(prompt_suffix.strip()):
-      code = (prompt_suffix + "\n" + code).strip()
-  return code
+
+  return programs[0]
 
 def execute(code):
   global ros_available
@@ -85,7 +108,7 @@ def execute(code):
   elif not robot_available:
     print("Robot not available. Ignoring execute request.")
   else:
-    from robot_interface.src.robot_client_interface import execute_task_program
+    from codebotler_robot_interface.src.robot_client_interface import execute_task_program
     robot_execution_thread = threading.Thread(target=execute_task_program, name="robot_execute", args=[code, robot_interface])
     robot_execution_thread.start()
 
@@ -109,7 +132,7 @@ async def handle_message(websocket, message, args):
   else:
     print("Unknown message type: " + data['type'])
 
-async def ws_main(websocket, path, args):
+async def ws_main(websocket, args):
   try:
     async for message in websocket:
       await handle_message(websocket, message, args)
@@ -117,17 +140,27 @@ async def ws_main(websocket, path, args):
     pass
 
 def start_completion_callback(args):
-  global asyncio_loop, ws_server
-  # Create an asyncio event loop
-  asyncio_loop = asyncio.new_event_loop()
-  asyncio.set_event_loop(asyncio_loop)
-  start_server = websockets.serve(lambda ws, path: ws_main(ws, path, args), args.ip, args.ws_port)
-  try:
-    ws_server = asyncio_loop.run_until_complete(start_server)
-    asyncio_loop.run_forever()
-  except Exception as e:
-    print("Websocket error: " + str(e))
-    shutdown(None, None)
+    global asyncio_loop, ws_server
+
+    async def run_server():
+        global ws_server
+
+        async def handler(ws):
+            await ws_main(ws, args)  # args is accessible from the outer scope
+
+        ws_server = await websockets.serve(handler, args.ip, args.ws_port)
+        print(f"WebSocket server started on {args.ip}:{args.ws_port}")
+        await ws_server.wait_closed()
+
+    # Create and set the asyncio event loop
+    asyncio_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(asyncio_loop)
+
+    try:
+        asyncio_loop.run_until_complete(run_server())
+    except Exception as e:
+        print("Websocket error: " + str(e))
+        shutdown(None, None)
 
 def shutdown(sig, frame):
   global ros_available, robot_available, robot_interface, server_thread, asyncio_loop, httpd, ws_server
@@ -157,8 +190,6 @@ def shutdown(sig, frame):
 
 def main():
   global server_thread
-  global prompt_prefix
-  global prompt_suffix
   global ros_available
   global robot_available
   global robot_interface
@@ -171,17 +202,21 @@ def main():
   parser.add_argument('--ip', type=str, help='IP address', default="localhost")
   parser.add_argument('--port', type=int, help='HTML server port number', default=8080)
   parser.add_argument('--ws-port', type=int, help='Websocket server port number', default=8190)
-  parser.add_argument("--model-type", choices=["openai", "openai-chat", "palm", "automodel", "hf-textgen"], default="openai-chat")
-  parser.add_argument('--model-name', type=str, help='Model name', default='gpt-4')
-  parser.add_argument('--tgi-server-url', type=str, help='Text Generation Inference Client URL', default='http://127.0.0.1:8082')
-  parser.add_argument('--chat-prompt-prefix', type=Path, help='Prompt prefix for GPT chat completion only', default='code_generation/openai_chat_completion_prefix.py')
-  parser.add_argument('--prompt-prefix', type=Path, help='Prompt prefix for all but GPT chat completion', default='code_generation/prompt_prefix.py')
-  parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix for all but GPT chat completion', default='code_generation/prompt_suffix.py')
-  parser.add_argument('--interface-page', type=Path, help='Interface page', default='code_generation/interface.html')
-  parser.add_argument('--max-workers', type=int, help='Maximum number of workers', default=1)
-  parser.add_argument("--max-tokens", type=int, default=512)
-  parser.add_argument("--top-p", type=float, default=0.95)
-  parser.add_argument("--temperature", type=float, default=0.2)
+  
+  parser.add_argument("-mt", "--model_type", choices=["vllm", "openai", "gemini"], default="openai")
+  parser.add_argument("-m", "--model_name_or_path", type=str, default="gpt-4")
+  parser.add_argument("-temp", "--temperature", type=float, default=0.2)
+  parser.add_argument("--max_tokens", type=int, default=512)
+  parser.add_argument("--top_p", type=float, default=0.95)
+  parser.add_argument("-tps", "--tensor_parallel_size", type=int, default=1)
+  parser.add_argument("-gmu", "--gpu_memory_utilization", type=float, default=0.7)
+  parser.add_argument("--use_llama3_inst", action="store_true") # apply llama 3 instruction template
+    
+  parser.add_argument('--chat-prompt-prefix', type=str, help='Prompt prefix for GPT chat completion only', default='roboeval/code_generation/openai_chat_completion_prefix.py')
+  parser.add_argument('--prompt-prefix', type=str, help='Prompt prefix for all but GPT chat completion', default='roboeval/code_generation/prompt_prefix.py')
+  parser.add_argument('--prompt-suffix', type=str, help='Prompt suffix for all but GPT chat completion', default='roboeval/code_generation/prompt_suffix.py')
+  parser.add_argument('--interface-page', type=Path, help='Interface page', default='roboeval/code_generation/interface.html')
+    
   parser.add_argument('--robot', action='store_true', help='Flag to indicate if the robot is available')
   parser.add_argument('--timeout', type=int, help='Code generation timeout in seconds', default=20)
 
@@ -196,11 +231,9 @@ def main():
   signal.signal(signal.SIGINT, shutdown)
 
   if robot_available and ros_available:
-    from robot_interface.src.robot_client_interface import RobotInterface
+    from codebotler_robot_interface.src.robot_client_interface import RobotInterface
     robot_interface = RobotInterface()
 
-  prompt_prefix = args.prompt_prefix.read_text()
-  prompt_suffix = args.prompt_suffix.read_text()
   model = load_model(args)
   server_thread = threading.Thread(target=serve_interface_html,
                                    name="HTTP server thread",

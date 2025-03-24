@@ -1,8 +1,6 @@
-import sys
-sys.path.append('../..')
-from benchmark.rtl import *
-from benchmark.simulator import State
-from misc.benchmark_utils import *
+from roboeval.benchmark.rtl import *
+from roboeval.benchmark.simulator import State
+from roboeval.misc.benchmark_utils import *
 from typing import List
 
 name = "LunchTime"

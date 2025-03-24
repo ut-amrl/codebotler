@@ -27,16 +27,14 @@ We provide a conda environment to run our code. To create and activate the envir
 ```shell
 conda create -n codebotler python=3.10
 conda activate codebotler
-pip install -r requirements.txt
+cd $WORKSPACE_ROOT
+pip install -e .
 ```
-After installing the conda environment, please go to [pytorch's official website](https://pytorch.org/get-started/locally/) to install the pytorch corresponding to your cuda version (**Note: do not install the cpu version**). 
 
 **Language Model Options**
 * To use an OpenAI model, you will need an [OpenAI key](https://platform.openai.com/account/api-keys), either saved in a file named `.openai_api_key`, or in the `OPENAI_API_KEY` environment variable.
-* To use a PaLM model, you will need a [Google Generative API key](https://developers.generativeai.google/tutorials/setup), either saved in a file named `.palm_api_key`, or in the `PALM_API_KEY` environment variable.
-* You can use any pretrained model compatible with the [HuggingFace AutoModel](https://huggingface.co/transformers/v3.5.1/model_doc/auto.html#automodelforcausallm) interface, including open-source models from the [HuggingFace repository](https://huggingface.co/models) such as [Starcoder](https://huggingface.co/bigcode/starcoder). Note that some models, including Starcoder, require you to agree to the HuggingFace terms of use, and you must be logged in using `huggingface-cli login`.
-* You can also use a [HuggingFace Inference Endpoint](https://huggingface.co/docs/inference-endpoints/index).
-
+* To use a Gemini model, you will need a [Google Generative API key](https://developers.generativeai.google/tutorials/setup), either saved in a file named `.gemini_api_key`, or in the `GEMINI_API_KEY` environment variable.
+* You can use any pretrained model compatible with the [vLLM](https://docs.vllm.ai/en/latest/), including open-source models from the [HuggingFace repository](https://huggingface.co/models) such as [Starcoder2](https://huggingface.co/bigcode). Note that some models, including Starcoder2, require you to agree to the HuggingFace terms of use, and you must be logged in using `huggingface-cli login`.
 
 ## CodeBotler Deployment Quick-Start Guide
 
@@ -52,62 +50,40 @@ List of arguments:
 * `--ip`: The IP address to host the server on (default is `localhost`).
 * `--port`: The port to host the server on (default is `8080`).
 * `--ws-port`: The port to host the websocket server on (default is `8190`).
-* `--model-type`: The type of model to use. It is either `openai-chat` (default) and `openai` for [OpenAI](https://platform.openai.com),
-  `palm` for [PaLM](https://developers.generativeai.google/), or `automodel`
-  for
-  [AutoModel](https://huggingface.co/transformers/model_doc/auto.html#automodel).
+* `--model-type`: The type of model to use. It is either `openai` (default), `vllm`, or `gemini`.
 * `--model-name`: The name of the model to use. Recommended options are
-  `gpt-4` for GPT-4 (default), `text-daVinci-003` for GPT-3.5, `models/text-bison-001` for PaLM, and
-  `bigcode/starcoder` for AutoModel.
+  `gpt-4` for GPT-4 (default), `gpt-4o-mini` for GPT4o-Mini, `gemini-2.0-flash` for Gemini-2.0-flash, and
+  `deepseek-ai/DeepSeek-R1-Distill-Qwen-32B` for Deepseek-R1 Qwen Distilled version.
 * `--robot`: Flag to indicate if the robot is available (default is `False`).
+For more arguments, please refer to the python file.
 
 Instructions for deploying on real robots are included in [robot_interface/README.md](robot_interface/README.md).
 
 ## RoboEval Benchmark Quick-Start Guide
 
-The instructions below demonstrate how to run the benchmark using the open-source [StarCoder](https://huggingface.co/bigcode/starcoder) model.
+The instructions below demonstrate how to run the benchmark using the open-source [starcoder2-7b](https://huggingface.co/bigcode/starcoder2-7b) model.
+
 
 1. Run code generation for the benchmark tasks using the following command:
     ```shell
-    python3 roboeval.py --generate --generate-output completions/starcoder \
-        --model-type automodel --model-name "bigcode/starcoder" 
+    python3 roboeval.py -mt vllm -m bigcode/starcoder2-7b -temp 0 -num 1 -tps 2
     ```
-    This will generate the programs for the benchmark tasks and save them as a Python file in
-    an output directory `completions/starcoder`. It assumes default values
-    for temperature (0.2), top-p (0.9), and num-completions (20), to generate 20
-    programs for each task --- this will suffice for pass@1 evaluation.
+    Arguments:
+    - mt: Model type (e.g., vllm)
+    - m: Model name (e.g., bigcode/starcoder2-7b)
+    - temp: Sampling temperature (e.g., 0 for deterministic output)
+    - num: Number of completions to generate per prompt (e.g., 1)
+    - tps: Tensor parallel size — number of GPUs to use (only used for model type vllm)
 
-    If you would rather not re-run inference, we have included saved output from every model in the `completions/` directory as a zip file. You can simply run.
-    ```shell
-    cd completions
-    unzip -d <MODEL_NAME> <MODEL_NAME>.zip
-    ```
-    For example, you can run:
+2. After generation, results are saved by default to the `eval_results/` directory (you can modify it by providing an argument `-sd DIRECTORY` ):
+```
+eval_results
+└── pass1/           # Directory containing pass@1 
+├── error_breakdown/ # Breakdown of errors during 
+└── programs.json    # Generated programs
+```
 
-    ```shell
-    cd completions
-    unzip -d gpt4 gpt4.zip
-    ```
-2. Evaluate the generated programs using the following command:
-    ```shell
-    python3 roboeval.py --evaluate --generate-output <Path-To-Program-Completion-Directory> --evaluate-output <Path-To-Evaluation-Result-File-Name>
-    ```
-    For example:
-    ```shell
-    python3 roboeval.py --evaluate --generate-output completions/gpt4/ --evaluate-output benchmark/evaluations/gpt4
-    ```
-
-    This will evaluate the generated programs from the previous step, and save
-    all the evaluation results in an python file. 
-
-    If you would rather not re-run evaluation, we have included saved evaluation output from every model in the `benchmark/evaluations` directory.
-
-    
 3. Finally, you can compute pass@1 score for every task:
     ```shell
-    python3 evaluate_pass1.py --llm codellama --tasks all
-    ```
-    or 
-     ```shell
-    python3 evaluate_pass1.py --llm codellama --tasks CountSavory WeatherPoll
+    python3 compute_pass1.py --dir ROBOEVAL_GENERATION_SAVED_DIR
     ```
