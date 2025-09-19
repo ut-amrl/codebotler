@@ -9,6 +9,11 @@ ask(person, question, options)
 say(message)
 pick(object)
 place(object)
+pick_up(object)
+put_down(object, destination)
+put_into_basket(object)
+retrieve_from_basket(object)
+get_reachable_locations_around_object(object)    
 
 Robot tasks are defined in named functions, with docstrings describing the task.
 """
@@ -44,7 +49,27 @@ def pick(obj: str) -> None:
 # Place an object down if you are holding one.
 def place(obj: str) -> None:
     ...
-    
+
+# Pick up an object if you are not already holding one. You can only hold one object at a time.
+def pick_up(obj: str) -> None:
+    ...
+
+# Put down an object at the specified destination location, if you are holding one.
+def put_down(obj: str, dest: str) -> None:
+    ...
+
+# Put an object that you are holding into the basket
+def put_into_basket(obj: str) -> None:
+    ...
+
+# Retrieve an object from the basket
+def retrieve_from_basket(obj: str) -> None:
+    ...
+
+# Get a list of all locations from which the specified object can be reached
+def get_reachable_locations_around_object(obj: str) -> None:
+    ...
+ 
 # Go to Arjun's office, ask him if he is ready to head out, and come back and tell me what he said
 def task_program():
     start_loc = get_current_location()
@@ -130,5 +155,32 @@ def task_program():
         go_to(room)
         place("bed sheet")
     go_to(start_loc)
+
+# Go to the table next to the sofa and pick up the mug, and then bring it to the kitchen sink.
+def task_program():
+    start_loc = get_current_location()
+    go_to("table next to sofa")
+    list_of_locations = get_reachable_locations_around_object("mug")
+    go_to(list_of_locations[0])
+    pick_up("mug")
+    go_to("kitchen sink")
+    put_down("mug", "kitchen sink")
+
+# Collect all the soda cans around the kitchen, put them in your basket, and then put them into the trashcan
+def task_program():
+    start_loc = get_current_location()
+    list_of_locations = get_reachable_locations_around_object("soda can")
+    number_of_soda_cans = 0
+    while len(list_of_locations) > 0:
+        go_to(list_of_locations[0])
+        pick_up("soda can")
+        put_into_basket("soda can")
+        list_of_locations = get_reachable_locations_around_object("soda can")
+        number_of_soda_cans = number_of_soda_cans + 1
+
+    go_to("trashcan")
+    for n in range(number_of_soda_cans):
+        retrieve_from_basket("soda can")
+        put_down("soda can", "trashcan")
 
 # 

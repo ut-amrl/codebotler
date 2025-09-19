@@ -9,6 +9,11 @@ ask(person, question, options)
 say(message)
 pick(object)
 place(object)
+pick_up(object)
+put_down(object, destination)
+put_into_basket(object)
+retrieve_from_basket(object)
+get_reachable_locations_around_object(object)    
 
 Robot tasks are defined in named functions, with docstrings describing the task.
 """
@@ -45,6 +50,26 @@ def pick(obj: str) -> None:
 def place(obj: str) -> None:
     ...
     
+# Pick up an object if you are not already holding one. You can only hold one object at a time.
+def pick_up(obj: str) -> None:
+    ...
+
+# Put down an object at the specified destination location, if you are holding one.
+def put_down(obj: str, dest: str) -> None:
+    ...
+
+# Put an object that you are holding into the basket
+def put_into_basket(obj: str) -> None:
+    ...
+
+# Retrieve an object from the basket
+def retrieve_from_basket(obj: str) -> None:
+    ...
+
+# Get a list of all locations from which the specified object can be reached
+def get_reachable_locations_around_object(obj: str) -> None:
+    ...
+
 # Go to Arjun's office, ask him if he is ready to head out, and come back and tell me what he said
 def task_program():
     start_loc = get_current_location()

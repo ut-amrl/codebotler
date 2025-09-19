@@ -17,6 +17,11 @@ add_action_files(
   Say.action
   Pick.action
   Place.action
+  PickUp.action
+  PutDown.action
+  PutIntoBasket.action
+  RetrieveFromBasket.action
+  GetReachableLocationsAroundObject.action
 )
 
 generate_messages(
