@@ -2,6 +2,7 @@
 
 import os
 import threading
+import concurrent.futures
 import http.server
 import socketserver
 import asyncio
@@ -69,12 +70,13 @@ def generate_code(prompt, args):
                             top_p=args.top_p,
                             max_tokens=args.max_tokens)
   end_time = time.time()
-  print(f"Code generation time: {round(end_time - start_time, 2)} seconds")
+  time_str = f"{round(end_time - start_time, 2)}"
+  print(f"Code generation time: {time_str} seconds")
   if type(model) is not OpenAIChatModel:
       code = (prompt_suffix + code).strip()
   elif not code.startswith(prompt_suffix.strip()):
       code = (prompt_suffix + "\n" + code).strip()
-  return code
+  return code, time_str
 
 def execute(code):
   global ros_available
@@ -93,8 +95,8 @@ async def handle_message(websocket, message, args):
   data = json.loads(message)
   if data['type'] == 'code':
     print("Received code generation request")
-    code = generate_code(data['prompt'], args)
-    response = {"code": f"{code}"}
+    code, time_str = generate_code(data['prompt'], args)
+    response = {"code": f"{code}", "timing": time_str}
     await websocket.send(json.dumps(response))
     if data['execute']:
       print("Executing generated code")
@@ -109,15 +111,149 @@ async def handle_message(websocket, message, args):
   else:
     print("Unknown message type: " + data['type'])
 
-async def ws_main(websocket, path, args):
-  try:
-    async for message in websocket:
-      await handle_message(websocket, message, args)
-  except websockets.exceptions.ConnectionClosed:
-    pass
+async def post_transcript(websocket, args, data, instruction):
+  ## Push the message to the client
+  print(f"Posting this message to the client: {data}")
+  response = {"transcript": f"{data}"}
+  if instruction is not None:
+    response["instruction"] = instruction
+  await websocket.send(json.dumps(response))
+
+async def post_code(websocket, args, data, time_str):
+  ## Push the message to the client
+  print(f"Posting generated code to the client")
+  response = {"code": f"{data}", "timing": time_str}
+  await websocket.send(json.dumps(response))
+
+async def read_from_pipe(pipe_path):
+  print(f"Entered `read_from_pipe` using {pipe_path}")
+  loop = asyncio.get_running_loop()
+  ## Opens in read-write mode to prevent EOF.
+  fd = os.open(pipe_path, os.O_RDWR)
+  with os.fdopen(fd, "r") as f:
+    while True:
+      print(f"Waiting to read a line from the pipe")
+      line = await loop.run_in_executor(
+        concurrent.futures.ThreadPoolExecutor(),
+        f.readline
+      )
+      print(f"Read this line: {line}")
+      ## Only send transcripts that are marked as final
+      if line.startswith("<FINAL>:"):
+        yield line[8:].rstrip("\n")
+
+class Accumulator:
+  def __init__(self):
+    self.start_word = "cobot"
+    self.end_word = "done"
+    self.start_detected = False
+    self.end_detected = False
+    self.recording = False
+    self.parts = list()
+    self.instruction = None
+
+  async def accumulate(self, text):
+    ## Returns None if no instruction has been completely formed yet.
+    ## Returns the instruction (string) if an instruction has been fully formed.
+    ## Our recording assumes the following: if start is seen, keep recording until the first end is seen.
+    ## Consider the following cases:
+    ## Text contains start, no end
+    ## Text contains end, no start
+    ## Text contains start and end
+    ## Text contains no start, no end
+    self.start_detected = self.start_word in text
+    self.end_detected = self.end_word in text
+
+    if self.recording: ## we are recording the instruction
+      if self.start_detected and not self.end_detected:
+        ## We should continue recording
+        self.instruction = None
+        self.recording = True
+        self.parts.append(text)
+      elif not self.start_detected and self.end_detected:
+        ## We are done recording
+        self.instruction = None
+        self.recording = False
+        e_idx = text.find(self.end_word)
+        self.parts.append(text[:e_idx])
+        self.instruction = "".join(self.parts)
+        self.parts = list()
+      elif not self.start_detected and not self.end_detected:
+        ## Keep recording
+        self.instruction = None
+        self.recording = True
+        self.parts.append(text)
+      else: ## We need to see if start comes before end
+        s_idx = text.find(self.start_word)
+        e_idx = text.find(self.end_word)
+        if s_idx < e_idx:
+          self.instruction = None
+          self.recording = False
+          self.parts.append(text[:e_idx])
+          self.instruction = "".join(self.parts)
+          self.parts = list()
+        else:
+          self.instruction = None
+          self.recording = False
+          self.parts.append(text[:e_idx])
+          self.instruction = "".join(self.parts)
+          self.parts = list()
+          self.parts.append(text[s_idx+len(self.start_word):])
+    else: ## we are currently not recording instructions
+      if self.start_detected and not self.end_detected:
+        ## We should start recording
+        self.instruction = None
+        self.recording = True
+        s_idx = text.find(self.start_word)
+        self.parts.append(text[s_idx+len(self.start_word):])
+      elif not self.start_detected and self.end_detected:
+        ## Ignore this text input
+        self.instruction = None
+        self.recording = False
+      elif not self.start_detected and not self.end_detected:
+        ## Ignore this text input
+        self.instruction = None
+        self.recording = False
+      else: ## start and end detected, we need to see if start comes before end
+        s_idx = text.find(self.start_word)
+        e_idx = text.find(self.end_word)
+        self.instruction = None
+        if s_idx < e_idx:
+          self.parts.append(text[s_idx+len(self.start_word):e_idx])
+          self.instruction = "".join(self.parts)
+          self.parts = list()
+        self.recording = False
+
+    return self.instruction
+
+async def ws_main(websocket, path, args, accumulator):
+
+  async def receive_messages():
+    try:
+      async for message in websocket:
+        await handle_message(websocket, message, args)
+    except websockets.exceptions.ConnectionClosed:
+      pass
+
+  async def send_messages():
+    print("Entered `send_messages`")
+    try:
+      async for line in read_from_pipe(args.transcription_pipe):
+        instruction = await accumulator.accumulate(line)
+        await post_transcript(websocket, args, line, instruction)
+        if instruction is not None and len(instruction) > 0:
+          code, time_str = await asyncio.to_thread(generate_code, instruction, args)
+          await post_code(websocket, args, code, time_str)
+    except websockets.exceptions.ConnectionClosed:
+      pass
+
+  await asyncio.gather(receive_messages(), send_messages())
 
 async def start_ws_server(args):
-  async with websockets.serve(lambda ws, path="": ws_main(ws, path, args), args.ip, args.ws_port):
+
+  acc = Accumulator()
+
+  async with websockets.serve(lambda ws, path="": ws_main(ws, path, args, acc), args.ip, args.ws_port):
     print(f"WebSocket server started at ws://{args.ip}:{args.ws_port}")
     await asyncio.Future()  # Keeps the server running indefinitely.
 
@@ -183,6 +319,7 @@ def main():
   parser.add_argument("--temperature", type=float, default=0.2)
   parser.add_argument('--robot', action='store_true', help='Flag to indicate if the robot is available')
   parser.add_argument('--timeout', type=int, help='Code generation timeout in seconds', default=20)
+  parser.add_argument('--transcription-pipe', type=Path, help='Pipe from which to read audio transcriptions', default='/tmp/audio_pipe')
 
   if ros_available:
     args = parser.parse_args(rospy.myargv()[1:])

@@ -35,6 +35,22 @@
           border: 1px solid #ccc;
           margin-bottom: 1rem;
       }
+      .transcription-container {
+          width: 100%;
+          max-width: 800px;
+          padding: 1rem;
+          border-radius: 8px;
+          overflow: hidden;
+          resize: none;
+          border: 1px solid #ccc;
+          margin-bottom: 1rem;
+          background-color: #fafafa;
+      }
+
+      .speech {
+          text-wrap: wrap;
+          color: lightgrey;
+      }
 
       textarea {
           display: block;
@@ -194,16 +210,18 @@
 <body>
     <div class="caption">What would you like the robot to do?</div>
     <div class="textbox-container">
-        <textarea id="taskPrompt" rows="1" placeholder="Example: Go to every room and say 'Hello, World!'" oninput="autoGrow(this)" onkeydown="checkForEnter(event)"></textarea>
+        <textarea id="taskPrompt" rows="1" placeholder="Example: Go to every room and say 'Hello, World!'" oninput="autoGrow(this)"></textarea>
     </div>
-
+    <div class="transcription-container">
+        <pre><code id="transcription" class="speech"></code></pre>
+    </div>
     <div class="code-pane">
         <pre><code id="code" class="language-python">
         </code></pre>
     </div>
     <div class="button-container-execute">
-      <button class="button" onclick="generateCode()">Generate Code</button>
-      <button class="button" onclick="executeCode()">Execute!</button>
+      <button class="button" id="generateCode">Generate Code</button>
+      <button class="button" id="executeCode">Execute!</button>
     </div>
     <!--
     <div class="details-container">
@@ -233,50 +251,32 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-python.min.js"></script>
     <script>
         const SERVER_URL = 'ws://localhost:8190';
+        // Timers
+        let tStart = performance.now();
+        let tEnd = performance.now();
+
         function autoGrow(textarea) {
           textarea.style.height = 'auto';
           const prevScrollHeight = textarea.scrollHeight;
           textarea.style.height = (prevScrollHeight - 16) + 'px';
         }
 
-        function checkForEnter(event) {
-          if (event.keyCode === 13 && !event.shiftKey) {
-            event.preventDefault();
-            taskDescription = document.getElementById("taskPrompt").value;
-            generateCodeRequest(taskDescription, true);
-          }
-        }
 
         function generateCode() {
           taskDescription = document.getElementById("taskPrompt").value;
           generateCodeRequest(taskDescription, false);
         }
 
-        function executeCode() {
+        function executeCode(socket) {
           setStatus("Executing previous program.");
           try {
-            let socket = new WebSocket(SERVER_URL);
-            setStatus("Connecting to server...");
-            socket.onopen = function(event) {
-                setStatus("Connected to server. Sending result...");
-                eval_data = {
-                    "type": "execute",
-                    "task": document.getElementById("taskPrompt").value,
-                    "code": document.getElementById("code").textContent
-                };
-                socket.send(JSON.stringify(eval_data));
+            setStatus("Sending program for execution...");
+            eval_data = {
+                "type": "execute",
+                "task": document.getElementById("taskPrompt").value,
+                "code": document.getElementById("code").textContent
             };
-            socket.onmessage = function(event) {
-                setStatus("Acknowledged. Closing connection...");
-                socket.close();
-            };
-            socket.onerror = function(error) {
-                setStatus("Websocket error.");
-            };
-
-            socket.onclose = function(event) {
-                setStatus("Connection closed.");
-            };
+            socket.send(JSON.stringify(eval_data));
           } catch (error) {
             setStatus("Error connecting to server.");
           }
@@ -298,35 +298,62 @@
           codeElement.innerHTML = codeHTML;
         }
 
+        function highlightInstruction(element, instruction) {
+          textString = element.innerHTML;
+          textString = textString.replace(instruction, '<span style="color:black; font-weight: bold;">'+instruction+'</span>');
+          element.innerHTML = textString;
+        }
+
         function handleTraceCallback(event) {
           
         }
-        
-        function generateCodeRequest(text, execute) {
-            let tStart = performance.now();
+        function updateCodeBlock(response) {
+          setStatus("Code generated in " + response.timing + " seconds.");
+          let codeElement = document.getElementById("code");
+          if (codeElement.textContent.startsWith("\n")) {
+              codeElement.textContent = codeElement.textContent.slice(1);
+          }
+          codeElement.textContent = response.code;
+          doSyntaxHighlighting();
+        }
+
+        function updateTranscript(response) {
+          let transcriptElement = document.getElementById("transcription");
+          let suffixLength = response.transcript.length;
+          let prefixLength = transcriptElement.textContent.length;
+          let maxLength = 1000;
+          if (prefixLength + suffixLength > maxLength) {
+              if (suffixLength >= maxLength) {
+                  transcriptElement.textContext = response.transcript.slice(-maxLength);
+              } else {
+                  transcriptElement.textContext = transcriptElement.textContext.slice(-(maxLength-suffixLength))
+                  + response.transcript;
+              }
+          } else {
+              transcriptElement.textContent = transcriptElement.textContent + response.transcript;
+          }
+          if (response.hasOwnProperty('instruction')) {
+            highlightInstruction(transcriptElement, response.instruction);
+          }
+        }
+        function displayTranscripts(event) {
+          let response = JSON.parse(event.data);
+          if (response.hasOwnProperty('transcript')) {
+            updateTranscript(response);
+          }
+          if (response.hasOwnProperty('code')) {
+            updateCodeBlock(response);
+          }
+        }
+
+        function openWebSocket(wsUrl) {
+            let socket = new WebSocket(SERVER_URL);
             try {
-              let socket = new WebSocket(SERVER_URL);
               setStatus("Connecting to server...");
               socket.onopen = function(event) {
-                  setStatus("Connected to server. Generating code...");
-                  socket.send(JSON.stringify(
-                    { "type": "code", "prompt": text, "execute": execute }
-                  ));
+                  setStatus("Connected to server. Streaming instructions...");
               };
-              socket.onmessage = function(event) {
-                  let tEnd = performance.now();
-                  setStatus("Code generated in " + (tEnd - tStart).toFixed(2) + "ms.");
-                  let response = JSON.parse(event.data);
-                  let codeElement = document.getElementById("code");
-                  if (codeElement.textContent.startsWith("\n")) {
-                      codeElement.textContent = codeElement.textContent.slice(1);
-                  }
-                  codeElement.textContent = response.code;
-                  doSyntaxHighlighting();
-                  if (execute) {
-                    socket.onmessage = handleTraceCallback;
-                  }
-              };
+              socket.onmessage = displayTranscripts;
               socket.onerror = function(error) {
                   setStatus("Websocket error.");
               };
@@ -334,6 +361,18 @@
               socket.onclose = function(event) {
                   setStatus("Connection closed.");
               };
+            } catch (error) {
+              setStatus("Error connecting to server.");
+            }
+            return socket;
+        }
+        
+        function generateCodeRequest(socket, text, execute) {
+            try {
+              setStatus("Sending Request to Server... Generating code...");
+              socket.send(JSON.stringify(
+                { "type": "code", "prompt": text, "execute": execute }
+              ));
             } catch (error) {
               setStatus("Error connecting to server.");
             }
@@ -379,6 +418,27 @@
         say("Hello, world!")
     go_to(start_loc)`;
           doSyntaxHighlighting();
+          const ws = openWebSocket(SERVER_URL);
+
+          const genButton = document.getElementById("generateCode");
+          const execButton = document.getElementById("executeCode");
+          const taskBox = document.getElementById("taskPrompt");
+
+          genButton.addEventListener("click", function() {
+            taskDescription = taskBox.value;
+            generateCodeRequest(ws, taskDescription, false);
+          });
+          execButton.addEventListener("click", function() {
+            executeCode(ws);
+          });
+          taskBox.addEventListener("keydown", function(event) {
+              if (event.keyCode === 13 && !event.shiftKey) {
+                event.preventDefault();
+                taskDescription = taskBox.value;
+                generateCodeRequest(ws, taskDescription, true);
+              }
+          });
+
         }, false);
 
 </script>
