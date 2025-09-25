@@ -185,7 +185,7 @@ RUN /tmp/install_livox_lidar.sh && rm /tmp/install_livox_lidar.sh
 RUN pip3 install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu126
 
 # So we can detect if we are in a container
-ENV CONTAINER_NAME=cobot_ws
+ENV CONTAINER_NAME=codebotler
 
 # =============================================================================
 # Install Kinova python API
