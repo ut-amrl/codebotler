@@ -90,6 +90,8 @@ case "$(uname -s)" in
 esac
 
 dockerbuild() {
+  mkdir -p src/codebotler
+  rsync -av --exclude 'codebotler_ws/' --exclude '.git/' .. src/codebotler/
   docker build \
     --build-arg gid=$_GID \
     --build-arg uid=$_UID \
