@@ -1,0 +1,163 @@
+#!/bin/bash
+
+#set -e
+#set -x
+
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+_GID=$(id -g)
+_UID=$(id -u)
+_UNAME=$(id -un)
+
+USAGE="$0 [command: build|start|stop|restart|shell|cmd] [container name]"
+
+# Initialize variables
+DOCKER_COMMAND=""
+CONTAINER_NAME=""
+CMD_TO_RUN=""
+HOST_FLAGS=""
+
+# Check if we're on a Jetson
+ISJETSON=0
+if command -v nvpmodel &> /dev/null; then
+    #echo "This is likely a NVIDIA Jetson device."
+    ISJETSON=1
+    HOST_FLAGS+=" --runtime nvidia --privileged --ipc host --pid host --cap-add SYS_PTRACE "
+else
+    echo ''
+    #echo "This does not appear to be a NVIDIA Jetson device (nvpmodel not found)."
+fi
+
+DOCKER_COMMAND=$1
+if [ -z "$DOCKER_COMMAND" ]; then
+  echo "Please specify a command."
+  echo $USAGE
+  exit
+fi
+
+CONTAINER_NAME=$2
+CONTAINER_NAME_FILE=$ROOT/config/name
+
+# If no custom name provided via command line, try to load from file
+if [ -z "$CONTAINER_NAME" ]; then
+  if test -f "$CONTAINER_NAME_FILE"; then
+    CONTAINER_NAME="$(cat $CONTAINER_NAME_FILE)"
+    #echo "Container name loaded from $CONTAINER_NAME_FILE: $CONTAINER_NAME"
+  fi
+fi
+
+if [ -z "$CONTAINER_NAME" ]; then
+  echo "Please specify a container name."
+  echo $USAGE
+  exit
+fi
+if [[ ! -f $CONTAINER_NAME_FILE ]]; then
+  echo $CONTAINER_NAME > $CONTAINER_NAME_FILE
+fi
+
+CONTAINER_FILE=$ROOT/docker/Dockerfile
+_DISPLAY="${DISPLAY-:0}"
+
+RUNNING_CONTAINER=$(docker container ls -q --filter name=$CONTAINER_NAME)
+
+EXEC="/bin/bash -l"
+MOUNT_DATA=""
+while read -r line; do
+    MOUNT_DATA="${MOUNT_DATA} $(eval echo -e "$line")"
+done < "$ROOT/config/mounts"
+PORT_DATA=""
+while read -r line; do
+    PORT_DATA="${PORT_DATA} $(eval echo -e "$line")"
+done < "$ROOT/config/ports"
+# host-specific setup
+case "$(uname -s)" in
+   Darwin)
+     echo 'Mac OS X'
+     ;;
+   Linux)
+     #echo 'Linux'
+     #set +e
+     #xhost +local:
+     #set -e
+     HOST_FLAGS+="--gpus all"
+     HOST_EXEC=$EXEC
+     ;;
+   CYGWIN*|MINGW32*|MSYS*|MINGW*)
+     echo 'MS Windows'
+     ;;
+   *)
+     echo 'Other OS'
+     ;;
+esac
+
+dockerbuild() {
+  docker build \
+    --build-arg gid=$_GID \
+    --build-arg uid=$_UID \
+    --build-arg username=$_UNAME \
+    -t $CONTAINER_NAME \
+    -f docker/Dockerfile $ROOT \
+    --progress=plain
+}
+dockerprune() {
+  docker image prune -f
+}
+dockerrun() {
+  docker run --rm \
+    $HOST_FLAGS \
+    $MOUNT_DATA \
+    $PORT_DATA \
+    --ulimit nofile=65536:65536 \
+    -e DISPLAY=$_DISPLAY \
+    -it -d --name=$CONTAINER_NAME $CONTAINER_NAME $HOST_EXEC
+}
+dockerstop() {
+  [[ ! -z "$RUNNING_CONTAINER" ]] && docker stop $RUNNING_CONTAINER || echo "$CONTAINER_NAME is not running"
+}
+dockershell() {
+  docker exec -it $RUNNING_CONTAINER $EXEC
+}
+dockercmd() {
+  docker exec -it $RUNNING_CONTAINER $EXEC -c "$@"
+}
+
+case $DOCKER_COMMAND in
+  build)
+    dockerbuild
+    dockerprune
+    dockerstop
+    dockerrun
+    ;;
+  prune)
+    dockerprune
+    ;;
+  start)
+    dockerrun
+    ;;
+  stop)
+    dockerstop
+    ;;
+  restart)
+    dockerstop
+    dockerrun
+    ;;
+  shell):
+    [[ ! -z "$RUNNING_CONTAINER" ]] || dockerrun
+    RUNNING_CONTAINER=$(docker container ls -q --filter name=$CONTAINER_NAME)
+    dockershell
+    ;;
+  cmd)
+    while [[ $# -gt 1 ]]; do shift; done
+    dockercmd "$@"
+    ;;
+  rm)
+    dockerstop
+    docker rmi $CONTAINER_NAME || echo "Image $CONTAINER_NAME does not exist"
+    ;;
+   *)
+     echo Unknown Command $DOCKER_COMMAND
+     # Display usage
+     echo $USAGE
+     exit 1
+     ;;
+esac
+
