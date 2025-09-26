@@ -161,8 +161,9 @@ class Accumulator:
     ## Text contains end, no start
     ## Text contains start and end
     ## Text contains no start, no end
-    self.start_detected = self.start_word in text
-    self.end_detected = self.end_word in text
+    text_lower = text.lower()
+    self.start_detected = self.start_word in text_lower
+    self.end_detected = self.end_word in text_lower
 
     if self.recording: ## we are recording the instruction
       if self.start_detected and not self.end_detected:
@@ -174,7 +175,7 @@ class Accumulator:
         ## We are done recording
         self.instruction = None
         self.recording = False
-        e_idx = text.find(self.end_word)
+        e_idx = text_lower.find(self.end_word)
         self.parts.append(text[:e_idx])
         self.instruction = "".join(self.parts)
         self.parts = list()
@@ -184,8 +185,8 @@ class Accumulator:
         self.recording = True
         self.parts.append(text)
       else: ## We need to see if start comes before end
-        s_idx = text.find(self.start_word)
-        e_idx = text.find(self.end_word)
+        s_idx = text_lower.find(self.start_word)
+        e_idx = text_lower.find(self.end_word)
         if s_idx < e_idx:
           self.instruction = None
           self.recording = False
@@ -204,7 +205,7 @@ class Accumulator:
         ## We should start recording
         self.instruction = None
         self.recording = True
-        s_idx = text.find(self.start_word)
+        s_idx = text_lower.find(self.start_word)
         self.parts.append(text[s_idx+len(self.start_word):])
       elif not self.start_detected and self.end_detected:
         ## Ignore this text input
@@ -215,8 +216,8 @@ class Accumulator:
         self.instruction = None
         self.recording = False
       else: ## start and end detected, we need to see if start comes before end
-        s_idx = text.find(self.start_word)
-        e_idx = text.find(self.end_word)
+        s_idx = text_lower.find(self.start_word)
+        e_idx = text_lower.find(self.end_word)
         self.instruction = None
         if s_idx < e_idx:
           self.parts.append(text[s_idx+len(self.start_word):e_idx])
