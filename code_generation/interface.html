@@ -324,9 +324,9 @@
           let maxLength = 1000;
           if (prefixLength + suffixLength > maxLength) {
               if (suffixLength >= maxLength) {
-                  transcriptElement.textContext = response.transcript.slice(-maxLength);
+                  transcriptElement.textContent = response.transcript.slice(-maxLength);
               } else {
-                  transcriptElement.textContext = transcriptElement.textContext.slice(-(maxLength-suffixLength))
+                  transcriptElement.textContent = transcriptElement.textContent.slice(-(maxLength-suffixLength))
                   + response.transcript;
               }
           } else {
