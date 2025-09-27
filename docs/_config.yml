@@ -1,8 +1,0 @@
-name: RoboEval
-markdown: kramdown
-url: https://amrl.cs.utexas.edu
-kramdown:
- input: GFM
- auto_ids: true
- hard_wrap: false
- syntax_highlighter: rouge
