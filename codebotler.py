@@ -21,12 +21,14 @@ import threading
 ros_available = False
 robot_available = False
 robot_interface = None
+rclpy_instance = None
 try:
-    import rospy
+    import rclpy
     ros_available = True
-    rospy.init_node('ros_interface', anonymous=False)
+    rclpy_instance = rclpy
+    rclpy.init()
 except:
-    print("Could not import rospy. Robot interface is not available.")
+    print("Could not import rclpy. Robot interface is not available.")
     ros_available = False
 
 httpd = None
@@ -272,8 +274,9 @@ def shutdown(sig, frame):
     robot_interface._cancel_goals()
     print("Waiting for 2s to preempt robot actions...")
     time.sleep(2)
-  if ros_available:
-    rospy.signal_shutdown("Shutting down Server")
+    robot_interface.destroy_node()
+  if ros_available and rclpy_instance is not None:
+    rclpy_instance.shutdown()
   if httpd is not None:
     httpd.server_close()
     httpd.shutdown()
@@ -323,7 +326,7 @@ def main():
   parser.add_argument('--transcription-pipe', type=Path, help='Pipe from which to read audio transcriptions', default='/tmp/audio_pipe')
 
   if ros_available:
-    args = parser.parse_args(rospy.myargv()[1:])
+    args = parser.parse_args(rclpy_instance.utilities.remove_ros_args())
   else:
     args = parser.parse_args()
 

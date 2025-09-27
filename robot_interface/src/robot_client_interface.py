@@ -1,40 +1,27 @@
 #!/usr/bin/env python3
 
-import rospy
+import rclpy
+from rclpy.node import Node
+from rclpy.action import ActionClient
+from rclpy.action.client import GoalStatus
 from typing import List
 import time
 import signal
-import actionlib
 import sys
-from robot_actions_pkg.msg import (
-    GoToAction,
-    GetCurrentLocationAction,
-    IsInRoomAction,
-    SayAction,
-    GetAllRoomsAction,
-    AskAction,
-    PickAction,
-    PlaceAction,
-    PickUpAction,
-    PutDownAction,
-    PutIntoBasketAction,
-    RetrieveFromBasketAction,
-    GetReachableLocationsAroundObjectAction,
-)
-from robot_actions_pkg.msg import (
-    GoToGoal,
-    GetCurrentLocationGoal,
-    IsInRoomGoal,
-    SayGoal,
-    GetAllRoomsGoal,
-    AskGoal,
-    PickGoal,
-    PlaceGoal,
-    PickUpGoal,
-    PutDownGoal,
-    PutIntoBasketGoal,
-    RetrieveFromBasketGoal,
-    GetReachableLocationsAroundObjectGoal,
+from robot_actions_pkg.action import (
+    GoTo,
+    GetCurrentLocation,
+    IsInRoom,
+    Say,
+    GetAllRooms,
+    Ask,
+    Pick,
+    Place,
+    PickUp,
+    PutDown,
+    PutIntoBasket,
+    RetrieveFromBasket,
+    GetReachableLocationsAroundObject,
 )
 
 
@@ -42,28 +29,24 @@ class RobotExecutionInterrupted(Exception):
     pass
 
 
-class RobotInterface:
+class RobotInterface(Node):
     def __init__(self):
+        super().__init__('robot_interface')
+        
         # Action clients
-        self.go_to_client = actionlib.SimpleActionClient("/go_to_server", GoToAction)
-        self.get_current_location_client = actionlib.SimpleActionClient(
-            "/get_current_location_server", GetCurrentLocationAction
-        )
-        self.is_in_room_client = actionlib.SimpleActionClient(
-            "/is_in_room_server", IsInRoomAction
-        )
-        self.say_client = actionlib.SimpleActionClient("/say_server", SayAction)
-        self.get_all_rooms_client = actionlib.SimpleActionClient(
-            "/get_all_rooms_server", GetAllRoomsAction
-        )
-        self.ask_client = actionlib.SimpleActionClient("/ask_server", AskAction)
-        self.pick_client = actionlib.SimpleActionClient("/pick_server", PickAction)
-        self.place_client = actionlib.SimpleActionClient("/place_server", PlaceAction)
-        self.pick_up_client = actionlib.SimpleActionClient("/pick_up_server", PickUpAction)
-        self.put_down_client = actionlib.SimpleActionClient("/put_down_server", PutDownAction)
-        self.put_into_basket_client = actionlib.SimpleActionClient("/put_into_basket_server", PutIntoBasketAction)
-        self.retrieve_from_basket_client = actionlib.SimpleActionClient("/retrieve_from_basket_server", RetrieveFromBasketAction)
-        self.get_reachable_locations_around_object_client = actionlib.SimpleActionClient("/get_reachable_locations_around_object_server", GetReachableLocationsAroundObjectAction)
+        self.go_to_client = ActionClient(self, GoTo, "/go_to_server")
+        self.get_current_location_client = ActionClient(self, GetCurrentLocation, "/get_current_location_server")
+        self.is_in_room_client = ActionClient(self, IsInRoom, "/is_in_room_server")
+        self.say_client = ActionClient(self, Say, "/say_server")
+        self.get_all_rooms_client = ActionClient(self, GetAllRooms, "/get_all_rooms_server")
+        self.ask_client = ActionClient(self, Ask, "/ask_server")
+        self.pick_client = ActionClient(self, Pick, "/pick_server")
+        self.place_client = ActionClient(self, Place, "/place_server")
+        self.pick_up_client = ActionClient(self, PickUp, "/pick_up_server")
+        self.put_down_client = ActionClient(self, PutDown, "/put_down_server")
+        self.put_into_basket_client = ActionClient(self, PutIntoBasket, "/put_into_basket_server")
+        self.retrieve_from_basket_client = ActionClient(self, RetrieveFromBasket, "/retrieve_from_basket_server")
+        self.get_reachable_locations_around_object_client = ActionClient(self, GetReachableLocationsAroundObject, "/get_reachable_locations_around_object_server")
 
         print("====== Waiting for robot action servers... ======")
         self.go_to_client.wait_for_server()
@@ -83,93 +66,102 @@ class RobotInterface:
 
     @staticmethod
     def _handle_client(client, goal, action_name):
-        client.send_goal(goal)
-        client.wait_for_result()
-        if client.get_state() == actionlib.GoalStatus.PREEMPTED:
+        goal_handle = client.send_goal_async(goal)
+        rclpy.spin_until_future_complete(None, goal_handle)
+        
+        goal_handle = goal_handle.result()
+        if not goal_handle.accepted:
+            raise Exception(f"{action_name}() goal was rejected!")
+        
+        result_future = goal_handle.get_result_async()
+        rclpy.spin_until_future_complete(None, result_future)
+        
+        result = result_future.result()
+        if result.status == GoalStatus.STATUS_CANCELED:
             raise RobotExecutionInterrupted(f"{action_name}()")
-        else:
-            assert (
-                client.get_state() == actionlib.GoalStatus.SUCCEEDED
-            ), f"{action_name} client not preempted, but still failed with state {actionlib.GoalStatus.to_string(client.get_state())}!"
-        return client.get_result()
+        elif result.status != GoalStatus.STATUS_SUCCEEDED:
+            raise Exception(f"{action_name}() failed with status {result.status}")
+        
+        return result.result
 
     # Get the current location of the robot.
     def get_current_location(self) -> str:
-        goal = GetCurrentLocationGoal()
+        goal = GetCurrentLocation.Goal()
         return self._handle_client(
             self.get_current_location_client, goal, "get_current_location"
         ).result
 
     # Get a list of all rooms in the house.
     def get_all_rooms(self) -> List[str]:
-        goal = GetAllRoomsGoal()
+        goal = GetAllRooms.Goal()
         return self._handle_client(
             self.get_all_rooms_client, goal, "get_all_rooms"
         ).result
 
     # Check if an object is in the current room.
     def is_in_room(self, obj: str) -> bool:
-        goal = IsInRoomGoal(object=obj)
+        goal = IsInRoom.Goal(object=obj)
         return self._handle_client(self.is_in_room_client, goal, "is_in_room").result
 
     # Go to a specific named location, e.g. go_to("kitchen"), go_to("Arjun's
     # office"), go_to("Jill's study").
     def go_to(self, location: str) -> None:
-        goal = GoToGoal(location=location)
+        goal = GoTo.Goal(location=location)
         self._handle_client(self.go_to_client, goal, "go_to")
 
     # Ask a person a question, and offer a set of specific options for the person to
     # respond. Return with the response selected by the person.
     def ask(self, person: str, question: str, options: List[str]) -> str:
-        goal = AskGoal(person=person, question=question, options=options)
+        goal = Ask.Goal(person=person, question=question, options=options)
         return self._handle_client(self.ask_client, goal, "ask").result
 
     # Say the message out loud. Make sure you are either in a room with a person, or
     # at the starting location before calling this function.
     def say(self, message: str) -> None:
-        goal = SayGoal(message=message)
+        goal = Say.Goal(message=message)
         self._handle_client(self.say_client, goal, "say")
 
     # Pick up an object from the current room. Make sure you are in the same room as
     # the object before calling this function and not currently holding an object.
     def pick(self, obj: str) -> None:
-        goal = PickGoal(object=obj)
+        goal = Pick.Goal(obj=obj)
         self._handle_client(self.pick_client, goal, "pick")
 
     # Place an object in the current room. Make sure you are in the same room as the
     # object before calling this function and is currently holding an object.
     def place(self, obj: str) -> None:
-        goal = PlaceGoal(object=obj)
+        goal = Place.Goal(obj=obj)
         self._handle_client(self.place_client, goal, "place")
 
     # Pick up an object from the environment. Make sure you can reach the object from your
     # current location first.
     def pick_up(self, obj: str) -> None:
-        goal = PickUpGoal(obj=obj)
+        goal = PickUp.Goal(obj=obj)
         self._handle_client(self.pick_up_client, goal, "pick_up")
     
     # Pick up an object from the environment. Make sure you can reach the object from your
     # current location first.
     def put_down(self, obj: str, dest: str) -> None:
-        goal = PutDownGoal(obj=obj, dst=dest)
+        goal = PutDown.Goal(obj=obj, location=dest)
         self._handle_client(self.put_down_client, goal, "put_down")
 
     # Place an already held object into the basket
     def put_into_basket(self, obj: str) -> None:
-        goal = PutIntoBasketGoal(obj=obj)
+        goal = PutIntoBasket.Goal(obj=obj)
         self._handle_client(self.put_into_basket_client, goal, "put_into_basket")
 
     # Retrieve an item that is in the basket from the basket, and make sure you are holding it
     def retrieve_from_basket(self, obj: str) -> None:
-        goal = RetrieveFromBasketGoal(obj=obj)
+        goal = RetrieveFromBasket.Goal(obj=obj)
         self._handle_client(self.retrieve_from_basket_client, goal, "retrieve_from_basket")
 
     # Given an object, returns the list of locations within a certain location around the object
-    def get_reachable_locations_around_object(self, obj: str) -> List[str]
-        goal = GetReachableLocationsAroundObjectGoal(obj=obj)
-        self._handle_client(self.get_reachable_locations_around_object, goal, "get_reachable_locations_around_object")
+    def get_reachable_locations_around_object(self, obj: str) -> List[str]:
+        goal = GetReachableLocationsAroundObject.Goal(obj=obj)
+        return self._handle_client(self.get_reachable_locations_around_object_client, goal, "get_reachable_locations_around_object").locations
 
     def _cancel_goals(self):
+        # Cancel all pending goals
         self.go_to_client.cancel_all_goals()
         self.get_current_location_client.cancel_all_goals()
         self.is_in_room_client.cancel_all_goals()

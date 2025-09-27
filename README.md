@@ -7,7 +7,7 @@
 CodeBotler is a system that converts natural language task descriptions into robot-agnostic programs that can be executed by general-purpose service mobile robots. It includes a benchmark (RoboEval) designed for evaluating Large Language Models (LLMs) in the context of code generation for mobile robot service tasks.
 
 This project consists of two key components:
-* [CodeBotler](#codebotler-deploy-quick-start-guide): This system features a web interface designed for generating general-purpose service mobile robot programs, along with a ROS (Robot Operating System) Action client for deploying these programs on a robot. It offers the flexibility to explore the code generation capabilities of CodeBotler in two ways: as a standalone system without a robot, as illustrated in the figure above, or by actual deployment on a real robot.
+* [CodeBotler](#codebotler-deploy-quick-start-guide): This system features a web interface designed for generating general-purpose service mobile robot programs, along with a ROS2 (Robot Operating System) Action client for deploying these programs on a robot. It offers the flexibility to explore the code generation capabilities of CodeBotler in two ways: as a standalone system without a robot, as illustrated in the figure above, or by actual deployment on a real robot.
 
 
 * [RoboEval](#roboeval-benchmark-quick-start-guide): This benchmark for code generation features a suite of 16 user task descriptions, each with 5 paraphrases of the prompt. It includes a symbolic simulator and a temporal trace evaluator, specifically designed to assess Large Language Models (LLMs) in their ability to generate code for service mobile robot tasks.
@@ -18,11 +18,16 @@ Project website: https://amrl.cs.utexas.edu/codebotler
 
 We provide a conda environment to run our code. To create and activate the environment:
 ```shell
-conda create -n codebotler python=3.12.8 pip
+conda create -n codebotler python=3.10 pip
 conda activate codebotler
 pip install -r requirements.txt
 ```
-After installing the conda environment, please go to [pytorch's official website](https://pytorch.org/get-started/locally/) to install the pytorch corresponding to your cuda version (**Note: do not install the cpu version**). 
+After installing the conda environment, please go to [pytorch's official website](https://pytorch.org/get-started/locally/) to install the pytorch corresponding to your cuda version (**Note: do not install the cpu version**).
+
+**ROS2 Requirements**
+* For robot deployment, you will need ROS2 installed on your system. CodeBotler uses ROS2 actions for robot communication.
+* Install ROS2 following the [official ROS2 installation guide](https://docs.ros.org/en/humble/Installation.html).
+* The robot interface components will automatically install the required ROS2 Python packages (`rclpy`). 
 
 **Language Model Options**
 * To use an OpenAI model, you will need an [OpenAI key](https://platform.openai.com/account/api-keys), either saved in a file named `.openai_api_key`, or in the `OPENAI_API_KEY` environment variable.

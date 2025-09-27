@@ -12,3 +12,9 @@ eval/
 test.py
 evaluation_script/*.png
 evaluation_script/*.pgf
+
+build/
+devel/
+install/
+bin/
+log/

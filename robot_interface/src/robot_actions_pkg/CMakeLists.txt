@@ -1,39 +1,46 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.8)
 project(robot_actions_pkg)
 
-find_package(catkin REQUIRED COMPONENTS
-  rospy
-  std_msgs
-  actionlib_msgs
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(action_msgs REQUIRED)
+find_package(rcl_action REQUIRED)
+
+# Generate action interfaces
+find_package(rosidl_default_generators REQUIRED)
+
+set(action_files
+  "action/Ask.action"
+  "action/GetAllRooms.action"
+  "action/GetCurrentLocation.action"
+  "action/GetReachableLocationsAroundObject.action"
+  "action/GoTo.action"
+  "action/IsInRoom.action"
+  "action/Pick.action"
+  "action/PickUp.action"
+  "action/Place.action"
+  "action/PutDown.action"
+  "action/PutIntoBasket.action"
+  "action/RetrieveFromBasket.action"
+  "action/Say.action"
 )
 
-add_action_files(
-  FILES
-  Ask.action
-  GetAllRooms.action
-  GetCurrentLocation.action
-  GoTo.action
-  IsInRoom.action
-  Say.action
-  Pick.action
-  Place.action
-  PickUp.action
-  PutDown.action
-  PutIntoBasket.action
-  RetrieveFromBasket.action
-  GetReachableLocationsAroundObject.action
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${action_files}
+  DEPENDENCIES std_msgs action_msgs
 )
 
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  actionlib_msgs
-)
+ament_export_dependencies(rosidl_default_runtime)
 
-catkin_package(
- CATKIN_DEPENDS rospy std_msgs
-)
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
 
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+ament_package()
