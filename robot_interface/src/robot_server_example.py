@@ -8,7 +8,7 @@ import time
 import sys
 import signal
 import random
-from robot_actions_pkg.action import (
+from cobot_codebotler_actions.action import (
     GoTo,
     GetCurrentLocation,
     IsInRoom,
