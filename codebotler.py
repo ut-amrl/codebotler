@@ -107,9 +107,8 @@ async def handle_message(websocket, message, args):
     print("Received eval request")
     # await eval(websocket, data)
   elif data['type'] == 'execute':
-    print("Executing generated code")
+    print("Executing generated code...")
     execute(data['code'])
-    await websocket.close()
   else:
     print("Unknown message type: " + data['type'])
 
