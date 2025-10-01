@@ -64,17 +64,16 @@ class RobotInterface(Node):
         self.get_reachable_locations_around_object_client.wait_for_server()
         print("======= Connected to robot action servers =======")
 
-    @staticmethod
-    def _handle_client(client, goal, action_name):
+    def _handle_client(self, client, goal, action_name):
         goal_handle = client.send_goal_async(goal)
-        rclpy.spin_until_future_complete(None, goal_handle)
+        rclpy.spin_until_future_complete(self, goal_handle)
         
         goal_handle = goal_handle.result()
         if not goal_handle.accepted:
             raise Exception(f"{action_name}() goal was rejected!")
         
         result_future = goal_handle.get_result_async()
-        rclpy.spin_until_future_complete(None, result_future)
+        rclpy.spin_until_future_complete(self, result_future)
         
         result = result_future.result()
         if result.status == GoalStatus.STATUS_CANCELED:

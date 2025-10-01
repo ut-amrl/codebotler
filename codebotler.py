@@ -325,10 +325,7 @@ def main():
   parser.add_argument('--timeout', type=int, help='Code generation timeout in seconds', default=20)
   parser.add_argument('--transcription-pipe', type=Path, help='Pipe from which to read audio transcriptions', default='/tmp/audio_pipe')
 
-  if ros_available:
-    args = parser.parse_args(rclpy_instance.utilities.remove_ros_args())
-  else:
-    args = parser.parse_args()
+  args = parser.parse_args()
 
   robot_available = args.robot
   code_timeout = args.timeout
