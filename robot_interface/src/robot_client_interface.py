@@ -17,11 +17,6 @@ from cobot_codebotler_actions.action import (
     Ask,
     Pick,
     Place,
-    PickUp,
-    PutDown,
-    PutIntoBasket,
-    RetrieveFromBasket,
-    GetReachableLocationsAroundObject,
 )
 
 
@@ -42,11 +37,6 @@ class RobotInterface(Node):
         self.ask_client = ActionClient(self, Ask, "/ask_server")
         self.pick_client = ActionClient(self, Pick, "/pick_server")
         self.place_client = ActionClient(self, Place, "/place_server")
-        self.pick_up_client = ActionClient(self, PickUp, "/pick_up_server")
-        self.put_down_client = ActionClient(self, PutDown, "/put_down_server")
-        self.put_into_basket_client = ActionClient(self, PutIntoBasket, "/put_into_basket_server")
-        self.retrieve_from_basket_client = ActionClient(self, RetrieveFromBasket, "/retrieve_from_basket_server")
-        self.get_reachable_locations_around_object_client = ActionClient(self, GetReachableLocationsAroundObject, "/get_reachable_locations_around_object_server")
 
         print("====== Waiting for robot action servers... ======")
         self.go_to_client.wait_for_server()
@@ -57,11 +47,7 @@ class RobotInterface(Node):
         self.ask_client.wait_for_server()
         self.pick_client.wait_for_server()
         self.place_client.wait_for_server()
-        self.pick_up_client.wait_for_server()
-        self.put_down_client.wait_for_server()
-        self.put_into_basket_client.wait_for_server()
-        self.retrieve_from_basket_client.wait_for_server()
-        self.get_reachable_locations_around_object_client.wait_for_server()
+        
         print("======= Connected to robot action servers =======")
 
     def _handle_client(self, client, goal, action_name):
@@ -127,37 +113,10 @@ class RobotInterface(Node):
         self._handle_client(self.pick_client, goal, "pick")
 
     # Place an object in the current room. Make sure you are in the same room as the
-    # object before calling this function and is currently holding an object.
+    # object before calling this function and are currently holding an object.
     def place(self, obj: str) -> None:
         goal = Place.Goal(obj=obj)
         self._handle_client(self.place_client, goal, "place")
-
-    # Pick up an object from the environment. Make sure you can reach the object from your
-    # current location first.
-    def pick_up(self, obj: str) -> None:
-        goal = PickUp.Goal(obj=obj)
-        self._handle_client(self.pick_up_client, goal, "pick_up")
-    
-    # Pick up an object from the environment. Make sure you can reach the object from your
-    # current location first.
-    def put_down(self, obj: str, dest: str) -> None:
-        goal = PutDown.Goal(obj=obj, location=dest)
-        self._handle_client(self.put_down_client, goal, "put_down")
-
-    # Place an already held object into the basket
-    def put_into_basket(self, obj: str) -> None:
-        goal = PutIntoBasket.Goal(obj=obj)
-        self._handle_client(self.put_into_basket_client, goal, "put_into_basket")
-
-    # Retrieve an item that is in the basket from the basket, and make sure you are holding it
-    def retrieve_from_basket(self, obj: str) -> None:
-        goal = RetrieveFromBasket.Goal(obj=obj)
-        self._handle_client(self.retrieve_from_basket_client, goal, "retrieve_from_basket")
-
-    # Given an object, returns the list of locations within a certain location around the object
-    def get_reachable_locations_around_object(self, obj: str) -> List[str]:
-        goal = GetReachableLocationsAroundObject.Goal(obj=obj)
-        return self._handle_client(self.get_reachable_locations_around_object_client, goal, "get_reachable_locations_around_object").locations
 
     def _cancel_goals(self):
         # Cancel all pending goals
@@ -169,11 +128,6 @@ class RobotInterface(Node):
         self.ask_client.cancel_all_goals()
         self.pick_client.cancel_all_goals()
         self.place_client.cancel_all_goals()
-        self.pick_up_client.cancel_all_goals()
-        self.put_down_client.cancel_all_goals()
-        self.put_into_basket_client.cancel_all_goals()
-        self.retrieve_from_basket_client.cancel_all_goals()
-        self.get_reachable_locations_around_object_client.cancel_all_goals()
 
 
 def execute_task_program(program: str, robot: RobotInterface):
@@ -190,11 +144,6 @@ def execute_task_program(program: str, robot: RobotInterface):
             "place": robot.place,
             "get_all_rooms": robot.get_all_rooms,
             "get_current_location": robot.get_current_location,
-            "pick_up": robot.pick_up,
-            "put_down": robot.put_down,
-            "put_into_basket": robot.put_into_basket,
-            "retrieve_from_basket": robot.retrieve_from_basket,
-            "get_reachable_locations_around_object": robot.get_reachable_locations_around_object,
             "time": time,
         }
         program_with_call = program + "\n\ntask_program()\n"

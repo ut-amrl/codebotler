@@ -17,11 +17,6 @@ from cobot_codebotler_actions.action import (
     Ask,
     Pick,
     Place,
-    PickUp,
-    PutDown,
-    PutIntoBasket,
-    RetrieveFromBasket,
-    GetReachableLocationsAroundObject,
 )
 
 rooms = ["kitchen", "Alice's office", "Bob's office", "supply room"]
@@ -57,22 +52,6 @@ class RobotActions(Node):
         self.place_server = ActionServer(
             self, Place, "/place_server", self.place_callback
         )
-        self.pick_up_server = ActionServer(
-            self, PickUp, "/pick_up_server", self.pick_up_callback
-        )
-        self.put_down_server = ActionServer(
-            self, PutDown, "/put_down_server", self.put_down_callback
-        )
-        self.put_into_basket_server = ActionServer(
-            self, PutIntoBasket, "/put_into_basket_server", self.put_into_basket_callback
-        )
-        self.retrieve_from_basket_server = ActionServer(
-            self, RetrieveFromBasket, "/retrieve_from_basket_server", self.retrieve_from_basket_callback
-        )
-        self.get_reachable_locations_around_object_server = ActionServer(
-            self, GetReachableLocationsAroundObject, "/get_reachable_locations_around_object_server", self.get_reachable_locations_around_object_callback
-        )
-
         print("======= Started all robot action servers =======")
 
     def go_to_callback(self, goal_handle: ServerGoalHandle):
@@ -164,60 +143,6 @@ class RobotActions(Node):
 
         goal_handle.succeed()
         result = Place.Result()
-        return result
-
-    def pick_up_callback(self, goal_handle: ServerGoalHandle):
-        obj = goal_handle.request.obj
-
-        # Implement code to pick up the object
-        print(f'pick_up("{obj}")')
-
-        goal_handle.succeed()
-        result = PickUp.Result()
-        return result
-
-    def put_down_callback(self, goal_handle: ServerGoalHandle):
-        obj = goal_handle.request.obj
-        dst = goal_handle.request.dst
-
-        # Implement code to put down the object
-        print(f'put_down("{obj}", "{dst}")')
-
-        goal_handle.succeed()
-        result = PutDown.Result()
-        return result
-
-    def put_into_basket_callback(self, goal_handle: ServerGoalHandle):
-        obj = goal_handle.request.obj
-
-        # Implement code to put object into basket
-        print(f'put_into_basket("{obj}")')
-
-        goal_handle.succeed()
-        result = PutIntoBasket.Result()
-        return result
-
-    def retrieve_from_basket_callback(self, goal_handle: ServerGoalHandle):
-        obj = goal_handle.request.obj
-
-        # Implement code to retrieve object from basket
-        print(f'retrieve_from_basket("{obj}")')
-
-        goal_handle.succeed()
-        result = RetrieveFromBasket.Result()
-        return result
-
-    def get_reachable_locations_around_object_callback(self, goal_handle: ServerGoalHandle):
-        obj = goal_handle.request.obj
-        result = GetReachableLocationsAroundObject.Result()
-
-        # Implement code to get reachable locations around object
-        # Placeholder: return some example locations
-        locations = ["near_" + obj, "beside_" + obj, "in_front_of_" + obj]
-        print(f'get_reachable_locations_around_object("{obj}") -> {locations}')
-        result.locations = locations
-
-        goal_handle.succeed()
         return result
 
 

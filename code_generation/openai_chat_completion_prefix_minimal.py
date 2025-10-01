@@ -13,11 +13,6 @@ ask(person, question, options)
 say(message)
 pick(object)
 place(object)
-pick_up(object)
-put_down(object, destination)
-put_into_basket(object)
-retrieve_from_basket(object)
-get_reachable_locations_around_object(object)    
 
 Robot tasks are defined in named functions, with docstrings describing the task.
 \"\"\"
