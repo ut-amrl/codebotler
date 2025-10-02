@@ -208,7 +208,7 @@
     </style>
 </head>
 <body>
-    <div class="caption">What would you like the robot to do?</div>
+    <div class="caption" id="captionfeedback">What would you like the robot to do?</div>
     <div class="textbox-container">
         <textarea id="taskPrompt" rows="1" placeholder="Example: Go to every room and say 'Hello, World!'" oninput="autoGrow(this)"></textarea>
     </div>
@@ -315,6 +315,8 @@
           }
           codeElement.textContent = response.code;
           doSyntaxHighlighting();
+          let captionElement = document.getElementById("captionfeedback");
+          captionElement.textContent = "Say \"Yes, execute please.\" to execute the generated code.";
         }
 
         function updateTranscript(response) {
@@ -334,6 +336,10 @@
           }
           if (response.hasOwnProperty('instruction')) {
             highlightInstruction(transcriptElement, response.instruction);
+          }
+          if (response.hasOwnProperty('doexecute')) {
+            let execButton = document.getElementById("executeCode");
+            execButton.click();
           }
         }
         function displayTranscripts(event) {

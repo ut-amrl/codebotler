@@ -112,12 +112,14 @@ async def handle_message(websocket, message, args):
   else:
     print("Unknown message type: " + data['type'])
 
-async def post_transcript(websocket, args, data, instruction):
+async def post_transcript(websocket, args, data, instruction, executebool):
   ## Push the message to the client
   print(f"Posting this message to the client: {data}")
   response = {"transcript": f"{data}"}
   if instruction is not None:
     response["instruction"] = instruction
+  if executebool:
+    response["doexecute"] = "true"
   await websocket.send(json.dumps(response))
 
 async def post_code(websocket, args, data, time_str):
@@ -152,6 +154,10 @@ class Accumulator:
     self.recording = False
     self.parts = list()
     self.instruction = None
+
+  async def execute_detected(self, text):
+    text_lower = text.lower()
+    return ("yes" in text_lower) and ("execute" in text_lower) and ("please" in text_lower)
 
   async def accumulate(self, text):
     ## Returns None if no instruction has been completely formed yet.
@@ -242,7 +248,8 @@ async def ws_main(websocket, path, args, accumulator):
     try:
       async for line in read_from_pipe(args.transcription_pipe):
         instruction = await accumulator.accumulate(line)
-        await post_transcript(websocket, args, line, instruction)
+        executebool = await accumulator.execute_detected(line)
+        await post_transcript(websocket, args, line, instruction, executebool)
         if instruction is not None and len(instruction) > 0:
           code, time_str = await asyncio.to_thread(generate_code, instruction, args)
           await post_code(websocket, args, code, time_str)
