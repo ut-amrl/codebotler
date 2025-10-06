@@ -3,7 +3,6 @@
 Robot task programs may use the following functions:
 get_current_location()
 get_all_rooms()
-is_in_room()
 go_to(location)
 ask(person, question, options)
 say(message)
@@ -19,10 +18,6 @@ def get_current_location() -> str:
 
 # Get a list of all rooms.
 def get_all_rooms() -> list[str]:
-    ...
-
-# Check if an object is in the current room.
-def is_in_room(object : str) -> bool:
     ...
 
 # Go to a specific named location, e.g. go_to("kitchen"), go_to("Arjun's office"), go_to("Jill's study").
