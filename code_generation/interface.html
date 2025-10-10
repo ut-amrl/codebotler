@@ -338,8 +338,9 @@
             highlightInstruction(transcriptElement, response.instruction);
           }
           if (response.hasOwnProperty('doexecute')) {
-            let execButton = document.getElementById("executeCode");
-            execButton.click();
+            // Just update a status message here.
+            setStatus("Executing previous program.");
+            setStatus("Sending program for execution...");
           }
         }
         function displayTranscripts(event) {
