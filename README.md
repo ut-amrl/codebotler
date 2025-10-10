@@ -40,5 +40,6 @@ This will start the server on `localhost:8080`. You can then open the interface 
 * `--model-type`: The type of model to use. It is either `openai-chat` (default) and `openai` for [OpenAI](https://platform.openai.com), `palm` for [PaLM](https://developers.generativeai.google/), or `automodel` for [AutoModel](https://huggingface.co/transformers/model_doc/auto.html#automodel).
 * `--model-name`: The name of the model to use. Recommended options are `gpt-4` for GPT-4 (default), `text-daVinci-003` for GPT-3.5, `models/text-bison-001` for PaLM, and `bigcode/starcoder` for AutoModel.
 * `--robot`: Flag to indicate if the robot is available (default is `False`).
+* `--transcription-pipe`: Path to the named pipe for recieving transcription information
 
 Instructions for deploying on real robots are included in [robot_interface/README.md](robot_interface/README.md).
