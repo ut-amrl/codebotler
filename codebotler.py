@@ -38,7 +38,7 @@ asyncio_loop = None
 ws_server = None
 prompt_prefix = ""
 prompt_suffix = ""
-
+pipe_descriptor = None
 def serve_interface_html(args):
   global httpd
   class HTMLFileHandler(http.server.SimpleHTTPRequestHandler):
@@ -84,6 +84,7 @@ def execute(code):
   global ros_available
   global robot_available
   global robot_interface
+  print(f"Recieved execution request for program:\n```python\n{code}\n```")
   if not ros_available:
     print("ROS not available. Ignoring execute request.")
   elif not robot_available:
@@ -128,22 +129,32 @@ async def post_code(websocket, args, data, time_str):
   response = {"code": f"{data}", "timing": time_str}
   await websocket.send(json.dumps(response))
 
-async def read_from_pipe(pipe_path):
-  print(f"Entered `read_from_pipe` using {pipe_path}")
+async def read_from_pipe(fd, executor):
+  print(f"Entered `read_from_pipe`")
   loop = asyncio.get_running_loop()
-  ## Opens in read-write mode to prevent EOF.
-  fd = os.open(pipe_path, os.O_RDWR)
-  with os.fdopen(fd, "r") as f:
-    while True:
-      print(f"Waiting to read a line from the pipe")
-      line = await loop.run_in_executor(
-        concurrent.futures.ThreadPoolExecutor(),
-        f.readline
-      )
-      print(f"Read this line: {line}")
-      ## Only send transcripts that are marked as final
-      if line.startswith("<FINAL>:"):
-        yield line[8:].rstrip("\n")
+  try:
+    with os.fdopen(fd, "r") as f:
+      while True:
+        print(f"Waiting to read a line from the pipe")
+        line = await loop.run_in_executor(
+          executor,
+          f.readline
+        )
+        print(f"Read this line: {line}")
+        ## Only send transcripts that are marked as final
+        if line.startswith("<FINAL>:"):
+          yield line[8:].rstrip("\n")
+  except asyncio.CancelledError:
+    print("read_from_pipe canceled, closing file")
+    raise
+  except OSError:
+    print("Pipe already closed")
+  finally:
+    print("Closing pipe descriptor")
+    try:
+      os.close(fd)
+    except OSError:
+      print("Pipe is already closed")
 
 class Accumulator:
   def __init__(self):
@@ -234,47 +245,90 @@ class Accumulator:
 
     return self.instruction
 
-async def ws_main(websocket, path, args, accumulator):
+async def ws_main(websocket, path, args, accumulator, connected_clients):
+  ## Whenever a client connects to the websocket, ws_main is called,
+  ## and websocket refers to the connection with that specific client.
+  connected_clients.add(websocket)
+  print(f"Client has connected; {len(connected_clients)} clients...")
 
   async def receive_messages():
     try:
       async for message in websocket:
         await handle_message(websocket, message, args)
-    except websockets.exceptions.ConnectionClosed:
-      pass
+    except websockets.exceptions.ConnectionClosedOK:
+      print("Client has disconnected...")
+    except websockets.exceptions.ConnectionClosedError as e:
+      print(f"Client has disconnected with error: {e}")
+    finally:
+      connected_clients.discard(websocket)
+      print(f"A client has been removed; {len(connected_clients)} clients...")
 
-  async def send_messages():
-    print("Entered `send_messages`")
-    try:
-      async for line in read_from_pipe(args.transcription_pipe):
-        instruction = await accumulator.accumulate(line)
-        executebool = await accumulator.execute_detected(line)
-        await post_transcript(websocket, args, line, instruction, executebool)
-        if instruction is not None and len(instruction) > 0:
-          code, time_str = await asyncio.to_thread(generate_code, instruction, args)
-          await post_code(websocket, args, code, time_str)
-    except websockets.exceptions.ConnectionClosed:
-      pass
+  await receive_messages()
+  #await asyncio.gather(receive_messages(), send_messages())
 
-  await asyncio.gather(receive_messages(), send_messages())
-
-async def start_ws_server(args):
-
-  acc = Accumulator()
-
-  async with websockets.serve(lambda ws, path="": ws_main(ws, path, args, acc), args.ip, args.ws_port):
-    print(f"WebSocket server started at ws://{args.ip}:{args.ws_port}")
-    await asyncio.Future()  # Keeps the server running indefinitely.
-
-def start_completion_callback(args):
+async def broadcast_transcripts_from_pipe(args, fd, accumulator, ws_server, clients, last_gen_code, lock, executor):
   try:
-    asyncio.run(start_ws_server(args))
+    async for line in read_from_pipe(fd, executor):
+      instruction = await accumulator.accumulate(line)
+      executebool = await accumulator.execute_detected(line)
+      ## Start to execute the most recent program that was generated, if any
+      if executebool:
+        codetoexec = None
+        async with lock:
+          if last_gen_code[0] is not None:
+            codetoexec = last_gen_code[0]
+        if codetoexec is not None:
+          execute(codetoexec)
+      ## Stream the transcribed text from the pipe to all connected clients.
+      client_copy = clients.copy()
+      for websocket in client_copy:
+        try:
+          await post_transcript(websocket, args, line, instruction, executebool)
+        except:
+          pass
+      ## If the transcription contains an instruction, generate a code plan for it
+      ## and cache the code plan locally, and send it to the connected clients
+      if instruction is not None and len(instruction) > 0:
+        code, time_str = await asyncio.to_thread(generate_code, instruction, args)
+        async with lock:
+          last_gen_code[0] = code
+        client_copy = clients.copy()
+        for websocket in client_copy:
+          try:
+            await post_code(websocket, args, code, time_str)
+          except:
+            pass
+  except asyncio.CancelledError:
+    print("Closing pipe")
+
+async def start_ws_server(args, fd):
+  executor = concurrent.futures.ThreadPoolExecutor()
+  lock = asyncio.Lock()
+  last_gen_code = [None]
+  acc = Accumulator()
+  connected_clients = set()
+  ## Start the websocket server
+  websocket_server = await websockets.serve(
+    lambda ws, path="": ws_main(ws, path, args, acc, connected_clients), 
+    args.ip, args.ws_port)
+  print(f"WebSocket server started at ws://{args.ip}:{args.ws_port}")
+
+  broadcast_task = asyncio.create_task(
+    broadcast_transcripts_from_pipe(
+      args, fd, acc, websocket_server, connected_clients, last_gen_code, lock, executor))
+
+  await asyncio.gather(websocket_server.wait_closed(), broadcast_task)
+  executor.shutdown(wait=False)
+
+def start_completion_callback(args, fd):
+  try:
+    asyncio.run(start_ws_server(args, fd))
   except Exception as e:
     print("Websocket error: " + str(e))
     shutdown(None, None)
 
 def shutdown(sig, frame):
-  global ros_available, robot_available, robot_interface, server_thread, asyncio_loop, httpd, ws_server
+  global ros_available, robot_available, robot_interface, server_thread, asyncio_loop, httpd, ws_server, pipe_descriptor
   print(" Shutting down server.")
   if robot_available and ros_available and robot_interface is not None:
     robot_interface._cancel_goals()
@@ -288,10 +342,18 @@ def shutdown(sig, frame):
     httpd.shutdown()
   if server_thread is not None and threading.current_thread() != server_thread:
     server_thread.join()
-  if asyncio_loop is not None:
-    for task in asyncio.all_tasks(loop=asyncio_loop):
-      task.cancel()
-    asyncio_loop.stop()
+  running_loop = asyncio.get_running_loop()
+  print(" Cancelling asyncio tasks")
+  for task in asyncio.all_tasks(loop=running_loop):
+    task.cancel()
+  print(" Requested stopping asyncio loop")
+  running_loop.stop()
+  print(" Attempting to close pipe_descriptor")
+  if pipe_descriptor is not None:
+    ## Need to write something to unblock the read
+    os.write(pipe_descriptor, b"@")
+    os.close(pipe_descriptor)
+    print(" Shutdown closed the pipe_descriptor")
   if ws_server is not None:
     ws_server.close()
   if sig == signal.SIGINT or sig == signal.SIGTERM:
@@ -309,6 +371,7 @@ def main():
   global robot_interface
   global code_timeout
   global model
+  global pipe_descriptor
   import argparse
   from pathlib import Path
   parser = argparse.ArgumentParser()
@@ -350,7 +413,9 @@ def main():
                                    args=[args])
   server_thread.start()
 
-  start_completion_callback(args)
+  ## Opens in read-write mode to prevent EOF.
+  pipe_descriptor = os.open(args.transcription_pipe, os.O_RDWR)
+  start_completion_callback(args, pipe_descriptor)
 
 if __name__ == "__main__":
   main()
