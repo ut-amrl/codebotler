@@ -331,7 +331,7 @@ def shutdown(sig, frame):
   global ros_available, robot_available, robot_interface, server_thread, asyncio_loop, httpd, ws_server, pipe_descriptor
   print(" Shutting down server.")
   if robot_available and ros_available and robot_interface is not None:
-    robot_interface._cancel_goals()
+    robot_interface._cancel_goals() # TODO
     print("Waiting for 2s to preempt robot actions...")
     time.sleep(2)
     robot_interface.destroy_node()
