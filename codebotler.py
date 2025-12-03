@@ -313,11 +313,18 @@ async def start_ws_server(args, fd):
     args.ip, args.ws_port)
   print(f"WebSocket server started at ws://{args.ip}:{args.ws_port}")
 
-  broadcast_task = asyncio.create_task(
-    broadcast_transcripts_from_pipe(
-      args, fd, acc, websocket_server, connected_clients, last_gen_code, lock, executor))
+  ## If the audio_pipe fd is not available for us to use, then we will only process interactions
+  ## using the websocket server.
+  ## If the audio_pipe fd is available for us to use, then we will be able to handle requests from
+  ## both the audio_pipe and the webinterface text boxes.
+  if fd is not None:
+    broadcast_task = asyncio.create_task(
+      broadcast_transcripts_from_pipe(
+        args, fd, acc, websocket_server, connected_clients, last_gen_code, lock, executor))
+    await asyncio.gather(websocket_server.wait_closed(), broadcast_task)
+  else:
+    await asyncio.gather(websocket_server.wait_closed())
 
-  await asyncio.gather(websocket_server.wait_closed(), broadcast_task)
   executor.shutdown(wait=False)
 
 def start_completion_callback(args, fd):
@@ -393,7 +400,7 @@ def main():
   parser.add_argument('--robot', action='store_true', help='Flag to indicate if the robot is available')
   parser.add_argument('--timeout', type=int, help='Code generation timeout in seconds', default=20)
   parser.add_argument('--transcription-pipe', type=Path, help='Pipe from which to read audio transcriptions', default='/tmp/audio_pipe')
-
+  parser.add_argument('--disable-pipe', action='store_true', default=False, help='Specify this flag to disable the audio pipe')
   args = parser.parse_args()
 
   robot_available = args.robot
@@ -413,8 +420,14 @@ def main():
                                    args=[args])
   server_thread.start()
 
-  ## Opens in read-write mode to prevent EOF.
-  pipe_descriptor = os.open(args.transcription_pipe, os.O_RDWR)
+  ## On certain platforms, we need to be able to disable reading from the pipe because it will not be available.
+  ## In those cases, make sure the pipe_descriptor is None, and make sure we skip trying to open and read from it.
+  if not args.disable_pipe:
+    ## Opens in read-write mode to prevent EOF.
+    pipe_descriptor = os.open(args.transcription_pipe, os.O_RDWR)
+  else:
+    pipe_descriptor = None
+
   start_completion_callback(args, pipe_descriptor)
 
 if __name__ == "__main__":
