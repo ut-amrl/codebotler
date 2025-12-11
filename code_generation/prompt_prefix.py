@@ -130,3 +130,17 @@ def task_program():
         go_to(room)
         place("bed sheet")
     go_to(start_loc)
+
+# I am thirsty
+def task_program():
+    current_loc = get_current_location()
+    go_to("kitchen")
+    if is_in_room("water bottle"):
+        pick("water bottle")
+    else:
+        say("Sorry, I could not find any water bottles")
+        return
+
+    go_to(current_loc)
+    place("water bottle")
+    say("Here is some water")
