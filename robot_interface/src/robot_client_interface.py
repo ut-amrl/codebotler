@@ -120,14 +120,15 @@ class RobotInterface(Node):
 
     def _cancel_goals(self):
         # Cancel all pending goals
-        self.go_to_client.cancel_all_goals()
-        self.get_current_location_client.cancel_all_goals()
-        self.is_in_room_client.cancel_all_goals()
-        self.say_client.cancel_all_goals()
-        self.get_all_rooms_client.cancel_all_goals()
-        self.ask_client.cancel_all_goals()
-        self.pick_client.cancel_all_goals()
-        self.place_client.cancel_all_goals()
+        pass
+        # self.go_to_client.cancel_all_goals()
+        # self.get_current_location_client.cancel_all_goals()
+        # self.is_in_room_client.cancel_all_goals()
+        # self.say_client.cancel_all_goals()
+        # self.get_all_rooms_client.cancel_all_goals()
+        # self.ask_client.cancel_all_goals()
+        # self.pick_client.cancel_all_goals()
+        # self.place_client.cancel_all_goals()
 
 
 def execute_task_program(program: str, robot: RobotInterface):
