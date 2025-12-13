@@ -94,6 +94,20 @@ def execute(code):
     robot_execution_thread = threading.Thread(target=execute_task_program, name="robot_execute", args=[code, robot_interface])
     robot_execution_thread.start()
 
+def initiate_place():
+  global ros_available
+  global robot_available
+  global robot_interface
+  print("Received initiation request for place operation")
+  if not ros_available:
+    print("ROS not available. Ignoring place request.")
+  elif not robot_available:
+    print("Robot not available. Ignoring place request.")
+  else:
+    from robot_interface.src.robot_client_interface import initiate_place_action
+    place_thread = threading.Thread(target=initiate_place_action, name="robot_place", args=[robot_interface])
+    place_thread.start()
+
 async def handle_message(websocket, message, args):
   data = json.loads(message)
   if data['type'] == 'code':
@@ -110,6 +124,9 @@ async def handle_message(websocket, message, args):
   elif data['type'] == 'execute':
     print("Executing generated code...")
     execute(data['code'])
+  elif data['type'] == 'place':
+    print("Initiating place operation...")
+    initiate_place()
   else:
     print("Unknown message type: " + data['type'])
 
