@@ -360,18 +360,24 @@ def shutdown(sig, frame):
     time.sleep(2)
     robot_interface.destroy_node()
   if ros_available and rclpy_instance is not None:
-    rclpy_instance.shutdown()
+    try:
+      rclpy_instance.shutdown()
+    except RuntimeError:
+      pass
   if httpd is not None:
     httpd.server_close()
     httpd.shutdown()
   if server_thread is not None and threading.current_thread() != server_thread:
     server_thread.join()
-  running_loop = asyncio.get_running_loop()
-  print(" Cancelling asyncio tasks")
-  for task in asyncio.all_tasks(loop=running_loop):
-    task.cancel()
-  print(" Requested stopping asyncio loop")
-  running_loop.stop()
+  try:
+    running_loop = asyncio.get_running_loop()
+    print(" Cancelling asyncio tasks")
+    for task in asyncio.all_tasks(loop=running_loop):
+      task.cancel()
+    print(" Requested stopping asyncio loop")
+    running_loop.stop()
+  except RuntimeError:
+    pass
   print(" Attempting to close pipe_descriptor")
   if pipe_descriptor is not None:
     ## Need to write something to unblock the read
