@@ -8,12 +8,13 @@ CodeBotler is the lean deployment layer that turns natural-language robot tasks 
 - Generated programs must define `def task_program():` and may call only the robot helper API exposed in prompts and execution: `get_current_location`, `get_all_rooms`, `is_in_room`, `go_to`, `ask`, `say`, `pick`, and `place`.
 - `codebotler.py` loads the OpenAI key from repo-root `.openai_api_key` first, then `OPENAI_API_KEY`, and loads structured few-shot messages from `openai_chat_completion_prefix.py`.
 - `codebotler.py` imports and initializes `rclpy` unconditionally; if ROS 2 is unavailable, startup should fail directly. `--robot` uses real ROS action clients; without it, generated programs still execute through simulated DSL calls that each sleep for five seconds and then succeed.
+- The browser Cancel button and websocket disconnects cancel the one active task execution. `robot_client.py` asks the currently active ROS action goal to cancel, then unwinds the generated program so no later DSL calls run.
 
 ## Key Files
 - `codebotler.py`: HTTP/WebSocket server, OpenAI chat client, prompt loading, API-key lookup, and `task_program()` normalization.
 - `interface.html`: browser UI.
 - `openai_chat_completion_prefix.py`: active OpenAI chat prompt and DSL examples.
-- `robot_client.py`: ROS 2 action client used by generated programs.
+- `robot_client.py`: ROS 2 action client used by generated programs, simulated DSL implementation, subprocess execution, and task cancellation.
 
 ## Run And Verify
 - Environment: `conda create -n codebotler python=3.12.8 pip`, then `pip install -r requirements.txt`.

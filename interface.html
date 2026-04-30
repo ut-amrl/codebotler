@@ -102,6 +102,70 @@
 	          min-height: 1rem;
 	      }
 
+	      .execution-program-row,
+	      .console-output-row {
+	          grid-column: 1 / -1;
+	      }
+
+	      .execution-program {
+	          margin: 0;
+	          padding: 0.75rem;
+	          max-height: 12rem;
+	          overflow: auto;
+	          background-color: #f5f5f5;
+	          border: 1px solid #ddd;
+	          border-radius: 6px;
+	          color: #222;
+	          font-family: monospace;
+	          font-size: 0.9rem;
+	          line-height: 1.35;
+	      }
+
+	      .execution-program-line {
+	          display: block;
+	          min-height: 1.2em;
+	          padding: 0 0.2rem;
+	      }
+
+	      .execution-active-line {
+	          background-color: #fff0c2;
+	          border-left: 3px solid #bf6c00;
+	      }
+
+	      .console-output-row summary {
+	          color: #444;
+	          cursor: pointer;
+	          font-size: 0.9rem;
+	      }
+
+	      .console-output-grid {
+	          display: grid;
+	          grid-template-columns: 1fr;
+	          gap: 0.75rem;
+	          margin-top: 0.75rem;
+	      }
+
+	      .console-pane-label {
+	          color: #777;
+	          font-size: 0.8rem;
+	          margin-bottom: 0.25rem;
+	      }
+
+	      .console-pane {
+	          margin: 0;
+	          padding: 0.75rem;
+	          height: 13em;
+	          max-height: 13em;
+	          overflow: auto;
+	          background-color: #111;
+	          border-radius: 6px;
+	          color: #ddd;
+	          font-family: monospace;
+	          font-size: 0.8rem;
+	          line-height: 1.3;
+	          white-space: pre-wrap;
+	      }
+
       .code-pane {
           width: 100%;
           max-width: 800px;
@@ -148,6 +212,12 @@
           background-color: #f5f5f5;
       }
 
+      .button:disabled {
+          color: #aaa;
+          cursor: not-allowed;
+          background-color: #f7f7f7;
+      }
+
       .highlight-function {
         color: #bf6c00; /* this will make "my_func" appear in orange color */
       }
@@ -165,9 +235,14 @@
 	    <div class="button-container-execute">
 	      <button class="button" id="generateCode">Generate Code</button>
 	      <button class="button" id="executeCode">Execute!</button>
+	      <button class="button" id="cancelExecution" disabled>Cancel</button>
 	    </div>
 
 	    <div class="action-status">
+	      <div class="execution-program-row">
+	        <div class="action-status-label">Currently executing program</div>
+	        <pre class="execution-program"><code id="executingProgramCode">No active execution.</code></pre>
+	      </div>
 	      <div>
 	        <div class="action-status-label">Current DSL call</div>
 	        <div class="action-status-value" id="currentDslCall">None</div>
@@ -177,6 +252,23 @@
 	        <div class="action-status-value" id="currentDslStatus">IDLE</div>
 	      </div>
 	      <div class="action-status-detail" id="currentDslDetail"></div>
+	      <details class="console-output-row">
+	        <summary>Console outputs</summary>
+	        <div class="console-output-grid">
+	          <div>
+	            <div class="console-pane-label">codebotler.py</div>
+	            <pre class="console-pane" id="consoleCodebotler"></pre>
+	          </div>
+	          <div>
+	            <div class="console-pane-label">actions.py</div>
+	            <pre class="console-pane" id="consoleActions"></pre>
+	          </div>
+	          <div>
+	            <div class="console-pane-label">gui.py</div>
+	            <pre class="console-pane" id="consoleGui"></pre>
+	          </div>
+	        </div>
+	      </details>
 	    </div>
 
 	    <pre class="status-box" id="status-box"></pre>
@@ -186,12 +278,107 @@
     <script>
 	        const SERVER_URL = 'ws://localhost:8190';
 	        let generatedCode = "";
+		        let executingProgram = "";
+		        let currentDslCall = "None";
+		        let currentDslSequence = null;
+		        let currentDslSourceLine = null;
+		        let activeExecutionId = null;
+	        let executionActive = false;
+	        const DSL_FUNCTIONS = ["get_all_rooms", "get_current_location", "go_to", "is_in_room", "say", "ask", "pick", "place"];
 
         function autoGrow(textarea) {
           textarea.style.height = 'auto';
           const prevScrollHeight = textarea.scrollHeight;
           textarea.style.height = (prevScrollHeight - 16) + 'px';
         }
+
+	        function setExecutionActive(active, executionId = null) {
+	          executionActive = active;
+	          activeExecutionId = executionId;
+	          const cancelButton = document.getElementById("cancelExecution");
+	          const execButton = document.getElementById("executeCode");
+	          const genButton = document.getElementById("generateCode");
+	          if (cancelButton) {
+	            cancelButton.disabled = !active;
+	          }
+	          if (execButton) {
+	            execButton.disabled = active;
+	          }
+	          if (genButton) {
+	            genButton.disabled = active;
+	          }
+	        }
+
+	        function escapeHtml(text) {
+	          return String(text)
+	            .replace(/&/g, "&amp;")
+	            .replace(/</g, "&lt;")
+	            .replace(/>/g, "&gt;")
+	            .replace(/"/g, "&quot;")
+	            .replace(/'/g, "&#039;");
+	        }
+
+	        function normalizedCodeText(text) {
+	          return String(text).replace(/"/g, "'").replace(/\s+/g, " ").trim();
+	        }
+
+	        function callFunctionName(call) {
+	          const match = String(call || "").match(/^([a-zA-Z_][a-zA-Z0-9_]*)\(/);
+	          return match ? match[1] : "";
+	        }
+
+	        function dslCallLineIndexes(lines) {
+	          const pattern = new RegExp(`\\b(${DSL_FUNCTIONS.join("|")})\\s*\\(`);
+	          const indexes = [];
+	          lines.forEach((line, index) => {
+	            if (pattern.test(line)) {
+	              indexes.push(index);
+	            }
+	          });
+	          return indexes;
+	        }
+
+	        function renderExecutingProgram() {
+	          const codeElement = document.getElementById("executingProgramCode");
+	          if (!executingProgram.trim()) {
+	            codeElement.textContent = "No active execution.";
+	            return;
+	          }
+
+	          const normalizedCall = normalizedCodeText(currentDslCall);
+	          const fnName = callFunctionName(currentDslCall);
+		          const lines = executingProgram.split("\n");
+		          const callLineIndexes = dslCallLineIndexes(lines);
+		          const sourceLineIndex = Number.isInteger(currentDslSourceLine) ? currentDslSourceLine - 1 : undefined;
+		          const sequenceLineIndex = Number.isInteger(currentDslSequence) ? callLineIndexes[currentDslSequence - 1] : undefined;
+	          const exactLineIndex = normalizedCall && normalizedCall !== "None"
+	            ? lines.findIndex((line) => normalizedCodeText(line).includes(normalizedCall))
+	            : -1;
+	          const fnLineIndex = fnName
+	            ? lines.findIndex((line) => normalizedCodeText(line).includes(`${fnName}(`))
+	            : -1;
+		          codeElement.innerHTML = lines.map((line, index) => {
+		            let active = false;
+		            if (sourceLineIndex !== undefined && sourceLineIndex >= 0 && sourceLineIndex < lines.length) {
+		              active = index === sourceLineIndex;
+		            } else if (sequenceLineIndex !== undefined) {
+		              active = index === sequenceLineIndex;
+		            } else if (exactLineIndex >= 0) {
+	              active = index === exactLineIndex;
+	            } else if (fnLineIndex >= 0) {
+	              active = index === fnLineIndex;
+	            }
+	            const className = active ? "execution-program-line execution-active-line" : "execution-program-line";
+	            return `<span class="${className}">${escapeHtml(line) || " "}</span>`;
+	          }).join("");
+	        }
+
+		        function setExecutingProgram(program) {
+		          executingProgram = program || "";
+		          currentDslSequence = null;
+		          currentDslSourceLine = null;
+		          renderExecutingProgram();
+		        }
 
 	        function executeCode(socket) {
 	          if (!generatedCode.trim()) {
@@ -212,8 +399,25 @@
 	            socket.send(JSON.stringify(executeData));
           } catch (error) {
             setStatus("Error connecting to server.");
-          }
-        }
+	          }
+	        }
+
+	        function cancelExecution(socket, reason = "Cancel requested from UI.") {
+	          if (!executionActive || !activeExecutionId) {
+	            setStatus("No active execution to cancel.");
+	            return;
+	          }
+	          if (socket.readyState !== WebSocket.OPEN) {
+	            setStatus("Websocket is not connected.");
+	            return;
+	          }
+	          socket.send(JSON.stringify({
+	            "type": "cancel",
+	            "execution_id": activeExecutionId,
+	            "reason": reason
+	          }));
+	          setStatus("Cancel requested.");
+	        }
 
 	        function setStatus(str) {
 	            const statusBox = document.getElementById("status-box");
@@ -225,11 +429,35 @@
 	          const callElement = document.getElementById("currentDslCall");
 	          const statusElement = document.getElementById("currentDslStatus");
 	          const detailElement = document.getElementById("currentDslDetail");
-	          callElement.textContent = payload.call || "None";
+		          currentDslCall = payload.call || "None";
+		          currentDslSequence = Number.isInteger(payload.action_sequence) ? payload.action_sequence : null;
+		          currentDslSourceLine = Number.isInteger(payload.source_line) ? payload.source_line : null;
+		          callElement.textContent = payload.call || "None";
 	          statusElement.textContent = payload.status || "IDLE";
 	          const detail = payload.detail || "";
 	          const timestamp = payload.timestamp ? new Date(payload.timestamp * 1000).toLocaleTimeString() : "";
 	          detailElement.textContent = timestamp ? `${detail} Last update: ${timestamp}` : detail;
+	          renderExecutingProgram();
+	        }
+
+	        function updateConsoleLogs(logs) {
+	          const mapping = {
+	            codebotler: "consoleCodebotler",
+	            actions: "consoleActions",
+	            gui: "consoleGui"
+	          };
+	          for (const [name, elementId] of Object.entries(mapping)) {
+	            const element = document.getElementById(elementId);
+	            if (!element) {
+	              continue;
+	            }
+	            const lines = Array.isArray(logs[name]) ? logs[name] : [];
+	            const wasNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 8;
+	            element.textContent = lines.join("\n");
+	            if (wasNearBottom) {
+	              element.scrollTop = element.scrollHeight;
+	            }
+	          }
 	        }
 
         function doSyntaxHighlighting() {
@@ -259,6 +487,34 @@
 	          let response = JSON.parse(event.data);
 	          if (response.type === "action_status" && response.hasOwnProperty("action_status")) {
 	            setActionStatus(response.action_status);
+	            const status = response.action_status.status || "";
+	            if (["IDLE", "STATUS_CANCELED", "STATUS_ABORTED"].includes(status)) {
+	              setExecutionActive(false);
+	            }
+	            return;
+	          }
+	          if (response.type === "execution_started") {
+	            setExecutionActive(true, response.execution_id);
+	            setExecutingProgram(response.program || "");
+	            setStatus("Execution started.");
+	            return;
+	          }
+	          if (response.type === "execution_finished") {
+	            setExecutionActive(false);
+	            setExecutingProgram("");
+	            return;
+	          }
+	          if (response.type === "console_logs") {
+	            updateConsoleLogs(response.logs || {});
+	            return;
+	          }
+	          if (response.type === "execution_rejected") {
+	            setExecutionActive(false);
+	            setStatus(response.detail || "Execution rejected.");
+	            return;
+	          }
+	          if (response.type === "cancel_ack") {
+	            setStatus(response.canceled ? "Cancellation is in progress." : "No matching active execution to cancel.");
 	            return;
 	          }
           if (response.hasOwnProperty('code')) {
@@ -309,9 +565,14 @@
 
           const genButton = document.getElementById("generateCode");
           const execButton = document.getElementById("executeCode");
+          const cancelButton = document.getElementById("cancelExecution");
           const taskBox = document.getElementById("taskPrompt");
 
 	          genButton.addEventListener("click", function() {
+	            if (executionActive) {
+	              setStatus("Cancel or wait for the active execution before generating new code.");
+	              return;
+	            }
 		            const taskDescription = taskBox.value;
 	            generatedCode = "";
 	            document.getElementById("code").textContent = "";
@@ -321,9 +582,16 @@
           execButton.addEventListener("click", function() {
             executeCode(ws);
           });
+          cancelButton.addEventListener("click", function() {
+            cancelExecution(ws);
+          });
           taskBox.addEventListener("keydown", function(event) {
 	              if (event.key === "Enter" && !event.shiftKey) {
 		                event.preventDefault();
+	                if (executionActive) {
+	                  setStatus("Cancel or wait for the active execution before generating new code.");
+	                  return;
+	                }
 		                const taskDescription = taskBox.value;
 	                generatedCode = "";
 	                document.getElementById("code").textContent = "";
@@ -331,6 +599,19 @@
 	                generateCodeRequest(ws, taskDescription);
 	              }
 	          });
+
+          function cancelBeforeDisconnect() {
+            if (executionActive && activeExecutionId && ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({
+                "type": "cancel",
+                "execution_id": activeExecutionId,
+                "reason": "Client page closed."
+              }));
+            }
+          }
+
+          window.addEventListener("pagehide", cancelBeforeDisconnect);
+          window.addEventListener("beforeunload", cancelBeforeDisconnect);
 
         }, false);
 

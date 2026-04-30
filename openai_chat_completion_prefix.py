@@ -14,7 +14,16 @@ say(message)
 pick(object)
 place(object)
 
-Robot tasks are defined in named functions, with docstrings describing the task.
+Robot tasks are defined by one function named task_program.
+
+Output format rules:
+- Return raw Python source only.
+- Do not wrap the answer in Markdown or ```python fences.
+- Do not include explanations, comments before the code, or prose after the code.
+- The entire answer must be exactly one top-level function named task_program.
+- Use only the robot task helper functions listed here.
+- Do not define helper functions, classes, imports, or global variables.
+- Use four spaces for indentation.
 \"\"\"
 # Get the current location of the robot.
 def get_current_location() -> str:
