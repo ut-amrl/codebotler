@@ -35,23 +35,6 @@
           border: 1px solid #ccc;
           margin-bottom: 1rem;
       }
-      .transcription-container {
-          width: 100%;
-          max-width: 800px;
-          padding: 1rem;
-          border-radius: 8px;
-          overflow: hidden;
-          resize: none;
-          border: 1px solid #ccc;
-          margin-bottom: 1rem;
-          background-color: #fafafa;
-      }
-
-      .speech {
-          text-wrap: wrap;
-          color: lightgrey;
-      }
-
       textarea {
           display: block;
           width: 100%;
@@ -66,7 +49,7 @@
           /* max-height: 3em; */
       }
 
-      .status-box {
+	      .status-box {
           width: 100%;
           max-width: 800px;
           padding: 1rem;
@@ -81,8 +64,43 @@
           overflow-y: auto;
           max-height: 4.5em;
           padding-top: 0em;
-          padding-bottom: 0em;
-      }
+	          padding-bottom: 0em;
+	      }
+
+	      .action-status {
+	          width: 100%;
+	          max-width: 800px;
+	          display: grid;
+	          grid-template-columns: 1fr 220px;
+	          gap: 0.75rem;
+	          margin: 0.25rem 0 0.75rem;
+	          padding: 0.75rem 1rem;
+	          border: 1px solid #ccc;
+	          border-radius: 8px;
+	          background-color: #fbfbfb;
+	          box-sizing: border-box;
+	      }
+
+	      .action-status-label {
+	          color: #777;
+	          font-size: 0.8rem;
+	          margin-bottom: 0.25rem;
+	      }
+
+	      .action-status-value {
+	          color: #222;
+	          font-family: monospace;
+	          font-size: 0.95rem;
+	          min-height: 1.2rem;
+	          overflow-wrap: anywhere;
+	      }
+
+	      .action-status-detail {
+	          grid-column: 1 / -1;
+	          color: #777;
+	          font-size: 0.85rem;
+	          min-height: 1rem;
+	      }
 
       .code-pane {
           width: 100%;
@@ -140,24 +158,34 @@
     <div class="textbox-container">
         <textarea id="taskPrompt" rows="1" placeholder="Example: Go to every room and say 'Hello, World!'" oninput="autoGrow(this)"></textarea>
     </div>
-    <div class="transcription-container">
-        <pre><code id="transcription" class="speech"></code></pre>
-    </div>
     <div class="code-pane">
         <pre><code id="code" class="language-python">
         </code></pre>
     </div>
-    <div class="button-container-execute">
-      <button class="button" id="generateCode">Generate Code</button>
-      <button class="button" id="executeCode">Execute!</button>
-    </div>
+	    <div class="button-container-execute">
+	      <button class="button" id="generateCode">Generate Code</button>
+	      <button class="button" id="executeCode">Execute!</button>
+	    </div>
 
-    <pre class="status-box" id="status-box"></pre>
+	    <div class="action-status">
+	      <div>
+	        <div class="action-status-label">Current DSL call</div>
+	        <div class="action-status-value" id="currentDslCall">None</div>
+	      </div>
+	      <div>
+	        <div class="action-status-label">ROS status</div>
+	        <div class="action-status-value" id="currentDslStatus">IDLE</div>
+	      </div>
+	      <div class="action-status-detail" id="currentDslDetail"></div>
+	    </div>
+
+	    <pre class="status-box" id="status-box"></pre>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-python.min.js"></script>
     <script>
-        const SERVER_URL = 'ws://localhost:8190';
+	        const SERVER_URL = 'ws://localhost:8190';
+	        let generatedCode = "";
 
         function autoGrow(textarea) {
           textarea.style.height = 'auto';
@@ -165,26 +193,44 @@
           textarea.style.height = (prevScrollHeight - 16) + 'px';
         }
 
-        function executeCode(socket) {
-          setStatus("Executing previous program.");
-          try {
-            setStatus("Sending program for execution...");
-            executeData = {
-                "type": "execute",
-                "task": document.getElementById("taskPrompt").value,
-                "code": document.getElementById("code").textContent
-            };
-            socket.send(JSON.stringify(executeData));
+	        function executeCode(socket) {
+	          if (!generatedCode.trim()) {
+	            setStatus("No generated code to execute.");
+	            return;
+	          }
+	          if (socket.readyState !== WebSocket.OPEN) {
+	            setStatus("Websocket is not connected.");
+	            return;
+	          }
+	          setStatus("Executing generated program.");
+	          try {
+	            setStatus("Sending program for execution...");
+	            const executeData = {
+	                "type": "execute",
+	                "code": generatedCode
+	            };
+	            socket.send(JSON.stringify(executeData));
           } catch (error) {
             setStatus("Error connecting to server.");
           }
         }
 
-        function setStatus(str) {
-            statusBox = document.getElementById("status-box");
-            statusBox.textContent += "\n" + str;
-            statusBox.scrollTop = statusBox.scrollHeight;
-        }
+	        function setStatus(str) {
+	            const statusBox = document.getElementById("status-box");
+	            statusBox.textContent += "\n" + str;
+	            statusBox.scrollTop = statusBox.scrollHeight;
+	        }
+
+	        function setActionStatus(payload) {
+	          const callElement = document.getElementById("currentDslCall");
+	          const statusElement = document.getElementById("currentDslStatus");
+	          const detailElement = document.getElementById("currentDslDetail");
+	          callElement.textContent = payload.call || "None";
+	          statusElement.textContent = payload.status || "IDLE";
+	          const detail = payload.detail || "";
+	          const timestamp = payload.timestamp ? new Date(payload.timestamp * 1000).toLocaleTimeString() : "";
+	          detailElement.textContent = timestamp ? `${detail} Last update: ${timestamp}` : detail;
+	        }
 
         function doSyntaxHighlighting() {
           let codeElement = document.getElementById("code");
@@ -196,53 +242,25 @@
           codeElement.innerHTML = codeHTML;
         }
 
-        function highlightInstruction(element, instruction) {
-          textString = element.innerHTML;
-          textString = textString.replace(instruction, '<span style="color:black; font-weight: bold;">'+instruction+'</span>');
-          element.innerHTML = textString;
-        }
-
-        function updateCodeBlock(response) {
-          setStatus("Code generated in " + response.timing + " seconds.");
-          let codeElement = document.getElementById("code");
+	        function updateCodeBlock(response) {
+	          setStatus("Code generated in " + response.timing + " seconds.");
+	          let codeElement = document.getElementById("code");
           if (codeElement.textContent.startsWith("\n")) {
               codeElement.textContent = codeElement.textContent.slice(1);
-          }
-          codeElement.textContent = response.code;
-          doSyntaxHighlighting();
-          let captionElement = document.getElementById("captionfeedback");
-          captionElement.textContent = "Say \"Yes, execute please.\" to execute the generated code.";
+	          }
+	          codeElement.textContent = response.code;
+	          generatedCode = response.code || "";
+	          doSyntaxHighlighting();
+	          const captionElement = document.getElementById("captionfeedback");
+          captionElement.textContent = "Generated code is ready to execute.";
         }
 
-        function updateTranscript(response) {
-          let transcriptElement = document.getElementById("transcription");
-          let suffixLength = response.transcript.length;
-          let prefixLength = transcriptElement.textContent.length;
-          let maxLength = 1000;
-          if (prefixLength + suffixLength > maxLength) {
-              if (suffixLength >= maxLength) {
-                  transcriptElement.textContent = response.transcript.slice(-maxLength);
-              } else {
-                  transcriptElement.textContent = transcriptElement.textContent.slice(-(maxLength-suffixLength))
-                  + response.transcript;
-              }
-          } else {
-              transcriptElement.textContent = transcriptElement.textContent + response.transcript;
-          }
-          if (response.hasOwnProperty('instruction')) {
-            highlightInstruction(transcriptElement, response.instruction);
-          }
-          if (response.hasOwnProperty('doexecute')) {
-            // Just update a status message here.
-            setStatus("Executing previous program.");
-            setStatus("Sending program for execution...");
-          }
-        }
-        function displayTranscripts(event) {
-          let response = JSON.parse(event.data);
-          if (response.hasOwnProperty('transcript')) {
-            updateTranscript(response);
-          }
+	        function handleServerMessage(event) {
+	          let response = JSON.parse(event.data);
+	          if (response.type === "action_status" && response.hasOwnProperty("action_status")) {
+	            setActionStatus(response.action_status);
+	            return;
+	          }
           if (response.hasOwnProperty('code')) {
             updateCodeBlock(response);
           }
@@ -253,9 +271,9 @@
             try {
               setStatus("Connecting to server...");
               socket.onopen = function(event) {
-                  setStatus("Connected to server. Streaming instructions...");
+                  setStatus("Connected to server.");
               };
-              socket.onmessage = displayTranscripts;
+              socket.onmessage = handleServerMessage;
               socket.onerror = function(error) {
                   setStatus("Websocket error.");
               };
@@ -269,47 +287,50 @@
             return socket;
         }
         
-        function generateCodeRequest(socket, text, execute) {
-            try {
-              setStatus("Sending Request to Server... Generating code...");
-              socket.send(JSON.stringify(
-                { "type": "code", "prompt": text, "execute": execute }
-              ));
+	        function generateCodeRequest(socket, text) {
+	            try {
+	              if (socket.readyState !== WebSocket.OPEN) {
+	                setStatus("Websocket is not connected.");
+	                return;
+	              }
+	              setStatus("Sending Request to Server... Generating code...");
+	              socket.send(JSON.stringify(
+	                { "type": "code", "prompt": text }
+	              ));
             } catch (error) {
               setStatus("Error connecting to server.");
             }
 
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-          document.getElementById("code").textContent =
-`def task_program():
-    list_of_rooms = get_all_rooms()
-    start_loc = get_current_location()
-    for room in list_of_rooms:
-        go_to(room)
-        say("Hello, world!")
-    go_to(start_loc)`;
-          doSyntaxHighlighting();
+	        }
+	        document.addEventListener('DOMContentLoaded', function() {
+	          document.getElementById("code").textContent = "";
+	          doSyntaxHighlighting();
           const ws = openWebSocket();
 
           const genButton = document.getElementById("generateCode");
           const execButton = document.getElementById("executeCode");
           const taskBox = document.getElementById("taskPrompt");
 
-          genButton.addEventListener("click", function() {
-            taskDescription = taskBox.value;
-            generateCodeRequest(ws, taskDescription, false);
-          });
+	          genButton.addEventListener("click", function() {
+		            const taskDescription = taskBox.value;
+	            generatedCode = "";
+	            document.getElementById("code").textContent = "";
+	            setActionStatus({call: "None", status: "IDLE", detail: ""});
+	            generateCodeRequest(ws, taskDescription);
+	          });
           execButton.addEventListener("click", function() {
             executeCode(ws);
           });
           taskBox.addEventListener("keydown", function(event) {
-              if (event.keyCode === 13 && !event.shiftKey) {
-                event.preventDefault();
-                taskDescription = taskBox.value;
-                generateCodeRequest(ws, taskDescription, true);
-              }
-          });
+	              if (event.key === "Enter" && !event.shiftKey) {
+		                event.preventDefault();
+		                const taskDescription = taskBox.value;
+	                generatedCode = "";
+	                document.getElementById("code").textContent = "";
+	                setActionStatus({call: "None", status: "IDLE", detail: ""});
+	                generateCodeRequest(ws, taskDescription);
+	              }
+	          });
 
         }, false);
 

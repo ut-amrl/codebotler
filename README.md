@@ -14,26 +14,26 @@ For robot deployment, source a ROS 2 workspace that provides `rclpy` and `cobot_
 
 ## Run
 
-Local UI without the transcript pipe:
+Local UI:
 
 ```shell
-python3 codebotler.py --disable-pipe
+python3 codebotler.py
 ```
+
+Without `--robot`, generated programs still execute through simulated DSL calls. Each DSL call blocks for five seconds, emits the same UI status updates, then succeeds.
 
 Robot deployment, matching `../../tmux/codebotler/.tmuxinator.yaml`:
 
 ```shell
-python3 codebotler.py --robot --transcription-pipe audio_pipe --ip 10.1.0.13 --disable-pipe
+python3 codebotler.py --robot --ip 10.1.0.13
 ```
 
 The UI is served on `http://<ip>:8080/` and uses a WebSocket on port `8190`.
 
 ## Key Arguments
 
-- `--model-name`: OpenAI chat model name, default `gpt-4`.
+- `--model-name`: OpenAI chat model name, default `gpt-5.4-mini`.
 - `--max-tokens`: maximum generated tokens, default `512`.
 - `--temperature`: OpenAI sampling temperature, default `0.2`.
 - `--top-p`: OpenAI nucleus sampling value, default `0.95`.
-- `--chat-prompt-prefix`: Python file containing the chat prompt `messages` list.
-- `--robot`: enables ROS action execution through `robot_client.py`.
-- `--disable-pipe`: disables transcript-pipe reading and uses only WebSocket/UI input.
+- `--robot`: uses real ROS action clients instead of simulated DSL calls.
