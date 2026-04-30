@@ -10,8 +10,12 @@ import json
 import signal
 import time
 import sys
+import importlib.util
+from pathlib import Path
 
-from openai_codegen import OpenAICodeGenerator
+from openai import OpenAI
+
+TASK_PROGRAM_HEADER = "def task_program():"
 
 ros_available = False
 robot_available = False
@@ -31,6 +35,67 @@ server_thread = None
 model = None
 ws_server = None
 pipe_descriptor = None
+
+
+def repo_path(path: Path) -> Path:
+  path = Path(path)
+  if path.is_absolute():
+    return path
+  return Path(__file__).resolve().parent / path
+
+
+def load_openai_api_key() -> str:
+  key_path = Path(__file__).resolve().parent / ".openai_api_key"
+  if key_path.exists():
+    key = key_path.read_text().strip()
+  else:
+    key = os.getenv("OPENAI_API_KEY", "").strip()
+  if not key:
+    raise RuntimeError(
+      "OpenAI API key not found. Create '.openai_api_key' in the "
+      "codebotler repo or set OPENAI_API_KEY."
+    )
+  return key
+
+
+def load_prompt_messages(prompt_path: Path) -> list[dict]:
+  prompt_path = repo_path(prompt_path)
+  spec = importlib.util.spec_from_file_location("codebotler_prompt", prompt_path)
+  module = importlib.util.module_from_spec(spec)
+  spec.loader.exec_module(module)
+  return module.messages
+
+
+def ensure_task_program(code: str) -> str:
+  code = code.strip()
+  if code.startswith(TASK_PROGRAM_HEADER):
+    return code
+  return f"{TASK_PROGRAM_HEADER}\n{code}".strip()
+
+
+class OpenAICodeGenerator:
+  def __init__(self, model: str, prompt_path: Path):
+    print("Using OpenAI Chat model:", model)
+    self.model = model
+    self.client = OpenAI(api_key=load_openai_api_key())
+    self.messages = load_prompt_messages(prompt_path)
+
+  def generate_one(self, prompt, stop_sequences, temperature, top_p, max_tokens):
+    if len(stop_sequences) > 4:
+      raise ValueError("OpenAI API only supports up to 4 stop sequences.")
+
+    response = self.client.chat.completions.create(
+      model=self.model,
+      messages=self.messages + [{"role": "user", "content": prompt}],
+      stop=stop_sequences,
+      temperature=temperature,
+      top_p=top_p,
+      max_completion_tokens=max_tokens,
+    )
+    usage = response.usage
+    if usage is not None:
+      print(f"Tokens used: input={usage.prompt_tokens}, output={usage.completion_tokens}")
+    return ensure_task_program(response.choices[0].message.content or "")
 
 
 def serve_interface_html(args):
@@ -368,7 +433,6 @@ def main():
   global model
   global pipe_descriptor
   import argparse
-  from pathlib import Path
   parser = argparse.ArgumentParser()
 
   parser.add_argument('--ip', type=str, help='IP address', default="localhost")
