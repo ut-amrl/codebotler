@@ -1,45 +1,39 @@
 # CodeBotler
 
-CodeBotler is a system that converts natural language task descriptions into robot-agnostic programs that can be executed by general-purpose service mobile robots.
-
-![CodeBotler Web Interface](https://amrl.cs.utexas.edu/codebotler/assets/images/et_gif.gif)
+CodeBotler is the deployment UI and OpenAI code-generation layer for turning natural-language robot tasks into Python `task_program()` functions.
 
 ## Requirements
 
-We provide a conda environment to run our code. To create and activate the environment:
 ```shell
 conda create -n codebotler python=3.12.8 pip
 conda activate codebotler
 pip install -r requirements.txt
 ```
-After installing the conda environment, please go to [pytorch's official website](https://pytorch.org/get-started/locally/) to install the pytorch corresponding to your cuda version (**Note: do not install the cpu version**).
 
-**ROS2 Requirements**
-* For robot deployment, you will need ROS2 installed on your system. CodeBotler uses ROS2 actions for robot communication.
-* Install ROS2 following the [official ROS2 installation guide](https://docs.ros.org/en/humble/Installation.html).
-* The robot interface components will automatically install the required ROS2 Python packages (`rclpy`).
+For robot deployment, source a ROS 2 workspace that provides `rclpy` and `cobot_codebotler_actions`. Store the OpenAI key in `.openai_api_key` at this repo root or set `OPENAI_API_KEY`.
 
-**Language Model Options**
-* To use an OpenAI model, you will need an [OpenAI key](https://platform.openai.com/account/api-keys), either saved in a file named `.openai_api_key`, or in the `OPENAI_API_KEY` environment variable.
-* To use a PaLM model, you will need a [Google Generative API key](https://developers.generativeai.google/tutorials/setup), either saved in a file named `.palm_api_key`, or in the `PALM_API_KEY` environment variable.
-* You can use any pretrained model compatible with the [HuggingFace AutoModel](https://huggingface.co/transformers/v3.5.1/model_doc/auto.html#automodelforcausallm) interface, including open-source models from the [HuggingFace repository](https://huggingface.co/models) such as [Starcoder](https://huggingface.co/bigcode/starcoder). Note that some models, including Starcoder, require you to agree to the HuggingFace terms of use, and you must be logged in using `huggingface-cli login`.
-* You can also use a [HuggingFace Inference Endpoint](https://huggingface.co/docs/inference-endpoints/index).
+## Run
 
-## Quick Start Guide
+Local UI without the transcript pipe:
 
-To run the web interface for CodeBotler using the default options (using OpenAI's `gpt-4` model), run:
 ```shell
-python3 codebotler.py
+python3 codebotler.py --disable-pipe
 ```
-This will start the server on `localhost:8080`. You can then open the interface by navigating to http://localhost:8080/ in your browser.
 
-### Arguments
-* `--ip`: The IP address to host the server on (default is `localhost`).
-* `--port`: The port to host the server on (default is `8080`).
-* `--ws-port`: The port to host the websocket server on (default is `8190`).
-* `--model-type`: The type of model to use. It is either `openai-chat` (default) and `openai` for [OpenAI](https://platform.openai.com), `palm` for [PaLM](https://developers.generativeai.google/), or `automodel` for [AutoModel](https://huggingface.co/transformers/model_doc/auto.html#automodel).
-* `--model-name`: The name of the model to use. Recommended options are `gpt-4` for GPT-4 (default), `text-daVinci-003` for GPT-3.5, `models/text-bison-001` for PaLM, and `bigcode/starcoder` for AutoModel.
-* `--robot`: Flag to indicate if the robot is available (default is `False`).
-* `--transcription-pipe`: Path to the named pipe for recieving transcription information
+Robot deployment, matching `../../tmux/codebotler/.tmuxinator.yaml`:
 
-Instructions for deploying on real robots are included in [robot_interface/README.md](robot_interface/README.md).
+```shell
+python3 codebotler.py --robot --transcription-pipe audio_pipe --ip 10.1.0.13 --disable-pipe
+```
+
+The UI is served on `http://<ip>:8080/` and uses a WebSocket on port `8190`.
+
+## Key Arguments
+
+- `--model-name`: OpenAI chat model name, default `gpt-4`.
+- `--max-tokens`: maximum generated tokens, default `512`.
+- `--temperature`: OpenAI sampling temperature, default `0.2`.
+- `--top-p`: OpenAI nucleus sampling value, default `0.95`.
+- `--chat-prompt-prefix`: Python file containing the chat prompt `messages` list.
+- `--robot`: enables ROS action execution through `robot_client.py`.
+- `--disable-pipe`: disables transcript-pipe reading and uses only WebSocket/UI input.

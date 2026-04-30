@@ -4,7 +4,6 @@ import os
 import threading
 import concurrent.futures
 import http.server
-import socketserver
 import asyncio
 import websockets
 import json
@@ -12,11 +11,7 @@ import signal
 import time
 import sys
 
-from models.model_factory import load_model
-from models.OpenAIChatModel import OpenAIChatModel
-
-
-import threading
+from openai_codegen import OpenAICodeGenerator
 
 ros_available = False
 robot_available = False
@@ -34,11 +29,10 @@ except:
 httpd = None
 server_thread = None
 model = None
-asyncio_loop = None
 ws_server = None
-prompt_prefix = ""
-prompt_suffix = ""
 pipe_descriptor = None
+
+
 def serve_interface_html(args):
   global httpd
   class HTMLFileHandler(http.server.SimpleHTTPRequestHandler):
@@ -60,12 +54,9 @@ def serve_interface_html(args):
     shutdown(None, None)
 
 def generate_code(prompt, args):
-  global model, prompt_prefix, prompt_suffix, code_timeout
+  global model
   start_time = time.time()
   stop_sequences = ["\n#", "\nclass", "```"]
-  if args.model_type != "openai-chat":
-    prompt = prompt_prefix + prompt + prompt_suffix
-    stop_sequences += ["\ndef"]
   code = model.generate_one(prompt=prompt,
                             stop_sequences=stop_sequences,
                             temperature=args.temperature,
@@ -74,39 +65,21 @@ def generate_code(prompt, args):
   end_time = time.time()
   time_str = f"{round(end_time - start_time, 2)}"
   print(f"Code generation time: {time_str} seconds")
-  if type(model) is not OpenAIChatModel:
-      code = (prompt_suffix + code).strip()
-  elif not code.startswith(prompt_suffix.strip()):
-      code = (prompt_suffix + "\n" + code).strip()
   return code, time_str
 
 def execute(code):
   global ros_available
   global robot_available
   global robot_interface
-  print(f"Recieved execution request for program:\n```python\n{code}\n```")
+  print(f"Received execution request for program:\n```python\n{code}\n```")
   if not ros_available:
     print("ROS not available. Ignoring execute request.")
   elif not robot_available:
     print("Robot not available. Ignoring execute request.")
   else:
-    from robot_interface.src.robot_client_interface import execute_task_program
+    from robot_client import execute_task_program
     robot_execution_thread = threading.Thread(target=execute_task_program, name="robot_execute", args=[code, robot_interface])
     robot_execution_thread.start()
-
-def initiate_place():
-  global ros_available
-  global robot_available
-  global robot_interface
-  print("Received initiation request for place operation")
-  if not ros_available:
-    print("ROS not available. Ignoring place request.")
-  elif not robot_available:
-    print("Robot not available. Ignoring place request.")
-  else:
-    from robot_interface.src.robot_client_interface import initiate_place_action
-    place_thread = threading.Thread(target=initiate_place_action, name="robot_place", args=[robot_interface])
-    place_thread.start()
 
 async def handle_message(websocket, message, args):
   data = json.loads(message)
@@ -118,15 +91,9 @@ async def handle_message(websocket, message, args):
     if data['execute']:
       print("Executing generated code")
       execute(code)
-  elif data['type'] == 'eval':
-    print("Received eval request")
-    # await eval(websocket, data)
   elif data['type'] == 'execute':
     print("Executing generated code...")
     execute(data['code'])
-  elif data['type'] == 'place':
-    print("Initiating place operation...")
-    initiate_place()
   else:
     print("Unknown message type: " + data['type'])
 
@@ -283,7 +250,7 @@ async def ws_main(websocket, path, args, accumulator, connected_clients):
   await receive_messages()
   #await asyncio.gather(receive_messages(), send_messages())
 
-async def broadcast_transcripts_from_pipe(args, fd, accumulator, ws_server, clients, last_gen_code, lock, executor):
+async def broadcast_transcripts_from_pipe(args, fd, accumulator, clients, last_gen_code, lock, executor):
   try:
     async for line in read_from_pipe(fd, executor):
       instruction = await accumulator.accumulate(line)
@@ -319,13 +286,14 @@ async def broadcast_transcripts_from_pipe(args, fd, accumulator, ws_server, clie
     print("Closing pipe")
 
 async def start_ws_server(args, fd):
+  global ws_server
   executor = concurrent.futures.ThreadPoolExecutor()
   lock = asyncio.Lock()
   last_gen_code = [None]
   acc = Accumulator()
   connected_clients = set()
   ## Start the websocket server
-  websocket_server = await websockets.serve(
+  ws_server = await websockets.serve(
     lambda ws, path="": ws_main(ws, path, args, acc, connected_clients), 
     args.ip, args.ws_port)
   print(f"WebSocket server started at ws://{args.ip}:{args.ws_port}")
@@ -337,10 +305,10 @@ async def start_ws_server(args, fd):
   if fd is not None:
     broadcast_task = asyncio.create_task(
       broadcast_transcripts_from_pipe(
-        args, fd, acc, websocket_server, connected_clients, last_gen_code, lock, executor))
-    await asyncio.gather(websocket_server.wait_closed(), broadcast_task)
+        args, fd, acc, connected_clients, last_gen_code, lock, executor))
+    await asyncio.gather(ws_server.wait_closed(), broadcast_task)
   else:
-    await asyncio.gather(websocket_server.wait_closed())
+    await asyncio.gather(ws_server.wait_closed())
 
   executor.shutdown(wait=False)
 
@@ -352,7 +320,7 @@ def start_completion_callback(args, fd):
     shutdown(None, None)
 
 def shutdown(sig, frame):
-  global ros_available, robot_available, robot_interface, server_thread, asyncio_loop, httpd, ws_server, pipe_descriptor
+  global ros_available, robot_available, robot_interface, server_thread, httpd, ws_server, pipe_descriptor
   print(" Shutting down server.")
   if robot_available and ros_available and robot_interface is not None:
     robot_interface._cancel_goals() # TODO
@@ -394,12 +362,9 @@ def shutdown(sig, frame):
 
 def main():
   global server_thread
-  global prompt_prefix
-  global prompt_suffix
   global ros_available
   global robot_available
   global robot_interface
-  global code_timeout
   global model
   global pipe_descriptor
   import argparse
@@ -409,35 +374,26 @@ def main():
   parser.add_argument('--ip', type=str, help='IP address', default="localhost")
   parser.add_argument('--port', type=int, help='HTML server port number', default=8080)
   parser.add_argument('--ws-port', type=int, help='Websocket server port number', default=8190)
-  parser.add_argument("--model-type", choices=["openai", "openai-chat", "palm", "automodel", "hf-textgen"], default="openai-chat")
   parser.add_argument('--model-name', type=str, help='Model name', default='gpt-4')
-  parser.add_argument('--tgi-server-url', type=str, help='Text Generation Inference Client URL', default='http://127.0.0.1:8082')
-  parser.add_argument('--chat-prompt-prefix', type=Path, help='Prompt prefix for GPT chat completion only', default='code_generation/openai_chat_completion_prefix.py')
-  parser.add_argument('--prompt-prefix', type=Path, help='Prompt prefix for all but GPT chat completion', default='code_generation/prompt_prefix.py')
-  parser.add_argument('--prompt-suffix', type=Path, help='Prompt suffix for all but GPT chat completion', default='code_generation/prompt_suffix.py')
+  parser.add_argument('--chat-prompt-prefix', type=Path, help='OpenAI chat prompt file', default='code_generation/openai_chat_completion_prefix.py')
   parser.add_argument('--interface-page', type=Path, help='Interface page', default='code_generation/interface.html')
-  parser.add_argument('--max-workers', type=int, help='Maximum number of workers', default=1)
   parser.add_argument("--max-tokens", type=int, default=512)
   parser.add_argument("--top-p", type=float, default=0.95)
   parser.add_argument("--temperature", type=float, default=0.2)
   parser.add_argument('--robot', action='store_true', help='Flag to indicate if the robot is available')
-  parser.add_argument('--timeout', type=int, help='Code generation timeout in seconds', default=20)
   parser.add_argument('--transcription-pipe', type=Path, help='Pipe from which to read audio transcriptions', default='/tmp/audio_pipe')
   parser.add_argument('--disable-pipe', action='store_true', default=False, help='Specify this flag to disable the audio pipe')
   args = parser.parse_args()
 
   robot_available = args.robot
-  code_timeout = args.timeout
 
   signal.signal(signal.SIGINT, shutdown)
 
   if robot_available and ros_available:
-    from robot_interface.src.robot_client_interface import RobotInterface
+    from robot_client import RobotInterface
     robot_interface = RobotInterface()
 
-  prompt_prefix = args.prompt_prefix.read_text()
-  prompt_suffix = args.prompt_suffix.read_text()
-  model = load_model(args)
+  model = OpenAICodeGenerator(model=args.model_name, prompt_path=args.chat_prompt_prefix)
   server_thread = threading.Thread(target=serve_interface_html,
                                    name="HTTP server thread",
                                    args=[args])

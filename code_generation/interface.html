@@ -114,17 +114,6 @@
           margin: 1rem 0 0;
           align-items: center;
       }
-      .details-container {
-          width: 834px;
-          /* max-width: 834px; */
-          /* display: flex; */
-          /* justify-content: space-between; */
-          margin: 0 0 1rem;
-          align-items: center;
-          border-radius: 8px;
-          border: 1px solid #ccc;
-          padding: 1rem 0 1rem 0;
-      }
 
       .button {
           padding: 0.5rem 1rem;
@@ -144,67 +133,6 @@
       .highlight-function {
         color: #bf6c00; /* this will make "my_func" appear in orange color */
       }
-      /* Style the container label */
-      details {
-        /* background-color: #f9f9f9; */
-        color: #898989;
-        display: inline-block;
-        /* margin-right: 0.5em; */
-        padding: 0 0.5em 0 0.5em;
-        vertical-align: middle;
-        width: 785px;
-      }
-      /* Hide the default "+" button */
-      details summary::-webkit-details-marker {
-        display: none;
-      }
-
-      /* Style the "+" and "-" buttons */
-      details summary::before {
-        content: "+";
-        display: inline-block;
-        width: 1em;
-        margin-right: 0.5em;
-        text-align: center;
-        cursor: pointer;
-      }
-
-      details[open] summary::before {
-        content: "-";
-      }
-
-      /* Keep the summary text in the same place */
-      details summary {
-        display: inline-block;
-        margin-right: 0.5em;
-        vertical-align: middle;
-      }
-      
-      .table-container table tr:nth-child(even) {
-        background-color: #fff; /* White for odd rows */
-      }
-
-      .table-container table tr:nth-child(odd) {
-        background-color: #f2f2f2; /* Light grey for even rows */
-      }
-      
-      .table-container table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-        margin-left: 20px;
-      }
-
-      .table-container table tr {
-        border-bottom: 1px solid #ccc; /* Grey horizontal lines */
-      }
-      
-      .table-container table tr td {
-        padding: 0.5rem; /* Padding inside the cell */
-      }
-      .table-container table tr:first-child {
-        border-top: 1px solid #ccc;
-      }
     </style>
 </head>
 <body>
@@ -223,27 +151,6 @@
       <button class="button" id="generateCode">Generate Code</button>
       <button class="button" id="executeCode">Execute!</button>
     </div>
-    <!--
-    <div class="details-container">
-      <details>
-          <summary>Execution Trace</summary>
-          <div class="table-container">
-            <table>
-              <tr>
-                <td>get_all_rooms() -> ["Alice's office", "Bob's office",
-                "kitchen", "supply room"]</td>
-              </tr>
-              <tr>
-                <td>go_to("Alice's office")</td>
-              </tr>
-              <tr>
-                <td>say("Hello, world!")</td>
-              </tr>
-            </table>
-          </div>
-      </details>
-    </div>
-    -->
 
     <pre class="status-box" id="status-box"></pre>
 
@@ -251,9 +158,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/components/prism-python.min.js"></script>
     <script>
         const SERVER_URL = 'ws://localhost:8190';
-        // Timers
-        let tStart = performance.now();
-        let tEnd = performance.now();
 
         function autoGrow(textarea) {
           textarea.style.height = 'auto';
@@ -261,22 +165,16 @@
           textarea.style.height = (prevScrollHeight - 16) + 'px';
         }
 
-
-        function generateCode() {
-          taskDescription = document.getElementById("taskPrompt").value;
-          generateCodeRequest(taskDescription, false);
-        }
-
         function executeCode(socket) {
           setStatus("Executing previous program.");
           try {
             setStatus("Sending program for execution...");
-            eval_data = {
+            executeData = {
                 "type": "execute",
                 "task": document.getElementById("taskPrompt").value,
                 "code": document.getElementById("code").textContent
             };
-            socket.send(JSON.stringify(eval_data));
+            socket.send(JSON.stringify(executeData));
           } catch (error) {
             setStatus("Error connecting to server.");
           }
@@ -294,7 +192,7 @@
           // Then post-process to highlight specific function name
           // let codeElement = document.querySelector('.code-pane pre code');
           let codeHTML = codeElement.innerHTML;
-          codeHTML = codeHTML.replace(/\b(get_all_rooms|get_current_location|go_to|is_in_room|say|ask)\b/g, '<span class="highlight-function">$&</span>');
+          codeHTML = codeHTML.replace(/\b(get_all_rooms|get_current_location|go_to|is_in_room|say|ask|pick|place)\b/g, '<span class="highlight-function">$&</span>');
           codeElement.innerHTML = codeHTML;
         }
 
@@ -304,9 +202,6 @@
           element.innerHTML = textString;
         }
 
-        function handleTraceCallback(event) {
-          
-        }
         function updateCodeBlock(response) {
           setStatus("Code generated in " + response.timing + " seconds.");
           let codeElement = document.getElementById("code");
@@ -353,7 +248,7 @@
           }
         }
 
-        function openWebSocket(wsUrl) {
+        function openWebSocket() {
             let socket = new WebSocket(SERVER_URL);
             try {
               setStatus("Connecting to server...");
@@ -385,36 +280,6 @@
             }
 
         }
-        function buttonPressed(button) {
-            setStatus("You pressed the " + button.textContent + " button.");
-            try {
-              let socket = new WebSocket(SERVER_URL);
-              setStatus("Connecting to server...");
-              socket.onopen = function(event) {
-                  setStatus("Connected to server. Sending result...");
-                  eval_data = {
-                      "type": "eval",
-                      "task": document.getElementById("taskPrompt").value,
-                      "code": document.getElementById("code").textContent,
-                      "result": button.textContent
-                  };
-                  socket.send(JSON.stringify(eval_data));
-              };
-              socket.onmessage = function(event) {
-                  setStatus("Acknowledged. Closing connection...");
-                  socket.close();
-              };
-              socket.onerror = function(error) {
-                  setStatus("Websocket error.");
-              };
-
-              socket.onclose = function(event) {
-                  setStatus("Connection closed.");
-              };
-            } catch (error) {
-              setStatus("Error connecting to server.");
-            }
-        }
         document.addEventListener('DOMContentLoaded', function() {
           document.getElementById("code").textContent =
 `def task_program():
@@ -425,7 +290,7 @@
         say("Hello, world!")
     go_to(start_loc)`;
           doSyntaxHighlighting();
-          const ws = openWebSocket(SERVER_URL);
+          const ws = openWebSocket();
 
           const genButton = document.getElementById("generateCode");
           const execButton = document.getElementById("executeCode");
@@ -451,4 +316,3 @@
 </script>
 </body>
 </html>
-
