@@ -20,7 +20,8 @@ from openai import OpenAI
 TASK_PROGRAM_HEADER = "def task_program():"
 REPO_ROOT = Path(__file__).resolve().parent
 INTERFACE_FILE = REPO_ROOT / "interface.html"
-PROMPT_FILE = REPO_ROOT / "openai_chat_completion_prefix.py"
+#PROMPT_FILE = REPO_ROOT / "openai_chat_completion_prefix.py"
+PROMPT_FILE = REPO_ROOT / "qwen_chat_completion_prefix.py"
 CONSOLE_LOG_DIR = Path(os.getenv("CODEBOTLER_CONSOLE_LOG_DIR", "/tmp/codebotler_console_logs"))
 CONSOLE_LOGS = {
   "codebotler": CONSOLE_LOG_DIR / "codebotler.log",
@@ -372,9 +373,16 @@ def ensure_task_program(code: str) -> str:
 
 class OpenAICodeGenerator:
   def __init__(self, model: str):
-    print("Using OpenAI Chat model:", model)
+    # print("Using OpenAI Chat model:", model)
+    # self.model = model
+    # self.client = OpenAI(api_key=load_openai_api_key())
+    # self.messages = load_prompt_messages(PROMPT_FILE)
+    print("Using Qwen model via Ollama:", model)
     self.model = model
-    self.client = OpenAI(api_key=load_openai_api_key())
+    self.client = OpenAI(
+        api_key="ollama",
+        base_url="http://localhost:11434/v1",
+    )
     self.messages = load_prompt_messages(PROMPT_FILE)
 
   def generate_one(self, prompt, stop_sequences, temperature, top_p, max_tokens):
@@ -393,6 +401,8 @@ class OpenAICodeGenerator:
 
     response = self.client.chat.completions.create(**request)
     usage = response.usage
+    raw = response.choices[0].message.content or ""
+    print(f"Raw Qwen response:\n{raw}")  # 이 줄 추가
     if usage is not None:
       print(f"Tokens used: input={usage.prompt_tokens}, output={usage.completion_tokens}")
     return ensure_task_program(response.choices[0].message.content or "")
@@ -420,7 +430,8 @@ def serve_interface_html(args):
 
 def generate_code(prompt, args, generator):
   start_time = time.time()
-  stop_sequences = ["\n#", "\nclass", "```"]
+  # stop_sequences = ["\n#", "\nclass", "```"] 
+  stop_sequences = ["\n#", "\nclass"] 
   code = generator.generate_one(prompt=prompt,
                                 stop_sequences=stop_sequences,
                                 temperature=args.temperature,
@@ -554,7 +565,9 @@ def main():
   parser.add_argument('--ip', type=str, help='IP address', default="localhost")
   parser.add_argument('--port', type=int, help='HTML server port number', default=8080)
   parser.add_argument('--ws-port', type=int, help='Websocket server port number', default=8190)
-  parser.add_argument('--model-name', type=str, help='Model name', default='gpt-5.4-mini')
+  #parser.add_argument('--model-name', type=str, help='Model name', default='gpt-5.4-mini')
+  parser.add_argument('--model-name', type=str, help='Model name', default='qwen2.5-coder:7b')
+  #parser.add_argument('--model-name', type=str, help='Model name', default='gemma4:12b')
   parser.add_argument("--max-tokens", type=int, default=512)
   parser.add_argument("--top-p", type=float, default=0.95)
   parser.add_argument("--temperature", type=float, default=0.2)
